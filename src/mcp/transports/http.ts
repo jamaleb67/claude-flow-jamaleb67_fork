@@ -345,7 +345,7 @@ export class HttpTransport implements ITransport {
         error: {
           code: -32603,
           message: 'Internal error',
-          data: error instanceof Error ? error.message : String(error),
+          data: error instanceof Error ? (error as Error).message : String(error),
         },
       });
     }
@@ -376,7 +376,7 @@ export class HttpTransport implements ITransport {
         error: {
           code: -32603,
           message: 'Internal error',
-          data: error instanceof Error ? error.message : String(error),
+          data: error instanceof Error ? (error as Error).message : String(error),
         },
       };
     }

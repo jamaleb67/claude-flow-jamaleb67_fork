@@ -264,7 +264,7 @@ export async function startNodeREPL(options: any = {}): Promise<void> {
           ctx.workingDirectory = process.cwd();
           console.log(chalk.gray(`Changed to: ${ctx.workingDirectory}`));
         } catch (error) {
-          console.error(chalk.red('Error:'), error instanceof Error ? error.message : String(error));
+          console.error(chalk.red('Error:'), error instanceof Error ? (error as Error).message : String(error));
         }
       },
     },
@@ -330,7 +330,7 @@ export async function startNodeREPL(options: any = {}): Promise<void> {
       try {
         await command.handler(commandArgs, context);
       } catch (error) {
-        console.error(chalk.red('Command failed:'), error instanceof Error ? error.message : String(error));
+        console.error(chalk.red('Command failed:'), error instanceof Error ? (error as Error).message : String(error));
       }
     } else {
       console.log(chalk.red(`Unknown command: ${commandName}`));
@@ -355,7 +355,7 @@ export async function startNodeREPL(options: any = {}): Promise<void> {
     try {
       await processCommand(input);
     } catch (error) {
-      console.error(chalk.red('REPL Error:'), error instanceof Error ? error.message : String(error));
+      console.error(chalk.red('REPL Error:'), error instanceof Error ? (error as Error).message : String(error));
     }
     showPrompt();
   });
@@ -604,7 +604,7 @@ async function handleAgentCommand(args: string[], context: REPLContext): Promise
     const result = await executeCliCommand(cliArgs);
     console.log(result.output);
   } catch (error) {
-    console.error(chalk.red('Error executing agent command:'), error instanceof Error ? error.message : String(error));
+    console.error(chalk.red('Error executing agent command:'), error instanceof Error ? (error as Error).message : String(error));
   }
 }
 
@@ -625,7 +625,7 @@ async function handleTaskCommand(args: string[], context: REPLContext): Promise<
     const result = await executeCliCommand(cliArgs);
     console.log(result.output);
   } catch (error) {
-    console.error(chalk.red('Error executing task command:'), error instanceof Error ? error.message : String(error));
+    console.error(chalk.red('Error executing task command:'), error instanceof Error ? (error as Error).message : String(error));
   }
 }
 
@@ -641,7 +641,7 @@ async function handleMemoryCommand(args: string[], context: REPLContext): Promis
     const result = await executeCliCommand(cliArgs);
     console.log(result.output);
   } catch (error) {
-    console.error(chalk.red('Error executing memory command:'), error instanceof Error ? error.message : String(error));
+    console.error(chalk.red('Error executing memory command:'), error instanceof Error ? (error as Error).message : String(error));
   }
 }
 
@@ -657,7 +657,7 @@ async function handleSessionCommand(args: string[], context: REPLContext): Promi
     const result = await executeCliCommand(cliArgs);
     console.log(result.output);
   } catch (error) {
-    console.error(chalk.red('Error executing session command:'), error instanceof Error ? error.message : String(error));
+    console.error(chalk.red('Error executing session command:'), error instanceof Error ? (error as Error).message : String(error));
   }
 }
 
@@ -678,7 +678,7 @@ async function handleWorkflowCommand(args: string[], context: REPLContext): Prom
     const result = await executeCliCommand(cliArgs);
     console.log(result.output);
   } catch (error) {
-    console.error(chalk.red('Error executing workflow command:'), error instanceof Error ? error.message : String(error));
+    console.error(chalk.red('Error executing workflow command:'), error instanceof Error ? (error as Error).message : String(error));
   }
 }
 

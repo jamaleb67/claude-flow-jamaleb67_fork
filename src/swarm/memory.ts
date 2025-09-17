@@ -623,7 +623,7 @@ export class SwarmMemoryManager extends EventEmitter {
         this.logger.warn('Failed to share memory with agent', {
           key,
           targetAgent: targetAgent.id,
-          error: (error instanceof Error ? error.message : String(error))
+          error: (error instanceof Error ? (error as Error).message : String(error))
         });
       }
     }

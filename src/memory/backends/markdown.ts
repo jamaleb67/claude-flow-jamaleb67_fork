@@ -188,7 +188,7 @@ export class MarkdownBackend implements IMemoryBackend {
     } catch (error) {
       return {
         healthy: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? (error as Error).message : 'Unknown error',
       };
     }
   }
@@ -207,7 +207,7 @@ export class MarkdownBackend implements IMemoryBackend {
 
       this.logger.info('Loaded memory index', { entries: this.entries.size });
     } catch (error) {
-      if (error.code !== 'ENOENT') {
+      if ((error as any).code !== 'ENOENT') {
         this.logger.warn('Failed to load index', { error });
       }
       // Start with empty index if file doesn't exist

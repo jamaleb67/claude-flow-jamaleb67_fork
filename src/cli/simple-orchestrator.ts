@@ -281,7 +281,7 @@ function startWebUI(host: string, port: number) {
                             handleMessage(data);
                         } catch (error) {
                             console.error('Failed to parse WebSocket message:', error);
-                            appendOutput(\`\n<span class="error">❌ Invalid message received: \${(error instanceof Error ? error.message : String(error))}</span>\n\`);
+                            appendOutput(\`\n<span class="error">❌ Invalid message received: \${(error instanceof Error ? (error as Error).message : String(error))}</span>\n\`);
                         }
                     };
                     
@@ -308,13 +308,13 @@ function startWebUI(host: string, port: number) {
                     
                     ws.onerror = (error) => {
                         console.error('WebSocket error:', error);
-                        appendOutput(\`\n<span class="error">❌ WebSocket error: \${(error instanceof Error ? error.message : String(error)) || 'Connection failed'}</span>\n\`);
+                        appendOutput(\`\n<span class="error">❌ WebSocket error: \${(error instanceof Error ? (error as Error).message : String(error)) || 'Connection failed'}</span>\n\`);
                         isReconnecting = false;
                     };
                     
                 } catch (error) {
                     console.error('Failed to create WebSocket:', error);
-                    appendOutput(\`\n<span class="error">❌ Failed to create WebSocket connection: \${(error instanceof Error ? error.message : String(error))}</span>\n\`);
+                    appendOutput(\`\n<span class="error">❌ Failed to create WebSocket connection: \${(error instanceof Error ? (error as Error).message : String(error))}</span>\n\`);
                     isReconnecting = false;
                     
                     // Try reconnect if not exceeded max attempts
@@ -490,7 +490,7 @@ function startWebUI(host: string, port: number) {
       
       res.json({ success: true, message: 'Command executed' });
     } catch (error) {
-      res.status(500).json({ error: (error instanceof Error ? error.message : String(error)) });
+      res.status(500).json({ error: (error instanceof Error ? (error as Error).message : String(error)) });
     }
   });
   
@@ -566,7 +566,7 @@ function startWebUI(host: string, port: number) {
         console.error('Failed to handle WebSocket message:', error);
         ws.send(JSON.stringify({
           type: 'error',
-          data: `Invalid message format: ${(error instanceof Error ? error.message : String(error))}`,
+          data: `Invalid message format: ${(error instanceof Error ? (error as Error).message : String(error))}`,
           timestamp: new Date().toISOString()
         }));
       }
@@ -583,7 +583,7 @@ function startWebUI(host: string, port: number) {
       try {
         ws.send(JSON.stringify({
           type: 'error',
-          data: `Server WebSocket error: ${(error instanceof Error ? error.message : String(error)) || 'Unknown error'}`,
+          data: `Server WebSocket error: ${(error instanceof Error ? (error as Error).message : String(error)) || 'Unknown error'}`,
           timestamp: new Date().toISOString()
         }));
       } catch (sendError) {
@@ -620,7 +620,7 @@ function startWebUI(host: string, port: number) {
       executeCliCommand(command, ws);
       
     } catch (error) {
-      const errorMsg = `Error executing command: ${(error instanceof Error ? error.message : String(error))}`;
+      const errorMsg = `Error executing command: ${(error instanceof Error ? (error as Error).message : String(error))}`;
       outputHistory.push(errorMsg);
       sendResponse(ws, {
         type: 'error',
@@ -741,7 +741,7 @@ function startWebUI(host: string, port: number) {
     });
     
     child.on('error', (error) => {
-      const errorMsg = `<span class="error">Failed to execute command: ${(error instanceof Error ? error.message : String(error))}</span>`;
+      const errorMsg = `<span class="error">Failed to execute command: ${(error instanceof Error ? (error as Error).message : String(error))}</span>`;
       outputHistory.push(errorMsg);
       
       sendResponse(ws, {

@@ -1340,7 +1340,7 @@ class RetryManager extends EventEmitter {
     this.logger.debug('Retry scheduled', {
       messageId: message.id,
       target: target.id,
-      error: (error instanceof Error ? error.message : String(error))
+      error: (error instanceof Error ? (error as Error).message : String(error))
     });
   }
 
@@ -1379,7 +1379,7 @@ class RetryManager extends EventEmitter {
           this.logger.warn('Retry attempt failed', {
             messageId: entry.message.id,
             attempt: entry.attempts,
-            error: (error instanceof Error ? error.message : String(error))
+            error: (error instanceof Error ? (error as Error).message : String(error))
           });
         }
       }

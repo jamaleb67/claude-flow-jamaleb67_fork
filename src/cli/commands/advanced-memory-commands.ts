@@ -288,7 +288,7 @@ async function queryCommand(args: string[], flags: Record<string, any>): Promise
     }
 
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+    const message = error instanceof Error ? (error as Error).message : String(error);
     printError(`Query failed: ${message}`);
     if (flags.debug) {
       console.error(error);
@@ -374,7 +374,7 @@ async function exportCommand(args: string[], flags: Record<string, any>): Promis
     }
 
   } catch (error) {
-    printError(`Export failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Export failed: ${(error instanceof Error ? (error as Error).message : String(error))}`);
     if (flags.debug) {
       console.error(error);
     }
@@ -467,7 +467,7 @@ async function importCommand(args: string[], flags: Record<string, any>): Promis
     }
 
   } catch (error) {
-    printError(`Import failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Import failed: ${(error instanceof Error ? (error as Error).message : String(error))}`);
     if (flags.debug) {
       console.error(error);
     }
@@ -576,7 +576,7 @@ async function statsCommand(args: string[], flags: Record<string, any>): Promise
     }
 
   } catch (error) {
-    printError(`Stats failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Stats failed: ${(error instanceof Error ? (error as Error).message : String(error))}`);
     if (flags.debug) {
       console.error(error);
     }
@@ -640,7 +640,7 @@ async function cleanupCommand(args: string[], flags: Record<string, any>): Promi
     }
 
   } catch (error) {
-    printError(`Cleanup failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Cleanup failed: ${(error instanceof Error ? (error as Error).message : String(error))}`);
     if (flags.debug) {
       console.error(error);
     }
@@ -700,7 +700,7 @@ async function storeCommand(args: string[], flags: Record<string, any>): Promise
     }
 
   } catch (error) {
-    printError(`Store failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Store failed: ${(error instanceof Error ? (error as Error).message : String(error))}`);
   }
 }
 
@@ -766,7 +766,7 @@ async function getCommand(args: string[], flags: Record<string, any>): Promise<v
       }
     }
   } catch (error) {
-    printError(`Retrieve failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Retrieve failed: ${(error instanceof Error ? (error as Error).message : String(error))}`);
   }
 }
 
@@ -804,7 +804,7 @@ async function deleteCommand(args: string[], flags: Record<string, any>): Promis
       printError(`Failed to delete entry: ${key}`);
     }
   } catch (error) {
-    printError(`Delete failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Delete failed: ${(error instanceof Error ? (error as Error).message : String(error))}`);
   }
 }
 
@@ -845,7 +845,7 @@ async function listCommand(args: string[], flags: Record<string, any>): Promise<
       console.log(`Showing ${showing} of ${result.total} entries`);
     }
   } catch (error) {
-    printError(`List failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`List failed: ${(error instanceof Error ? (error as Error).message : String(error))}`);
   }
 }
 
@@ -864,7 +864,7 @@ async function namespacesCommand(args: string[], flags: Record<string, any>): Pr
       console.log(`${i + 1}. ${namespace}`);
     });
   } catch (error) {
-    printError(`Failed to list namespaces: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Failed to list namespaces: ${(error instanceof Error ? (error as Error).message : String(error))}`);
   }
 }
 
@@ -883,7 +883,7 @@ async function typesCommand(args: string[], flags: Record<string, any>): Promise
       console.log(`${i + 1}. ${type}`);
     });
   } catch (error) {
-    printError(`Failed to list types: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Failed to list types: ${(error instanceof Error ? (error as Error).message : String(error))}`);
   }
 }
 
@@ -902,7 +902,7 @@ async function tagsCommand(args: string[], flags: Record<string, any>): Promise<
       console.log(`${i + 1}. ${tag}`);
     });
   } catch (error) {
-    printError(`Failed to list tags: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Failed to list tags: ${(error instanceof Error ? (error as Error).message : String(error))}`);
   }
 }
 
@@ -927,6 +927,6 @@ async function configCommand(args: string[], flags: Record<string, any>): Promis
       console.log(JSON.stringify(config, null, 2));
     }
   } catch (error) {
-    printError(`Configuration operation failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Configuration operation failed: ${(error instanceof Error ? (error as Error).message : String(error))}`);
   }
 }

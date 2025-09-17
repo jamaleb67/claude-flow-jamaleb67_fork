@@ -530,7 +530,7 @@ export class SecurityManager extends EventEmitter {
 
       this.addAuditEntry(scan, 'system', 'scan_failed', 'scan', {
         scanId,
-        error: (error instanceof Error ? error.message : String(error))
+        error: (error instanceof Error ? (error as Error).message : String(error))
       });
 
       await this.saveScan(scan);
@@ -1078,7 +1078,7 @@ export class SecurityManager extends EventEmitter {
           const findings = this.parseNpmAuditResults(auditResult);
           resolve(findings);
         } catch (error) {
-          reject(new Error(`Failed to parse npm audit results: ${(error instanceof Error ? error.message : String(error))}`));
+          reject(new Error(`Failed to parse npm audit results: ${(error instanceof Error ? (error as Error).message : String(error))}`));
         }
       });
 

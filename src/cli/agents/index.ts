@@ -272,7 +272,7 @@ export class AgentLifecycle {
         const info = agent.getAgentInfo();
         this.logger.error('Agent initialization failed', {
           agentId: info.id.id,
-          error: error instanceof Error ? error.message : String(error)
+          error: error instanceof Error ? (error as Error).message : String(error)
         });
         throw error;
       })
@@ -293,7 +293,7 @@ export class AgentLifecycle {
         const info = agent.getAgentInfo();
         this.logger.error('Agent shutdown failed', {
           agentId: info.id.id,
-          error: error instanceof Error ? error.message : String(error)
+          error: error instanceof Error ? (error as Error).message : String(error)
         });
       })
     );

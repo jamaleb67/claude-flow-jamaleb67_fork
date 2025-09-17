@@ -514,8 +514,8 @@ export class SwarmCoordinator extends EventEmitter implements SwarmEventEmitter 
       agent.errorHistory.push({
         timestamp: new Date(),
         type: 'startup_error',
-        message: (error instanceof Error ? error.message : String(error)),
-        stack: error.stack,
+        message: (error instanceof Error ? (error as Error).message : String(error)),
+        stack: (error as Error).stack,
         context: { agentId },
         severity: 'high',
         resolved: false
@@ -859,13 +859,13 @@ export class SwarmCoordinator extends EventEmitter implements SwarmEventEmitter 
       throw new Error('Task not assigned to any agent');
     }
 
-    this.logger.warn('Task failed', { taskId, agentId: agent.id.id, error: (error instanceof Error ? error.message : String(error)) });
+    this.logger.warn('Task failed', { taskId, agentId: agent.id.id, error: (error instanceof Error ? (error as Error).message : String(error)) });
 
     task.error = {
       type: error.constructor.name,
-      message: (error instanceof Error ? error.message : String(error)),
-      code: error.code,
-      stack: error.stack,
+      message: (error instanceof Error ? (error as Error).message : String(error)),
+      code: (error as any).code,
+      stack: (error as Error).stack,
       context: { taskId, agentId: agent.id.id },
       recoverable: this.isRecoverableError(error),
       retryable: this.isRetryableError(error)
@@ -889,8 +889,8 @@ export class SwarmCoordinator extends EventEmitter implements SwarmEventEmitter 
     agent.errorHistory.push({
       timestamp: new Date(),
       type: 'task_failure',
-      message: (error instanceof Error ? error.message : String(error)),
-      stack: error.stack,
+      message: (error instanceof Error ? (error as Error).message : String(error)),
+      stack: (error as Error).stack,
       context: { taskId },
       severity: 'medium',
       resolved: false
@@ -909,7 +909,7 @@ export class SwarmCoordinator extends EventEmitter implements SwarmEventEmitter 
         timestamp: new Date(),
         from: 'running',
         to: 'retrying',
-        reason: `Task failed, will retry: ${(error instanceof Error ? error.message : String(error))}`,
+        reason: `Task failed, will retry: ${(error instanceof Error ? (error as Error).message : String(error))}`,
         triggeredBy: agent.id
       });
 
@@ -940,7 +940,7 @@ export class SwarmCoordinator extends EventEmitter implements SwarmEventEmitter 
         timestamp: new Date(),
         from: 'running',
         to: 'failed',
-        reason: `Task failed permanently: ${(error instanceof Error ? error.message : String(error))}`,
+        reason: `Task failed permanently: ${(error instanceof Error ? (error as Error).message : String(error))}`,
         triggeredBy: agent.id
       });
 
@@ -2198,7 +2198,7 @@ Ensure your implementation is complete, well-structured, and follows best practi
     } catch (error) {
       this.logger.error('Task execution failed', { 
         taskId: task.id.id,
-        error: (error instanceof Error ? error.message : String(error))
+        error: (error instanceof Error ? (error as Error).message : String(error))
       });
       throw error;
     }
@@ -2386,7 +2386,7 @@ Ensure your implementation is complete, well-structured, and follows best practi
     } catch (error) {
       this.logger.error('Failed to execute Claude agent', { 
         taskId: task.id.id,
-        error: (error instanceof Error ? error.message : String(error)) 
+        error: (error instanceof Error ? (error as Error).message : String(error)) 
       });
       throw error;
     }
@@ -2505,7 +2505,7 @@ Ensure your implementation is complete, well-structured, and follows best practi
           return await this.executeGenericTask(task, workDir, agent);
       }
     } catch (error) {
-      throw new Error(`Task execution failed: ${(error instanceof Error ? error.message : String(error))}`);
+      throw new Error(`Task execution failed: ${(error instanceof Error ? (error as Error).message : String(error))}`);
     }
   }
   
@@ -3060,7 +3060,7 @@ console.log('Tests completed for: ${task.name}');
       if (this.jsonOutputAggregator) {
         this.jsonOutputAggregator.addAgentError(
           agentId, 
-          error instanceof Error ? error.message : String(error)
+          error instanceof Error ? (error as Error).message : String(error)
         );
       }
     }

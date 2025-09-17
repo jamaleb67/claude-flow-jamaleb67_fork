@@ -115,7 +115,7 @@ export class SystemIntegration {
       
       // Try to initialize orchestrator if available
       try {
-        const { Orchestrator } = await import('../core/orchestrator-fixed.js');
+        const { Orchestrator } = await import('../core/orchestrator.js');
         this.orchestrator = new Orchestrator(
           this.configManager,
           this.eventBus,
@@ -345,7 +345,7 @@ export class SystemIntegration {
     // Error handling
     this.eventBus.on('system:error', (event) => {
       this.logger.error(`System Error in ${event.component}:`, event.error);
-      this.updateComponentStatus(event.component, 'unhealthy', event.error.message);
+      this.updateComponentStatus(event.component, 'unhealthy', (event.error as Error).message);
     });
     
     // Performance monitoring

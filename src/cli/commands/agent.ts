@@ -141,7 +141,7 @@ export function createAgentCommand(): Command {
         console.log(`Average Health: ${formatPercentage(stats.averageHealth)} | Pools: ${stats.pools}`);
         
       } catch (error) {
-        console.error(chalk.red('Error listing agents:'), (error instanceof Error ? error.message : String(error)));
+        console.error(chalk.red('Error listing agents:'), (error instanceof Error ? (error as Error).message : String(error)));
         process.exit(1);
       }
     });
@@ -252,7 +252,7 @@ export function createAgentCommand(): Command {
         }
         
       } catch (error) {
-        console.error(chalk.red('Error creating agent:'), (error instanceof Error ? error.message : String(error)));
+        console.error(chalk.red('Error creating agent:'), (error instanceof Error ? (error as Error).message : String(error)));
         process.exit(1);
       }
     });

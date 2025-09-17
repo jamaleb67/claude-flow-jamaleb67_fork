@@ -71,10 +71,10 @@ export function getErrorMessage(error: unknown): string {
     return error;
   }
   if (isError(error)) {
-    return error.message;
+    return (error as Error).message;
   }
   if (hasMessage(error)) {
-    return error.message;
+    return (error as Error).message;
   }
   return String(error);
 }
@@ -84,10 +84,10 @@ export function getErrorMessage(error: unknown): string {
  */
 export function getErrorStack(error: unknown): string | undefined {
   if (isError(error)) {
-    return error.stack;
+    return (error as Error).stack;
   }
   if (hasStack(error)) {
-    return error.stack;
+    return (error as Error).stack;
   }
   return undefined;
 }

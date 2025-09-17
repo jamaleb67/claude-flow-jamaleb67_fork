@@ -667,7 +667,7 @@ export class SwarmOrchestrator extends EventEmitter {
   private async handleTaskFailure(task: Task, execution: any, error: any): Promise<void> {
     await this.db.updateTask(task.id, {
       status: 'failed',
-      error: error.message,
+      error: (error as Error).message,
       completed_at: new Date()
     });
     

@@ -128,7 +128,7 @@ export class RollbackManager {
           const backup = await fs.readJson(manifestPath);
           backups.push(backup);
         } catch (error) {
-          logger.warn(`Invalid backup manifest in ${folder}: ${(error instanceof Error ? error.message : String(error))}`);
+          logger.warn(`Invalid backup manifest in ${folder}: ${(error instanceof Error ? (error as Error).message : String(error))}`);
         }
       }
     }
@@ -237,7 +237,7 @@ export class RollbackManager {
         try {
           await fs.chmod(targetPath, parseInt(file.permissions, 8));
         } catch (error) {
-          logger.warn(`Could not restore permissions for ${file.path}: ${(error instanceof Error ? error.message : String(error))}`);
+          logger.warn(`Could not restore permissions for ${file.path}: ${(error instanceof Error ? (error as Error).message : String(error))}`);
         }
       }
     }

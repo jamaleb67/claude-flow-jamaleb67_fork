@@ -52,7 +52,7 @@ async function copyFile(file: WorkerData['files'][0]): Promise<WorkerResult> {
     return {
       success: false,
       file: file.sourcePath,
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? (error as Error).message : String(error)
     };
   }
 }
@@ -76,7 +76,7 @@ main().catch(error => {
     parentPort.postMessage({
       success: false,
       file: 'worker',
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? (error as Error).message : String(error)
     });
   }
 });

@@ -83,7 +83,7 @@ export class ClaudeFlowExecutor {
       };
     } catch (error) {
       this.logger.error('Failed to execute Claude Flow SPARC command', { 
-        error: (error instanceof Error ? error.message : String(error)),
+        error: (error instanceof Error ? (error as Error).message : String(error)),
         taskId: task.id.id 
       });
       
@@ -95,7 +95,7 @@ export class ClaudeFlowExecutor {
           quality: 0,
           completeness: 0
         },
-        error: (error instanceof Error ? error.message : String(error))
+        error: (error instanceof Error ? (error as Error).message : String(error))
       };
     }
   }

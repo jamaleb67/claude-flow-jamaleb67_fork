@@ -88,7 +88,7 @@ export class AuthManager implements IAuthManager {
       this.logger.error('Authentication error', error);
       return {
         success: false,
-        error: error instanceof Error ? (error instanceof Error ? error.message : String(error)) : 'Authentication failed',
+        error: error instanceof Error ? (error instanceof Error ? (error as Error).message : String(error)) : 'Authentication failed',
       };
     }
   }

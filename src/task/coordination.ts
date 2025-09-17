@@ -787,7 +787,7 @@ export class TaskCoordinator extends EventEmitter {
     // Store failure info
     await this.storeInMemory(`task_execution:${data.taskId}`, {
       status: 'failed',
-      error: data.error.message,
+      error: (data.error as Error).message,
       failedAt: new Date()
     }, {
       namespace: 'task_execution',

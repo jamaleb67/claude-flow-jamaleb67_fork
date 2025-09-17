@@ -20,9 +20,9 @@ export async function handleRawModeError(
   error: Error, 
   options: FallbackOptions = {}
 ): Promise<void> {
-  const isRawModeError = (error instanceof Error ? error.message : String(error)).includes('Raw mode is not supported') || 
-                        (error instanceof Error ? error.message : String(error)).includes('stdin') ||
-                        (error instanceof Error ? error.message : String(error)).includes('Ink');
+  const isRawModeError = (error instanceof Error ? (error as Error).message : String(error)).includes('Raw mode is not supported') || 
+                        (error instanceof Error ? (error as Error).message : String(error)).includes('stdin') ||
+                        (error instanceof Error ? (error as Error).message : String(error)).includes('Ink');
 
   if (!isRawModeError) {
     throw error; // Re-throw if it's not a raw mode error

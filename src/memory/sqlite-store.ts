@@ -14,7 +14,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 class SqliteMemoryStore {
-  constructor(options = {}) {
+  private options: any;
+  private db: Database.Database | null = null;
+  private statements: Map<string, any> = new Map();
+
+  constructor(options: any = {}) {
     this.options = {
       dbName: options.dbName || 'memory.db',
       directory: options.directory || this._getMemoryDirectory(),

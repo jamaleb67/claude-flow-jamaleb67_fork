@@ -210,7 +210,7 @@ export class ClaudeConnectionPool extends EventEmitter {
     } catch (error) {
       this.logger.warn('Connection health check failed', { 
         id: conn.id, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+        error: error instanceof Error ? (error as Error).message : 'Unknown error' 
       });
       return false;
     }

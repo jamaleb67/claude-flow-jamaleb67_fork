@@ -149,7 +149,7 @@ export class MigrationValidator {
       }
       
     } catch (error) {
-      result.errors.push(`Failed to validate ${command}: ${(error instanceof Error ? error.message : String(error))}`);
+      result.errors.push(`Failed to validate ${command}: ${(error instanceof Error ? (error as Error).message : String(error))}`);
     }
   }
 
@@ -198,7 +198,7 @@ export class MigrationValidator {
           }
         }
       } catch (error) {
-        result.errors.push(`Invalid .roomodes file: ${(error instanceof Error ? error.message : String(error))}`);
+        result.errors.push(`Invalid .roomodes file: ${(error instanceof Error ? (error as Error).message : String(error))}`);
         check.passed = false;
       }
     }
@@ -234,7 +234,7 @@ export class MigrationValidator {
           }
           
         } catch (error) {
-          result.errors.push(`Cannot read file ${file}: ${(error instanceof Error ? error.message : String(error))}`);
+          result.errors.push(`Cannot read file ${file}: ${(error instanceof Error ? (error as Error).message : String(error))}`);
           check.passed = false;
         }
       }

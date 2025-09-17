@@ -123,7 +123,7 @@ export class SparcTaskExecutor {
     } catch (error) {
       this.logger.error('SPARC task execution failed', {
         taskId: task.id.id,
-        error: (error instanceof Error ? error.message : String(error))
+        error: (error instanceof Error ? (error as Error).message : String(error))
       });
       throw error;
     }

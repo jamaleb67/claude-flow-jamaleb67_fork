@@ -239,7 +239,7 @@ export class MCPLifecycleManager extends EventEmitter {
 
       return result;
     } catch (error) {
-      result.error = error instanceof Error ? error.message : 'Unknown error';
+      result.error = error instanceof Error ? (error as Error).message : 'Unknown error';
       this.logger.error('Health check failed', error);
       return result;
     }

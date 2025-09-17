@@ -21,7 +21,7 @@ export const buildConfig = {
   externals: [
     '@modelcontextprotocol/sdk',
     'better-sqlite3',
-    'node-pty',
+    'node-pty-prebuilt-multiarch',
     'blessed',
   ],
 };

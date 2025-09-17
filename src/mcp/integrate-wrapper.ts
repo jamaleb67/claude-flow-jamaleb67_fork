@@ -72,7 +72,7 @@ export function injectClaudeCodeClient(wrapper: ClaudeCodeMCPWrapper, client: Cl
       return {
         content: [{
           type: 'text',
-          text: `Error calling Claude Code tool ${toolName}: ${error instanceof Error ? error.message : String(error)}`,
+          text: `Error calling Claude Code tool ${toolName}: ${error instanceof Error ? (error as Error).message : String(error)}`,
         }],
         isError: true,
       };

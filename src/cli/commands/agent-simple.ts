@@ -71,7 +71,7 @@ async function initializeAgentSystem(): Promise<{ manager: AgentManager; registr
     
     return { manager: agentManager, registry: agentRegistry };
   } catch (error) {
-    throw new Error(`Failed to initialize agent system: ${(error instanceof Error ? error.message : String(error))}`);
+    throw new Error(`Failed to initialize agent system: ${(error instanceof Error ? (error as Error).message : String(error))}`);
   }
 }
 
@@ -106,7 +106,7 @@ export const agentCommands = {
       console.log(`   Template: ${templateName}`);
       
     } catch (error) {
-      console.error('❌ Error creating agent:', (error instanceof Error ? error.message : String(error)));
+      console.error('❌ Error creating agent:', (error instanceof Error ? (error as Error).message : String(error)));
     }
   },
 
@@ -166,7 +166,7 @@ export const agentCommands = {
       console.log(`   Average Health: ${Math.round(stats.averageHealth * 100)}%`);
       
     } catch (error) {
-      console.error('❌ Error listing agents:', (error instanceof Error ? error.message : String(error)));
+      console.error('❌ Error listing agents:', (error instanceof Error ? (error as Error).message : String(error)));
     }
   },
 
@@ -260,7 +260,7 @@ export const agentCommands = {
       }
       
     } catch (error) {
-      console.error('❌ Error getting agent info:', (error instanceof Error ? error.message : String(error)));
+      console.error('❌ Error getting agent info:', (error instanceof Error ? (error as Error).message : String(error)));
     }
   },
 
@@ -310,7 +310,7 @@ export const agentCommands = {
       }
       
     } catch (error) {
-      console.error('❌ Error terminating agent:', (error instanceof Error ? error.message : String(error)));
+      console.error('❌ Error terminating agent:', (error instanceof Error ? (error as Error).message : String(error)));
     }
   },
 
@@ -330,7 +330,7 @@ export const agentCommands = {
       console.log('✅ Agent started successfully');
       
     } catch (error) {
-      console.error('❌ Error starting agent:', (error instanceof Error ? error.message : String(error)));
+      console.error('❌ Error starting agent:', (error instanceof Error ? (error as Error).message : String(error)));
     }
   },
 
@@ -351,7 +351,7 @@ export const agentCommands = {
       console.log('✅ Agent restarted successfully');
       
     } catch (error) {
-      console.error('❌ Error restarting agent:', (error instanceof Error ? error.message : String(error)));
+      console.error('❌ Error restarting agent:', (error instanceof Error ? (error as Error).message : String(error)));
     }
   },
 
@@ -387,7 +387,7 @@ export const agentCommands = {
       console.log(`  Disk: ${Math.round(stats.resourceUtilization.disk / 1024 / 1024)}MB`);
       
     } catch (error) {
-      console.error('❌ Error getting health status:', (error instanceof Error ? error.message : String(error)));
+      console.error('❌ Error getting health status:', (error instanceof Error ? (error as Error).message : String(error)));
     }
   },
 

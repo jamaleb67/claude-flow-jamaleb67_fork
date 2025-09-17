@@ -132,7 +132,7 @@ async function main() {
 
 if (import.meta.url === `file://${Deno.execPath()}`) {
   main().catch((error) => {
-    printError(`Error: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Error: ${(error instanceof Error ? (error as Error).message : String(error))}`);
     process.exit(1);
   });
 }

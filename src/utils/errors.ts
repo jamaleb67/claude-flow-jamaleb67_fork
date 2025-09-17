@@ -219,7 +219,7 @@ export function isClaudeFlowError(error: unknown): error is ClaudeFlowError {
 
 export function formatError(error: unknown): string {
   if (error instanceof Error) {
-    return `${error.name}: ${error.message}`;
+    return `${error.name}: ${(error as Error).message}`;
   }
   return String(error);
 }

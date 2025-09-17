@@ -70,11 +70,11 @@ async function executeRuvSwarmCommand(
       }
     };
   } catch (error) {
-    logger?.error('ruv-swarm command failed', { command, error: (error instanceof Error ? error.message : String(error)) });
+    logger?.error('ruv-swarm command failed', { command, error: (error instanceof Error ? (error as Error).message : String(error)) });
     
     return {
       success: false,
-      error: (error instanceof Error ? error.message : String(error)),
+      error: (error instanceof Error ? (error as Error).message : String(error)),
       metadata: {
         timestamp: Date.now(),
         swarmId: context?.swarmId,
@@ -534,7 +534,7 @@ export async function isRuvSwarmAvailable(logger?: ILogger): Promise<boolean> {
     const result = await executeRuvSwarmCommand('--version', [], undefined, logger);
     return result.success;
   } catch (error) {
-    logger?.warn('ruv-swarm not available', { error: error instanceof Error ? (error instanceof Error ? error.message : String(error)) : error });
+    logger?.warn('ruv-swarm not available', { error: error instanceof Error ? (error instanceof Error ? (error as Error).message : String(error)) : error });
     return false;
   }
 }

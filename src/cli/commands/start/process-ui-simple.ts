@@ -27,7 +27,7 @@ export class ProcessUI {
 
     this.processManager.on('processError', ({ processId, error }: { processId: string; error: Error }) => {
       if (this.running) {
-        console.log(chalk.red(`\nProcess ${processId} error: ${(error instanceof Error ? error.message : String(error))}`));
+        console.log(chalk.red(`\nProcess ${processId} error: ${(error instanceof Error ? (error as Error).message : String(error))}`));
       }
     });
   }

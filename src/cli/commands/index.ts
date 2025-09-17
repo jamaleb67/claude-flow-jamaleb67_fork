@@ -4,7 +4,7 @@ import { CLI, success, error, warning, info, VERSION } from "../cli-core.js";
 import type { Command, CommandContext } from "../cli-core.js";
 import colors from "chalk";
 const { bold, blue, yellow } = colors;
-import { Orchestrator } from "../../core/orchestrator-fixed.js";
+import { Orchestrator } from "../../core/orchestrator.js";
 import { ConfigManager } from "../../core/config.js";
 import type { MemoryManager } from "../../memory/manager.js";
 import { EventBus } from "../../core/event-bus.js";

@@ -37,8 +37,8 @@ export class MigrationLogger {
   error(message: string, error?: Error | any, context?: any): void {
     this.log('error', message, context, error?.stack);
     console.log(chalk.red(`❌ ${message}`));
-    if (error && (error instanceof Error ? error.message : String(error)) !== message) {
-      console.log(chalk.red(`   ${(error instanceof Error ? error.message : String(error))}`));
+    if (error && (error instanceof Error ? (error as Error).message : String(error)) !== message) {
+      console.log(chalk.red(`   ${(error instanceof Error ? (error as Error).message : String(error))}`));
     }
   }
 
@@ -81,7 +81,7 @@ export class MigrationLogger {
       await fs.appendFile(this.logFile, logLine);
     } catch (error) {
       // Prevent recursive logging
-      console.error('Failed to write to log file:', (error instanceof Error ? error.message : String(error)));
+      console.error('Failed to write to log file:', (error instanceof Error ? (error as Error).message : String(error)));
     }
   }
 

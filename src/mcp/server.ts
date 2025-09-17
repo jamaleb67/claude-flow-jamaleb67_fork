@@ -227,7 +227,7 @@ export class MCPServer implements IMCPServer {
     } catch (error) {
       return {
         healthy: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? (error as Error).message : 'Unknown error',
       };
     }
   }
@@ -612,7 +612,7 @@ export class MCPServer implements IMCPServer {
     if (error instanceof MCPMethodNotFoundError) {
       return {
         code: -32601,
-        message: (error instanceof Error ? error.message : String(error)),
+        message: (error instanceof Error ? (error as Error).message : String(error)),
         data: error.details,
       };
     }
@@ -620,7 +620,7 @@ export class MCPServer implements IMCPServer {
     if (error instanceof MCPErrorClass) {
       return {
         code: -32603,
-        message: (error instanceof Error ? error.message : String(error)),
+        message: (error instanceof Error ? (error as Error).message : String(error)),
         data: error.details,
       };
     }
@@ -628,7 +628,7 @@ export class MCPServer implements IMCPServer {
     if (error instanceof Error) {
       return {
         code: -32603,
-        message: (error instanceof Error ? error.message : String(error)),
+        message: (error instanceof Error ? (error as Error).message : String(error)),
       };
     }
 

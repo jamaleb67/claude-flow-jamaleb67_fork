@@ -126,7 +126,7 @@ export class ResearcherAgent extends BaseAgent {
       this.logger.error('Research task failed', {
         agentId: this.id,
         taskId: task.id,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? (error as Error).message : String(error)
       });
       throw error;
     }

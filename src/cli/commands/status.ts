@@ -250,7 +250,7 @@ function showComponentStatus(status: any, componentName: string): void {
     for (const error of component.errors.slice(0, 5)) {
       errorRows.push([
         new Date(error.timestamp).toLocaleTimeString(),
-        error.message
+        (error as Error).message
       ]);
     }
     

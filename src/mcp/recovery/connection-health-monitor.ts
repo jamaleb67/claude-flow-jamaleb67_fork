@@ -239,12 +239,12 @@ export class ConnectionHealthMonitor extends EventEmitter {
     this.logger.warn('Heartbeat failed', {
       missedHeartbeats: this.missedHeartbeats,
       maxMissed: this.config.maxMissedHeartbeats,
-      error: (error instanceof Error ? error.message : String(error)),
+      error: (error instanceof Error ? (error as Error).message : String(error)),
     });
     
     if (this.missedHeartbeats >= this.config.maxMissedHeartbeats) {
       this.logger.error('Max missed heartbeats exceeded, connection unhealthy');
-      this.updateHealthStatus('disconnected', false, (error instanceof Error ? error.message : String(error)));
+      this.updateHealthStatus('disconnected', false, (error instanceof Error ? (error as Error).message : String(error)));
       
       if (this.config.enableAutoRecovery) {
         this.emit('connectionLost', { error });

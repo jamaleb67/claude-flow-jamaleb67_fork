@@ -417,7 +417,7 @@ export class Agent extends EventEmitter {
     // Update task status
     await this.db.updateTask(taskId, {
       status: 'failed',
-      error: error.message,
+      error: (error as Error).message,
       completed_at: new Date()
     });
     
@@ -436,7 +436,7 @@ export class Agent extends EventEmitter {
     await this.sendMessage(null, 'task_failed', {
       taskId,
       agentId: this.id,
-      error: error.message,
+      error: (error as Error).message,
       timestamp: new Date()
     });
     

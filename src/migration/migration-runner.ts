@@ -107,7 +107,7 @@ export class MigrationRunner {
       this.printSummary(result);
 
     } catch (error) {
-      result.errors.push({ error: (error instanceof Error ? error.message : String(error)), stack: error.stack });
+      result.errors.push({ error: (error instanceof Error ? (error as Error).message : String(error)), stack: (error as Error).stack });
       this.progress.error('Migration failed');
       
       // Attempt rollback on failure

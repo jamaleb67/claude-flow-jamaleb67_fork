@@ -749,7 +749,7 @@ export class AdvancedMemoryManager extends EventEmitter {
               break;
           }
         } catch (error) {
-          results.conflicts.push(`Error importing '${item.key}': ${(error instanceof Error ? error.message : String(error))}`);
+          results.conflicts.push(`Error importing '${item.key}': ${(error instanceof Error ? (error as Error).message : String(error))}`);
         }
       }
 

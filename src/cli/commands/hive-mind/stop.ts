@@ -126,7 +126,7 @@ export const stopCommand = new Command('stop')
       }
       
     } catch (error) {
-      console.error(chalk.red('Error stopping session:'), error.message);
+      console.error(chalk.red('Error stopping session:'), (error as Error).message);
       process.exit(1);
     } finally {
       sessionManager.close();

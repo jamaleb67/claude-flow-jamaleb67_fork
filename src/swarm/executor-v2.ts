@@ -66,7 +66,7 @@ export class TaskExecutorV2 extends TaskExecutor {
       // Handle interactive errors with retry
       if (this.isInteractiveError(error) && enhancedOptions.retryOnInteractiveError) {
         this.logger.warn('Interactive error detected, retrying with non-interactive mode', {
-          error: error.message
+          error: (error as Error).message
         });
         
         // Force non-interactive mode and retry
@@ -219,7 +219,7 @@ export class TaskExecutorV2 extends TaskExecutor {
           clearTimeout(timeoutHandle);
           this.logger.error('Process error', {
             sessionId,
-            error: error.message,
+            error: (error as Error).message,
             code: (error as any).code
           });
           reject(error);
@@ -380,7 +380,7 @@ export class TaskExecutorV2 extends TaskExecutor {
   private isInteractiveError(error: any): boolean {
     if (!(error instanceof Error)) return false;
     
-    const errorMessage = error.message.toLowerCase();
+    const errorMessage = (error as Error).message.toLowerCase();
     return errorMessage.includes('raw mode') ||
            errorMessage.includes('stdin') ||
            errorMessage.includes('interactive') ||

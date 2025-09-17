@@ -71,7 +71,7 @@ export function createSwarmTools(logger: ILogger): MCPTool[] {
           logger.error('Failed to spawn agent via legacy dispatch tool', error);
           return {
             success: false,
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: error instanceof Error ? (error as Error).message : 'Unknown error',
           };
         }
       }
@@ -673,7 +673,7 @@ export function createSwarmTools(logger: ILogger): MCPTool[] {
         } catch (error) {
           logger.error('Emergency stop failed via MCP', error);
           results.success = false;
-          results.error = error instanceof Error ? error.message : 'Unknown error';
+          results.error = error instanceof Error ? (error as Error).message : 'Unknown error';
           throw error;
         }
       }
@@ -774,7 +774,7 @@ export async function handleDispatchAgent(args: any): Promise<any> {
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? (error as Error).message : 'Unknown error',
     };
   }
 }

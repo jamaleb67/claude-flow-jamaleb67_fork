@@ -541,7 +541,7 @@ export class AgentManager extends EventEmitter {
       this.emit('agent:started', { agent });
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? (error as Error).message : String(error);
       agent.status = 'error';
       this.addAgentError(agentId, {
         timestamp: new Date(),
@@ -1043,7 +1043,7 @@ export class AgentManager extends EventEmitter {
     this.addAgentError(agentId, {
       timestamp: new Date(),
       type: 'process_error',
-      message: (error instanceof Error ? error.message : String(error)),
+      message: (error instanceof Error ? (error as Error).message : String(error)),
       context: { error: error.toString() },
       severity: 'critical',
       resolved: false

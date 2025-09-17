@@ -230,9 +230,9 @@ export class OptimizedExecutor extends EventEmitter {
           output: '',
           error: {
             type: error instanceof Error ? error.constructor.name : 'UnknownError',
-            message: error instanceof Error ? error.message : 'Unknown error',
+            message: error instanceof Error ? (error as Error).message : 'Unknown error',
             code: (error as any).code,
-            stack: error instanceof Error ? error.stack : undefined,
+            stack: error instanceof Error ? (error as Error).stack : undefined,
             context: { taskId: task.id, agentId: agentId.id },
             recoverable: this.isRecoverableError(error),
             retryable: this.isRetryableError(error)
@@ -316,9 +316,9 @@ export class OptimizedExecutor extends EventEmitter {
     if (!error) return false;
     
     // Network errors are often recoverable
-    if (error.code === 'ECONNRESET' || 
-        error.code === 'ETIMEDOUT' ||
-        error.code === 'ENOTFOUND') {
+    if ((error as any).code === 'ECONNRESET' || 
+        (error as any).code === 'ETIMEDOUT' ||
+        (error as any).code === 'ENOTFOUND') {
       return true;
     }
     

@@ -664,9 +664,9 @@ RECOMMENDATIONS
       
       const history = this.errorHistory.get(component)!;
       history.push({
-        message: error.message || error.error,
+        message: (error as Error).message || error.error,
         timestamp: Date.now(),
-        stack: error.stack
+        stack: (error as Error).stack
       });
       
       // Keep only last 50 errors per component

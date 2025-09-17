@@ -173,7 +173,7 @@ export class RuvSwarmConfigManager {
       }
     } catch (error) {
       this.logger.warn('Failed to load ruv-swarm config, using defaults', { 
-        error: error instanceof Error ? (error instanceof Error ? error.message : String(error)) : error 
+        error: error instanceof Error ? (error instanceof Error ? (error as Error).message : String(error)) : error 
       });
     }
     
@@ -199,7 +199,7 @@ export class RuvSwarmConfigManager {
       this.logger.debug('Saved ruv-swarm config to file', { path: this.configPath });
     } catch (error) {
       this.logger.error('Failed to save ruv-swarm config', { 
-        error: error instanceof Error ? (error instanceof Error ? error.message : String(error)) : error 
+        error: error instanceof Error ? (error instanceof Error ? (error as Error).message : String(error)) : error 
       });
     }
   }

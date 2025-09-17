@@ -179,7 +179,11 @@ class LRUCache {
  * SharedMemory class - Core implementation
  */
 export class SharedMemory extends EventEmitter {
-  constructor(options = {}) {
+  private options: any;
+  private db: Database.Database | null = null;
+  private statements: Map<string, any> = new Map();
+
+  constructor(options: any = {}) {
     super();
     
     this.options = {

@@ -242,7 +242,7 @@ export class PromptCopier extends EventEmitter {
       } catch (error) {
         this.errors.push({
           file: file.path,
-          error: (error instanceof Error ? error.message : String(error)),
+          error: (error instanceof Error ? (error as Error).message : String(error)),
           phase: 'write'
         });
       }
@@ -276,7 +276,7 @@ export class PromptCopier extends EventEmitter {
       } catch (error) {
         this.errors.push({
           file: file.path,
-          error: (error instanceof Error ? error.message : String(error)),
+          error: (error instanceof Error ? (error as Error).message : String(error)),
           phase: 'write'
         });
       }
@@ -399,7 +399,7 @@ export class PromptCopier extends EventEmitter {
       } catch (error) {
         this.errors.push({
           file: file.path,
-          error: (error instanceof Error ? error.message : String(error)),
+          error: (error instanceof Error ? (error as Error).message : String(error)),
           phase: 'verify'
         });
       }

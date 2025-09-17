@@ -64,7 +64,7 @@ export class EnhancedPromptCopier extends PromptCopier {
         logger.error(`Worker ${i} error:`, error);
         (this as any).errors.push({
           file: 'worker',
-          error: (error instanceof Error ? error.message : String(error)),
+          error: (error instanceof Error ? (error as Error).message : String(error)),
           phase: 'write'
         });
       });
@@ -228,7 +228,7 @@ export class EnhancedPromptCopier extends PromptCopier {
       } catch (error) {
         (this as any).errors.push({
           file: file.path,
-          error: (error instanceof Error ? error.message : String(error)),
+          error: (error instanceof Error ? (error as Error).message : String(error)),
           phase: 'verify'
         });
       }

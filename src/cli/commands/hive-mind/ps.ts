@@ -53,7 +53,7 @@ export const psCommand = new Command('ps')
       });
       
       for (const session of sessions) {
-        const duration = new Date() - new Date(session.created_at);
+        const duration = new Date().getTime() - new Date(session.created_at).getTime();
         const durationStr = formatDuration(duration);
         
         const statusColor = 
@@ -111,7 +111,7 @@ export const psCommand = new Command('ps')
       console.log(chalk.gray(`  Total processes: ${totalProcesses}`));
       
     } catch (error) {
-      console.error(chalk.red('Error listing sessions:'), error.message);
+      console.error(chalk.red('Error listing sessions:'), (error as Error).message);
       process.exit(1);
     } finally {
       sessionManager.close();

@@ -158,8 +158,8 @@ export class TaskExecutor extends EventEmitter {
     } catch (error) {
       this.logger.error('Task execution failed', {
         sessionId,
-        error: (error instanceof Error ? error.message : String(error)),
-        stack: error.stack
+        error: (error instanceof Error ? (error as Error).message : String(error)),
+        stack: (error as Error).stack
       });
 
       await this.cleanupExecution(session);
@@ -211,7 +211,7 @@ export class TaskExecutor extends EventEmitter {
     } catch (error) {
       this.logger.error('Claude task execution failed', {
         sessionId,
-        error: (error instanceof Error ? error.message : String(error))
+        error: (error instanceof Error ? (error as Error).message : String(error))
       });
       throw error;
     }
@@ -424,7 +424,7 @@ export class TaskExecutor extends EventEmitter {
           clearTimeout(timeoutHandle);
           this.logger.error('Claude process error', {
             sessionId,
-            error: (error instanceof Error ? error.message : String(error))
+            error: (error instanceof Error ? (error as Error).message : String(error))
           });
           reject(error);
         });
@@ -653,7 +653,7 @@ export class TaskExecutor extends EventEmitter {
     } catch (error) {
       this.logger.warn('Error during execution cleanup', {
         sessionId: session.id,
-        error: (error instanceof Error ? error.message : String(error))
+        error: (error instanceof Error ? (error as Error).message : String(error))
       });
     }
   }
@@ -677,7 +677,7 @@ export class TaskExecutor extends EventEmitter {
     } catch (error) {
       this.logger.warn('Error collecting artifacts', {
         workingDir: context.workingDirectory,
-        error: (error instanceof Error ? error.message : String(error))
+        error: (error instanceof Error ? (error as Error).message : String(error))
       });
     }
 

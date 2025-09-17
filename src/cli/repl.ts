@@ -336,7 +336,7 @@ export async function startREPL(options: any = {}): Promise<void> {
           ctx.workingDirectory = process.cwd();
           console.log(chalk.gray(`Changed to: ${ctx.workingDirectory}`));
         } catch (error) {
-          console.error(chalk.red('Error:'), error instanceof Error ? error.message : String(error));
+          console.error(chalk.red('Error:'), error instanceof Error ? (error as Error).message : String(error));
         }
       },
     },
@@ -408,7 +408,7 @@ export async function startREPL(options: any = {}): Promise<void> {
         try {
           await command.handler(commandArgs, context);
         } catch (error) {
-          console.error(chalk.red('Command failed:'), error instanceof Error ? error.message : String(error));
+          console.error(chalk.red('Command failed:'), error instanceof Error ? (error as Error).message : String(error));
         }
       } else {
         console.log(chalk.red(`Unknown command: ${commandName}`));
@@ -421,7 +421,7 @@ export async function startREPL(options: any = {}): Promise<void> {
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? (error as Error).message : String(error);
       if (errorMessage.includes('EOF') || errorMessage.includes('interrupted')) {
         // Ctrl+D or Ctrl+C pressed
         console.log('\n' + chalk.gray('Goodbye!'));

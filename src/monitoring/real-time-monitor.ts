@@ -587,7 +587,7 @@ export class RealTimeMonitor extends EventEmitter {
       this.recordMetric(`healthcheck.${check.name}`, 0, {
         type: check.type,
         target: check.target,
-        error: (error instanceof Error ? error.message : String(error))
+        error: (error instanceof Error ? (error as Error).message : String(error))
       });
     }
   }

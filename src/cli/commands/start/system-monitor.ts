@@ -98,7 +98,7 @@ export class SystemMonitor {
       this.addEvent({
         type: 'process_error',
         timestamp: Date.now(),
-        data: { processId, error: (error instanceof Error ? error.message : String(error)) },
+        data: { processId, error: (error instanceof Error ? (error as Error).message : String(error)) },
         level: 'error'
       });
     });

@@ -347,7 +347,7 @@ export class MemoryManager implements IMemoryManager {
     } catch (error) {
       return {
         healthy: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? (error as Error).message : 'Unknown error',
       };
     }
   }

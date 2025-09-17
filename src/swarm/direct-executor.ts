@@ -81,7 +81,7 @@ export class DirectTaskExecutor {
     } catch (error) {
       this.logger.error('Task execution failed', {
         taskId: task.id.id,
-        error: (error instanceof Error ? error.message : String(error))
+        error: (error instanceof Error ? (error as Error).message : String(error))
       });
       throw error;
     }
@@ -339,7 +339,7 @@ function prompt() {
           const result = calc.sqrt(parseFloat(num));
           console.log(\`Result: \${result}\\n\`);
         } catch (error) {
-          console.log(\`Error: \${(error instanceof Error ? error.message : String(error))}\\n\`);
+          console.log(\`Error: \${(error instanceof Error ? (error as Error).message : String(error))}\\n\`);
         }
         prompt();
       });
@@ -375,7 +375,7 @@ function prompt() {
 
             console.log(\`Result: \${result}\\n\`);
           } catch (error) {
-            console.log(\`Error: \${(error instanceof Error ? error.message : String(error))}\\n\`);
+            console.log(\`Error: \${(error instanceof Error ? (error as Error).message : String(error))}\\n\`);
           }
           prompt();
         });

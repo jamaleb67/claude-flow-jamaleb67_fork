@@ -14,7 +14,7 @@ import * as process from 'process';
  */
 export function formatError(error: unknown): string {
   if (error instanceof Error) {
-    let message = (error instanceof Error ? error.message : String(error));
+    let message = (error instanceof Error ? (error as Error).message : String(error));
     
     if ('code' in error) {
       message = `[${(error as any).code}] ${message}`;

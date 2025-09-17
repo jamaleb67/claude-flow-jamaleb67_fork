@@ -710,7 +710,7 @@ export class MCPOrchestrationIntegration extends EventEmitter {
     } catch (error) {
       status.connected = false;
       status.healthy = false;
-      status.error = error instanceof Error ? error.message : 'Unknown error';
+      status.error = error instanceof Error ? (error as Error).message : 'Unknown error';
       
       this.logger.error('Failed to connect component', { component, error });
       this.scheduleReconnect(component);
@@ -776,7 +776,7 @@ export class MCPOrchestrationIntegration extends EventEmitter {
         status.error = undefined;
       } catch (error) {
         status.healthy = false;
-        status.error = error instanceof Error ? (error instanceof Error ? error.message : String(error)) : 'Health check failed';
+        status.error = error instanceof Error ? (error instanceof Error ? (error as Error).message : String(error)) : 'Health check failed';
         this.logger.warn('Component health check failed', { component, error });
       }
     }

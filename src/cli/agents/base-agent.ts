@@ -213,7 +213,7 @@ export abstract class BaseAgent extends EventEmitter {
       return result;
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? (error as Error).message : String(error);
       
       // Update metrics
       this.updateTaskMetrics(task.id, 0, false);
@@ -368,7 +368,7 @@ export abstract class BaseAgent extends EventEmitter {
         this.shutdown().catch(error => {
           this.logger.error('Error during agent shutdown', {
             agentId: this.id,
-            error: error instanceof Error ? error.message : String(error)
+            error: error instanceof Error ? (error as Error).message : String(error)
           });
         });
       }
@@ -492,7 +492,7 @@ export abstract class BaseAgent extends EventEmitter {
     } catch (error) {
       this.logger.error('Failed to save agent state', {
         agentId: this.id,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? (error as Error).message : String(error)
       });
     }
   }

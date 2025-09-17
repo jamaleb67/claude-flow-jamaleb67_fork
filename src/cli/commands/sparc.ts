@@ -31,7 +31,7 @@ async function loadSparcConfig(): Promise<SparcConfig> {
     sparcConfig = JSON.parse(content);
     return sparcConfig!;
   } catch (error) {
-    throw new Error(`Failed to load SPARC configuration: ${(error instanceof Error ? error.message : String(error))}`);
+    throw new Error(`Failed to load SPARC configuration: ${(error instanceof Error ? (error as Error).message : String(error))}`);
   }
 }
 

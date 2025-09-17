@@ -174,8 +174,8 @@ export class Logger implements ILogger {
       if (jsonEntry.error instanceof Error) {
         jsonEntry.error = {
           name: jsonEntry.error.name,
-          message: jsonEntry.error.message,
-          stack: jsonEntry.error.stack,
+          message: (jsonEntry.error as Error).message,
+          stack: (jsonEntry.error as Error).stack,
         };
       }
       return JSON.stringify(jsonEntry);
@@ -190,7 +190,7 @@ export class Logger implements ILogger {
       : '';
     const errorStr = entry.error !== undefined
       ? entry.error instanceof Error
-        ? `\n  Error: ${entry.error.message}\n  Stack: ${entry.error.stack}`
+        ? `\n  Error: ${(entry.error as Error).message}\n  Stack: ${(entry.error as Error).stack}`
         : ` Error: ${JSON.stringify(entry.error)}`
       : '';
 

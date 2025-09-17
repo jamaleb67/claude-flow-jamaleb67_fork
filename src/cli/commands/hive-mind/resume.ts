@@ -58,7 +58,7 @@ export const resumeCommand = new Command('resume')
       }
       
     } catch (error) {
-      console.error(chalk.red('Error resuming session:'), error.message);
+      console.error(chalk.red('Error resuming session:'), (error as Error).message);
       process.exit(1);
     } finally {
       sessionManager.close();

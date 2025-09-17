@@ -490,7 +490,7 @@ export class SwarmCoordinator extends EventEmitter {
 
     const agent = task.assignedTo ? this.agents.get(task.assignedTo) : null;
 
-    task.error = (error instanceof Error ? error.message : String(error)) || String(error);
+    task.error = (error instanceof Error ? (error as Error).message : String(error)) || String(error);
     task.retryCount++;
 
     if (agent) {

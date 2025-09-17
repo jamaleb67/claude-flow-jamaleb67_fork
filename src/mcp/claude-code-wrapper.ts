@@ -199,7 +199,7 @@ export class ClaudeCodeMCPWrapper {
       return {
         content: [{
           type: 'text',
-          text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+          text: `Error: ${error instanceof Error ? (error as Error).message : String(error)}`,
         }],
         isError: true,
       };
@@ -252,7 +252,7 @@ export class ClaudeCodeMCPWrapper {
       return {
         content: [{
           type: 'text',
-          text: `Error executing SPARC ${mode}: ${error instanceof Error ? error.message : String(error)}`,
+          text: `Error executing SPARC ${mode}: ${error instanceof Error ? (error as Error).message : String(error)}`,
         }],
         isError: true,
       };
@@ -620,7 +620,7 @@ Use the appropriate tools for each phase and maintain progress in TodoWrite.`;
       agent.result = result;
     } catch (error) {
       agent.status = 'failed';
-      agent.result = { error: error instanceof Error ? error.message : String(error) };
+      agent.result = { error: error instanceof Error ? (error as Error).message : String(error) };
     }
   }
 
@@ -693,7 +693,7 @@ Use the appropriate tools for each phase and maintain progress in TodoWrite.`;
             return {
               content: [{
                 type: 'text',
-                text: `Error executing SPARC ${modeName}: ${error instanceof Error ? error.message : String(error)}`,
+                text: `Error executing SPARC ${modeName}: ${error instanceof Error ? (error as Error).message : String(error)}`,
               }],
               isError: true,
             };

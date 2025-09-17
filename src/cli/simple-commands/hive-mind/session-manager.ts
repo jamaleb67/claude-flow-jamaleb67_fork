@@ -11,7 +11,12 @@ import chalk from 'chalk';
 import { cwd } from '../../node-compat.js';
 
 export class HiveMindSessionManager {
-  constructor(hiveMindDir = null) {
+  private hiveMindDir: string;
+  private sessionsDir: string;
+  private dbPath: string;
+  private db: Database.Database;
+
+  constructor(hiveMindDir: string | null = null) {
     this.hiveMindDir = hiveMindDir || path.join(cwd(), '.hive-mind');
     this.sessionsDir = path.join(this.hiveMindDir, 'sessions');
     this.dbPath = path.join(this.hiveMindDir, 'hive.db');

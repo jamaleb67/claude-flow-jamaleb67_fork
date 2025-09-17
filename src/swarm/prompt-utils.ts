@@ -263,7 +263,7 @@ export class PromptValidator {
     } catch (error) {
       return {
         valid: false,
-        issues: [`Failed to read file: ${(error instanceof Error ? error.message : String(error))}`]
+        issues: [`Failed to read file: ${(error instanceof Error ? (error as Error).message : String(error))}`]
       };
     }
   }
