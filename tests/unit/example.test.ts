@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach, expect, jest } from "../test.utils.ts";
+import { describe, it, beforeEach, afterEach, expect, jest } from "../test.utils.js";
 
 // Example calculator class to test
 class Calculator {

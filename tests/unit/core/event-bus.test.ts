@@ -12,10 +12,10 @@ import {
   assertRejects,
   spy, 
   assertSpyCalls,
-} from '../../test.utils.ts';
+} from '../../test.utils.js.js';
 import { EventBus } from '../../../src/core/event-bus.ts';
 import { SystemEvents } from '../../../src/utils/types.ts';
-import { cleanupTestEnv, setupTestEnv } from '../../test.config.ts';
+import { cleanupTestEnv, setupTestEnv } from '../../test.config.js';
 
 describe('EventBus', () => {
   let eventBus: EventBus;

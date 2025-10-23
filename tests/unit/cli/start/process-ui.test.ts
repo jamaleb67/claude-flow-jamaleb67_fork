@@ -2,8 +2,8 @@
  * Test suite for ProcessUI
  */
 
-import { describe, it, beforeEach, afterEach, expect } from "../test.utils.ts";
-import { describe, it, beforeEach, afterEach, expect } from "../test.utils.ts";
+import { describe, it, beforeEach, afterEach, expect } from "../test.utils.js";
+import { describe, it, beforeEach, afterEach, expect } from "../test.utils.js";
 import { ProcessUI } from '../../../../src/cli/commands/start/process-ui.ts';
 import { ProcessManager } from '../../../../src/cli/commands/start/process-manager.ts';
 import { ProcessStatus } from '../../../../src/cli/commands/start/types.ts';

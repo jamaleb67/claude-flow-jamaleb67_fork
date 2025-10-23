@@ -13,7 +13,7 @@ import {
   spy,
   assertSpyCalls,
   FakeTime,
-} from '../../test.utils.ts';
+} from '../../test.utils.js.js';
 import { CoordinationManager } from '../../../src/coordination/manager.ts';
 import { TaskScheduler } from '../../../src/coordination/scheduler.ts';
 import { ResourceManager } from '../../../src/coordination/resources.ts';
@@ -24,8 +24,8 @@ import { CircuitBreaker, CircuitState } from '../../../src/coordination/circuit-
 import { ConflictResolver } from '../../../src/coordination/conflict-resolution.ts';
 import { SystemEvents } from '../../../src/utils/types.ts';
 import { createMocks } from '../../mocks/index.ts';
-import { TestDataBuilder } from '../../test.utils.ts';
-import { cleanupTestEnv, setupTestEnv } from '../../test.config.ts';
+import { TestDataBuilder } from '../../test.utils.js.js';
+import { cleanupTestEnv, setupTestEnv } from '../../test.config.js';
 
 describe('CoordinationManager', () => {
   let manager: CoordinationManager;
@@ -385,7 +385,7 @@ describe('DependencyGraph', () => {
     expect(graph.isTaskReady('task-2')).toBe(false);
 
     const readyTasks = graph.markCompleted('task-1');
-    expect(readyTasks).toBe(['task-2']);
+    expect(readyTasks).toEqual(['task-2']);
     expect(graph.isTaskReady('task-2')).toBe(true);
   });
 
@@ -571,7 +571,7 @@ describe('ConflictResolver', () => {
     
     expect(conflict.id).toBeDefined();
     expect(conflict.resourceId).toBe('resource-1');
-    expect(conflict.agents).toBe(['agent-1', 'agent-2']);
+    expect(conflict.agents).toEqual(['agent-1', 'agent-2']);
     expect(conflict.resolved).toBe(false);
   });
 

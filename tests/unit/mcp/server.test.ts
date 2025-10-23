@@ -2,8 +2,8 @@
  * Unit tests for MCP Server
  */
 
-import { describe, it, beforeEach, afterEach  } from "../test.utils.ts";
-import { assertEquals, assertExists  } from "../test.utils.ts";
+import { describe, it, beforeEach, afterEach  } from "../test.utils.js";
+import { assertEquals, assertExists  } from "../test.utils.js";
 
 import { MCPServer } from '../../../src/mcp/server.ts';
 import { MCPConfig, MCPTool } from '../../../src/utils/types.ts';

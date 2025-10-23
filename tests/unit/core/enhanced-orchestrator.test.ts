@@ -2,10 +2,10 @@
  * Enhanced comprehensive unit tests for Orchestrator
  */
 
-import { describe, it, beforeEach, afterEach  } from "../test.utils.ts";
+import { describe, it, beforeEach, afterEach, FakeTime  } from "../test.utils.js";
 import { expect } from "@jest/globals";
 // FakeTime equivalent available in test.utils.ts
-import { stub, spy  } from "../test.utils.ts";
+import { stub, spy  } from "../test.utils.js";
 
 import { Orchestrator } from '../../../src/core/orchestrator.ts';
 import { 
@@ -22,9 +22,9 @@ import {
   MemoryTestUtils, 
   PerformanceTestUtils,
   TestAssertions 
-} from '../../utils/test-utils.ts';
-import { generateCoordinationTasks, generateErrorScenarios } from '../../fixtures/generators.ts';
-import { setupTestEnv, cleanupTestEnv, TEST_CONFIG } from '../../test.config.ts';
+} from '../../utils/test-utils.js';
+import { generateCoordinationTasks, generateErrorScenarios } from '../../fixtures/generators.js';
+import { setupTestEnv, cleanupTestEnv, TEST_CONFIG } from '../../test.config.js';
 
 describe('Orchestrator - Enhanced Tests', () => {
   let orchestrator: Orchestrator;
@@ -300,7 +300,7 @@ describe('Orchestrator - Enhanced Tests', () => {
       expect(mocks.memoryManager.store.calls.length).toBe(1);
       
       const retrieved = await orchestrator.retrieveMemory(bankId, 'test-key');
-      expect(retrieved).toBe({ data: 'test-value' });
+      expect(retrieved).toEqual({ data: 'test-value' });
     });
 
     it('should handle memory operations under load', async () => {
@@ -318,7 +318,7 @@ describe('Orchestrator - Enhanced Tests', () => {
       
       // Verify all values were stored and retrieved correctly
       results.forEach((result, i) => {
-        expect(result).toBe({ value: i });
+        expect(result).toEqual({ value: i });
       });
     });
 

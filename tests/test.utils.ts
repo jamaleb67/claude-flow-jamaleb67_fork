@@ -1,31 +1,72 @@
 /**
- * Test utilities for Claude-Flow
+ * Shared test utilities for the Claude-Flow repository.
+ *
+ * The goal of this module is to provide a small set of helpers that mimic
+ * the behaviour that the higher level tests expect while keeping the
+ * implementation lightweight.  Most of the tests in this repository are
+ * currently scaffolding, so these helpers intentionally focus on
+ * predictability and ergonomics rather than absolute performance.
  */
 
-import { describe, it, beforeEach, afterEach, beforeAll, afterAll, expect, jest } from '@jest/globals';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-import { spawn } from 'child_process';
+import {
+  describe,
+  it,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+  expect as jestExpect,
+  jest,
+} from '@jest/globals';
+import * as fsp from 'node:fs/promises';
+import * as path from 'node:path';
+import * as os from 'node:os';
+import { spawn } from 'node:child_process';
+import assert from 'node:assert';
 
-// Jest-compatible assertion helpers
+// ---------------------------------------------------------------------------
+// Assertion helpers
+// ---------------------------------------------------------------------------
+
 export function assertEquals<T>(actual: T, expected: T, message?: string): void {
-  expect(actual).toBe(expected);
+  jestExpect(actual).toEqual(expected);
 }
 
 export function assertExists<T>(value: T, message?: string): void {
-  expect(value).toBeDefined();
+  jestExpect(value, message ?? 'Expected value to be defined').toBeDefined();
 }
 
-export function assertRejects(promise: Promise<any>, message?: string): void {
-  expect(promise).rejects.toThrow();
+export async function assertRejects<T extends Error>(
+  action: Promise<unknown> | (() => Promise<unknown>),
+  expectedError?: new (...args: any[]) => T,
+  message?: string,
+): Promise<void> {
+  const runner = typeof action === 'function' ? action() : action;
+  if (expectedError) {
+    await jestExpect(runner).rejects.toBeInstanceOf(expectedError);
+  } else {
+    await jestExpect(runner).rejects.toThrow();
+  }
 }
 
-export function assertThrows(fn: () => any, message?: string): void {
-  expect(fn).toThrow();
+export function assertThrows<T extends Error>(
+  fn: () => unknown,
+  expectedError?: new (...args: any[]) => T,
+  message?: string,
+): void {
+  if (expectedError) {
+    jestExpect(fn).toThrow(expectedError);
+  } else {
+    jestExpect(fn).toThrow();
+  }
 }
 
-// Re-export Jest testing utilities
+export function assertStringIncludes(value: string, substring: string, message?: string): void {
+  jestExpect(value, message ?? `Expected "${value}" to include "${substring}"`).toContain(substring);
+}
+
+// Re-export Jest testing utilities so the test suites can continue to import
+// everything from a single module.
 export {
   describe,
   it,
@@ -33,32 +74,59 @@ export {
   afterEach,
   beforeAll,
   afterAll,
-  expect,
   jest,
 };
 
-// Mock Jest spy utilities for compatibility
-export const spy = jest.fn;
-export const stub = jest.fn;
-export function assertSpyCall(mockFn: jest.Mock, callIndex: number, expectedArgs?: any[]): void {
-  expect(mockFn).toHaveBeenNthCalledWith(callIndex + 1, ...(expectedArgs || []));
-}
-export function assertSpyCalls(mockFn: jest.Mock, expectedCalls: number): void {
-  expect(mockFn).toHaveBeenCalledTimes(expectedCalls);
+// Provide an expectation helper that preserves the default expect behaviour
+// while allowing us to extend it in the future.
+export const expect = jestExpect;
+
+// ---------------------------------------------------------------------------
+// Spy helpers
+// ---------------------------------------------------------------------------
+
+function enhanceMock<T extends jest.Mock>(mockFn: T): T & { calls: Array<{ args: unknown[] }> } {
+  Object.defineProperty(mockFn, 'calls', {
+    configurable: true,
+    enumerable: false,
+    get() {
+      return mockFn.mock.calls.map((args) => ({ args }));
+    },
+  });
+  return mockFn as T & { calls: Array<{ args: unknown[] }> };
 }
 
-// Simple FakeTime implementation for Jest
+export const spy = (...args: Parameters<typeof jest.fn>) => enhanceMock(jest.fn(...args));
+export const stub = (...args: Parameters<typeof jest.fn>) => enhanceMock(jest.fn(...args));
+
+export function assertSpyCall(mockFn: jest.Mock, callIndex: number, expectedArgs?: any[]): void {
+  const calls = (mockFn as any).calls ?? mockFn.mock.calls.map((args: unknown[]) => ({ args }));
+  const call = calls[callIndex];
+  jestExpect(call).toBeDefined();
+  if (expectedArgs) {
+    jestExpect(call.args ?? call).toEqual(expectedArgs);
+  }
+}
+
+export function assertSpyCalls(mockFn: jest.Mock, expectedCalls: number): void {
+  jestExpect(mockFn.mock.calls.length).toBe(expectedCalls);
+}
+
+// ---------------------------------------------------------------------------
+// Fake time controller
+// ---------------------------------------------------------------------------
+
 export class FakeTime {
   private originalNow = Date.now;
-  private currentTime: number;
+  private now: number;
 
-  constructor(time?: number | Date) {
-    this.currentTime = time instanceof Date ? time.getTime() : time || Date.now();
-    Date.now = () => this.currentTime;
+  constructor(initialTime?: number | Date) {
+    this.now = initialTime instanceof Date ? initialTime.getTime() : initialTime ?? Date.now();
+    Date.now = () => this.now;
   }
 
   tick(ms: number): void {
-    this.currentTime += ms;
+    this.now += ms;
   }
 
   restore(): void {
@@ -66,36 +134,34 @@ export class FakeTime {
   }
 }
 
-/**
- * Creates a test fixture
- */
+// ---------------------------------------------------------------------------
+// Fixtures & asynchronous helpers
+// ---------------------------------------------------------------------------
+
 export function createFixture<T>(factory: () => T): {
   get(): T;
   reset(): void;
 } {
-  let instance: T;
-
+  let instance: T | undefined;
   return {
     get(): T {
-      if (!instance) {
+      if (instance === undefined) {
         instance = factory();
       }
       return instance;
     },
     reset(): void {
-      instance = factory();
+      instance = undefined;
     },
   };
 }
 
-/**
- * Waits for a condition to be true
- */
 export async function waitFor(
   condition: () => boolean | Promise<boolean>,
   options: { timeout?: number; interval?: number } = {},
 ): Promise<void> {
-  const { timeout = 5000, interval = 100 } = options;
+  const timeout = options.timeout ?? 5000;
+  const interval = options.interval ?? 50;
   const start = Date.now();
 
   while (Date.now() - start < timeout) {
@@ -108,28 +174,20 @@ export async function waitFor(
   throw new Error('Timeout waiting for condition');
 }
 
-/**
- * Creates a deferred promise for testing
- */
 export function createDeferred<T>(): {
   promise: Promise<T>;
   resolve: (value: T) => void;
-  reject: (reason?: any) => void;
+  reject: (reason?: unknown) => void;
 } {
-  let resolve: (value: T) => void;
-  let reject: (reason?: any) => void;
-
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
   const promise = new Promise<T>((res, rej) => {
     resolve = res;
     reject = rej;
   });
-
-  return { promise, resolve: resolve!, reject: reject! };
+  return { promise, resolve, reject };
 }
 
-/**
- * Captures console output during test
- */
 export function captureConsole(): {
   getOutput(): string[];
   getErrors(): string[];
@@ -138,60 +196,59 @@ export function captureConsole(): {
   const output: string[] = [];
   const errors: string[] = [];
 
-  const originalLog = console.log;
-  const originalError = console.error;
-  const originalDebug = console.debug;
-  const originalInfo = console.info;
-  const originalWarn = console.warn;
+  const original = {
+    log: console.log,
+    error: console.error,
+    warn: console.warn,
+    info: console.info,
+    debug: console.debug,
+  };
 
-  console.log = (...args: any[]) => output.push(args.join(' '));
-  console.error = (...args: any[]) => errors.push(args.join(' '));
-  console.debug = (...args: any[]) => output.push(args.join(' '));
-  console.info = (...args: any[]) => output.push(args.join(' '));
-  console.warn = (...args: any[]) => output.push(args.join(' '));
+  console.log = (...args: unknown[]) => {
+    output.push(args.map(String).join(' '));
+  };
+  console.error = (...args: unknown[]) => {
+    errors.push(args.map(String).join(' '));
+  };
+  console.warn = (...args: unknown[]) => {
+    output.push(args.map(String).join(' '));
+  };
+  console.info = (...args: unknown[]) => {
+    output.push(args.map(String).join(' '));
+  };
+  console.debug = (...args: unknown[]) => {
+    output.push(args.map(String).join(' '));
+  };
 
   return {
     getOutput: () => [...output],
     getErrors: () => [...errors],
     restore: () => {
-      console.log = originalLog;
-      console.error = originalError;
-      console.debug = originalDebug;
-      console.info = originalInfo;
-      console.warn = originalWarn;
+      console.log = original.log;
+      console.error = original.error;
+      console.warn = original.warn;
+      console.info = original.info;
+      console.debug = original.debug;
     },
   };
 }
 
-/**
- * Creates a test file in a temporary directory
- */
-export function createTestFile(
-  filePath: string,
-  content: string,
-): string {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-flow-'));
+export async function createTestFile(filePath: string, content: string): Promise<string> {
+  const tempDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'claude-flow-'));
   const fullPath = path.join(tempDir, filePath);
-  const dir = path.dirname(fullPath);
-  
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(fullPath, content);
-  
+  await fsp.mkdir(path.dirname(fullPath), { recursive: true });
+  await fsp.writeFile(fullPath, content, 'utf8');
   return fullPath;
 }
 
-/**
- * Runs a CLI command and captures output
- */
 export function runCommand(
   args: string[],
   options: { stdin?: string; env?: Record<string, string> } = {},
 ): Promise<{ stdout: string; stderr: string; code: number }> {
   return new Promise((resolve, reject) => {
-    const env = { ...process.env, ...options.env };
-    const child = spawn('node', ['src/cli/index.ts', ...args], {
-      stdio: ['pipe', 'pipe', 'pipe'],
-      env,
+    const child = spawn('node', ['src/cli/main.ts', ...args], {
+      stdio: 'pipe',
+      env: { ...process.env, ...options.env },
     });
 
     let stdout = '';
@@ -206,31 +263,30 @@ export function runCommand(
     });
 
     child.on('close', (code) => {
-      resolve({ stdout, stderr, code: code || 0 });
+      resolve({ stdout, stderr, code: code ?? 0 });
     });
 
-    child.on('error', (error) => {
-      reject(error);
-    });
+    child.on('error', reject);
 
     if (options.stdin) {
-      child.stdin.write(options.stdin);
-      child.stdin.end();
+      child.stdin?.write(options.stdin);
+      child.stdin?.end();
     }
   });
 }
 
-/**
- * Test data builder for common types
- */
+// ---------------------------------------------------------------------------
+// Structured test data builders
+// ---------------------------------------------------------------------------
+
 export class TestDataBuilder {
-  static agentProfile(overrides = {}) {
+  static agentProfile(overrides: Record<string, unknown> = {}) {
     return {
       id: 'agent-1',
       name: 'Test Agent',
-      type: 'coordinator' as const,
-      capabilities: ['task-management', 'coordination'],
-      systemPrompt: 'You are a test agent',
+      type: 'general',
+      capabilities: ['research', 'code'],
+      systemPrompt: 'You are a helpful assistant.',
       maxConcurrentTasks: 5,
       priority: 10,
       environment: {},
@@ -241,51 +297,46 @@ export class TestDataBuilder {
     };
   }
 
-  static task(overrides = {}) {
+  static task(overrides: Record<string, unknown> = {}) {
     return {
       id: 'task-1',
-      type: 'test',
+      type: 'generic',
       description: 'Test task',
       priority: 50,
       dependencies: [],
-      status: 'pending' as const,
-      input: { test: true },
+      status: 'pending',
+      input: {},
       createdAt: new Date(),
       metadata: {},
       ...overrides,
     };
   }
 
-  static config(overrides = {}) {
-    return {
+  static config(overrides: Record<string, unknown> = {}) {
+    const base = {
       orchestrator: {
-        maxConcurrentAgents: 10,
+        maxConcurrentAgents: 5,
         taskQueueSize: 100,
         healthCheckInterval: 30000,
         shutdownTimeout: 30000,
-        maintenanceInterval: 300000,
         metricsInterval: 60000,
         persistSessions: false,
-        dataDir: './tests/data',
-        sessionRetentionMs: 3600000,
-        taskHistoryRetentionMs: 86400000,
-        taskMaxRetries: 3,
+        dataDir: './tests/tmp/data',
       },
       terminal: {
-        type: 'native' as const,
+        type: 'native',
         poolSize: 5,
         recycleAfter: 10,
         healthCheckInterval: 60000,
         commandTimeout: 300000,
       },
       memory: {
-        backend: 'sqlite' as const,
+        backend: 'sqlite',
         cacheSizeMB: 10,
         syncInterval: 5000,
-        conflictResolution: 'last-write' as const,
         retentionDays: 1,
         sqlitePath: ':memory:',
-        markdownDir: './tests/data/memory',
+        markdownDir: './tests/tmp/memory',
       },
       coordination: {
         maxRetries: 3,
@@ -295,40 +346,22 @@ export class TestDataBuilder {
         messageTimeout: 30000,
       },
       mcp: {
-        transport: 'stdio' as const,
+        transport: 'stdio',
         port: 8081,
         tlsEnabled: false,
       },
       logging: {
-        level: 'error' as const,
-        format: 'json' as const,
-        destination: 'console' as const,
+        level: 'error',
+        format: 'json',
+        destination: 'console',
       },
+    };
+    return {
+      ...base,
       ...overrides,
     };
   }
 }
 
-/**
- * Assertion helpers
- */
-export function assertEventEmitted(
-  events: Array<{ event: string; data: any }>,
-  eventName: string,
-  matcher?: (data: any) => boolean,
-): void {
-  const emitted = events.find((e) => e.event === eventName);
-  expect(emitted).toBeDefined();
-  
-  if (matcher && emitted && !matcher(emitted.data)) {
-    throw new Error(`Event '${eventName}' data did not match expected criteria`);
-  }
-}
-
-export function assertNoEventEmitted(
-  events: Array<{ event: string; data: any }>,
-  eventName: string,
-): void {
-  const emitted = events.find((e) => e.event === eventName);
-  expect(emitted).toBeUndefined();
-}
+// Export Node's assert for the few tests that still rely on it directly.
+export { assert };
