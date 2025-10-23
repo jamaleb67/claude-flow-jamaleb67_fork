@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Memory manager interface and implementation
  */
@@ -23,7 +22,11 @@ export interface IMemoryManager {
   query(query: MemoryQuery): Promise<MemoryEntry[]>;
   update(id: string, updates: Partial<MemoryEntry>): Promise<void>;
   delete(id: string): Promise<void>;
-  getHealthStatus(): Promise<{ healthy: boolean; error?: string; metrics?: Record<string, number> }>;
+  getHealthStatus(): Promise<{
+    healthy: boolean;
+    error?: string;
+    metrics?: Record<string, number>;
+  }>;
   performMaintenance(): Promise<void>;
 }
 
@@ -56,7 +59,7 @@ export class MemoryManager implements IMemoryManager {
   ) {
     // Initialize backend based on configuration
     this.backend = this.createBackend();
-    
+
     // Initialize cache
     this.cache = new MemoryCache(
       this.config.cacheSizeMB * 1024 * 1024, // Convert MB to bytes
@@ -111,7 +114,7 @@ export class MemoryManager implements IMemoryManager {
 
       // Close all banks
       const bankIds = Array.from(this.banks.keys());
-      await Promise.all(bankIds.map(id => this.closeBank(id)));
+      await Promise.all(bankIds.map((id) => this.closeBank(id)));
 
       // Shutdown backend
       await this.backend.shutdown();
@@ -138,9 +141,9 @@ export class MemoryManager implements IMemoryManager {
     };
 
     this.banks.set(bank.id, bank);
-    
+
     this.logger.info('Memory bank created', { bankId: bank.id, agentId });
-    
+
     return bank.id;
   }
 
@@ -157,7 +160,7 @@ export class MemoryManager implements IMemoryManager {
     }
 
     this.banks.delete(bankId);
-    
+
     this.logger.info('Memory bank closed', { bankId });
   }
 
@@ -166,7 +169,7 @@ export class MemoryManager implements IMemoryManager {
       throw new MemoryError('Memory manager not initialized');
     }
 
-    this.logger.debug('Storing memory entry', { 
+    this.logger.debug('Storing memory entry', {
       id: entry.id,
       type: entry.type,
       agentId: entry.agentId,
@@ -180,15 +183,15 @@ export class MemoryManager implements IMemoryManager {
       this.indexer.addEntry(entry);
 
       // Store in backend (async, don't wait)
-      this.backend.store(entry).catch(error => {
-        this.logger.error('Failed to store entry in backend', { 
+      this.backend.store(entry).catch((error) => {
+        this.logger.error('Failed to store entry in backend', {
           id: entry.id,
           error,
         });
       });
 
       // Update bank stats
-      const bank = Array.from(this.banks.values()).find(b => b.agentId === entry.agentId);
+      const bank = Array.from(this.banks.values()).find((b) => b.agentId === entry.agentId);
       if (bank) {
         bank.entryCount++;
         bank.lastAccessed = new Date();
@@ -236,15 +239,16 @@ export class MemoryManager implements IMemoryManager {
 
       // Apply additional filters if needed
       if (query.search) {
-        results = results.filter(entry => 
-          entry.content.toLowerCase().includes(query.search!.toLowerCase()) ||
-          entry.tags.some(tag => tag.toLowerCase().includes(query.search!.toLowerCase())),
+        results = results.filter(
+          (entry) =>
+            entry.content.toLowerCase().includes(query.search!.toLowerCase()) ||
+            entry.tags.some((tag) => tag.toLowerCase().includes(query.search!.toLowerCase())),
         );
       }
 
       // Apply time range filter
       if (query.startTime || query.endTime) {
-        results = results.filter(entry => {
+        results = results.filter((entry) => {
           const timestamp = entry.timestamp.getTime();
           if (query.startTime && timestamp < query.startTime.getTime()) {
             return false;
@@ -297,7 +301,7 @@ export class MemoryManager implements IMemoryManager {
     await this.backend.update(id, updated);
 
     // Emit event
-    this.eventBus.emit('memory:updated', { 
+    this.eventBus.emit('memory:updated', {
       entry: updated,
       previousVersion: existing.version,
     });
@@ -321,9 +325,9 @@ export class MemoryManager implements IMemoryManager {
     this.eventBus.emit('memory:deleted', { entryId: id });
   }
 
-  async getHealthStatus(): Promise<{ 
-    healthy: boolean; 
-    error?: string; 
+  async getHealthStatus(): Promise<{
+    healthy: boolean;
+    error?: string;
     metrics?: Record<string, number>;
   }> {
     try {
@@ -364,7 +368,7 @@ export class MemoryManager implements IMemoryManager {
       if (this.config.retentionDays > 0) {
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - this.config.retentionDays);
-        
+
         const oldEntries = await this.query({
           endTime: cutoffDate,
         });
@@ -372,7 +376,7 @@ export class MemoryManager implements IMemoryManager {
         for (const entry of oldEntries) {
           await this.delete(entry.id);
         }
-        
+
         this.logger.info(`Cleaned up ${oldEntries.length} old memory entries`);
       }
 
@@ -400,26 +404,14 @@ export class MemoryManager implements IMemoryManager {
   private createBackend(): IMemoryBackend {
     switch (this.config.backend) {
       case 'sqlite':
-        return new SQLiteBackend(
-          this.config.sqlitePath || './claude-flow.db',
-          this.logger,
-        );
+        return new SQLiteBackend(this.config.sqlitePath || './claude-flow.db', this.logger);
       case 'markdown':
-        return new MarkdownBackend(
-          this.config.markdownDir || './memory',
-          this.logger,
-        );
+        return new MarkdownBackend(this.config.markdownDir || './memory', this.logger);
       case 'hybrid':
         // Use SQLite for structured data and Markdown for human-readable backup
         return new HybridBackend(
-          new SQLiteBackend(
-            this.config.sqlitePath || './claude-flow.db',
-            this.logger,
-          ),
-          new MarkdownBackend(
-            this.config.markdownDir || './memory',
-            this.logger,
-          ),
+          new SQLiteBackend(this.config.sqlitePath || './claude-flow.db', this.logger),
+          new MarkdownBackend(this.config.markdownDir || './memory', this.logger),
           this.logger,
         );
       default:
@@ -439,21 +431,21 @@ export class MemoryManager implements IMemoryManager {
 
   private async syncCache(): Promise<void> {
     const dirtyEntries = this.cache.getDirtyEntries();
-    
+
     if (dirtyEntries.length === 0) {
       return;
     }
 
     this.logger.debug('Syncing cache to backend', { count: dirtyEntries.length });
 
-    const promises = dirtyEntries.map(entry => 
-      this.backend.store(entry).catch(error => {
+    const promises = dirtyEntries.map((entry) =>
+      this.backend.store(entry).catch((error) => {
         this.logger.error('Failed to sync entry', { id: entry.id, error });
       }),
     );
 
     await Promise.all(promises);
-    this.cache.markClean(dirtyEntries.map(e => e.id));
+    this.cache.markClean(dirtyEntries.map((e) => e.id));
 
     // Emit sync event
     this.eventBus.emit('memory:synced', { entries: dirtyEntries });
@@ -461,15 +453,15 @@ export class MemoryManager implements IMemoryManager {
 
   private async flushCache(): Promise<void> {
     const allEntries = this.cache.getAllEntries();
-    
+
     if (allEntries.length === 0) {
       return;
     }
 
     this.logger.info('Flushing cache to backend', { count: allEntries.length });
 
-    const promises = allEntries.map(entry => 
-      this.backend.store(entry).catch(error => {
+    const promises = allEntries.map((entry) =>
+      this.backend.store(entry).catch((error) => {
         this.logger.error('Failed to flush entry', { id: entry.id, error });
       }),
     );
@@ -489,24 +481,18 @@ class HybridBackend implements IMemoryBackend {
   ) {}
 
   async initialize(): Promise<void> {
-    await Promise.all([
-      this.primary.initialize(),
-      this.secondary.initialize(),
-    ]);
+    await Promise.all([this.primary.initialize(), this.secondary.initialize()]);
   }
 
   async shutdown(): Promise<void> {
-    await Promise.all([
-      this.primary.shutdown(),
-      this.secondary.shutdown(),
-    ]);
+    await Promise.all([this.primary.shutdown(), this.secondary.shutdown()]);
   }
 
   async store(entry: MemoryEntry): Promise<void> {
     // Store in both backends
     await Promise.all([
       this.primary.store(entry),
-      this.secondary.store(entry).catch(error => {
+      this.secondary.store(entry).catch((error) => {
         this.logger.warn('Failed to store in secondary backend', { error });
       }),
     ]);
@@ -526,7 +512,7 @@ class HybridBackend implements IMemoryBackend {
   async update(id: string, entry: MemoryEntry): Promise<void> {
     await Promise.all([
       this.primary.update(id, entry),
-      this.secondary.update(id, entry).catch(error => {
+      this.secondary.update(id, entry).catch((error) => {
         this.logger.warn('Failed to update in secondary backend', { error });
       }),
     ]);
@@ -535,7 +521,7 @@ class HybridBackend implements IMemoryBackend {
   async delete(id: string): Promise<void> {
     await Promise.all([
       this.primary.delete(id),
-      this.secondary.delete(id).catch(error => {
+      this.secondary.delete(id).catch((error) => {
         this.logger.warn('Failed to delete from secondary backend', { error });
       }),
     ]);
@@ -550,9 +536,9 @@ class HybridBackend implements IMemoryBackend {
     return await this.primary.getAllEntries();
   }
 
-  async getHealthStatus(): Promise<{ 
-    healthy: boolean; 
-    error?: string; 
+  async getHealthStatus(): Promise<{
+    healthy: boolean;
+    error?: string;
     metrics?: Record<string, number>;
   }> {
     const [primaryHealth, secondaryHealth] = await Promise.all([

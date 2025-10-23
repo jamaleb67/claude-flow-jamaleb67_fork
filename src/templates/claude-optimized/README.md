@@ -5,6 +5,7 @@ This directory contains the optimized Claude Code template with SPARC methodolog
 ## Overview
 
 The optimized template provides:
+
 - **Reduced token usage** through optimized prompts
 - **Improved performance** with batch operations
 - **Complete SPARC methodology** support
@@ -45,17 +46,20 @@ The template is automatically installed when initializing a new Claude Flow proj
 ## Files Included
 
 ### Documentation
+
 - `BATCHTOOLS_GUIDE.md` - Comprehensive batch tools guide
 - `BATCHTOOLS_BEST_PRACTICES.md` - Best practices and examples
 - `MIGRATION_GUIDE.md` - Migration guide for existing projects
 - `PERFORMANCE_BENCHMARKS.md` - Performance comparison data
 
 ### Commands
+
 - Main commands for Claude Flow integration
 - 15 SPARC methodology mode commands
 - Each command is optimized for minimal token usage
 
 ### Test Suite
+
 - Unit tests for core functionality
 - Integration tests for each SPARC mode
 - Performance benchmarks
@@ -71,6 +75,7 @@ The template is automatically installed when initializing a new Claude Flow proj
 ## Manifest System
 
 The `manifest.json` file contains:
+
 - Complete file listing with descriptions
 - Directory structure specification
 - Installation instructions
@@ -80,6 +85,7 @@ The `manifest.json` file contains:
 ## Usage
 
 After installation, the commands are available in Claude Code:
+
 - Type `/` to see all available commands
 - Use `/sparc` for SPARC methodology
 - Use `/claude-flow-*` for Claude Flow features
@@ -87,6 +93,7 @@ After installation, the commands are available in Claude Code:
 ## Performance Improvements
 
 The optimized templates provide:
+
 - **50-70% reduction** in token usage
 - **3-5x faster** execution with batch operations
 - **Parallel processing** for independent operations
@@ -95,6 +102,7 @@ The optimized templates provide:
 ## Maintenance
 
 To update the templates:
+
 1. Modify source files in `.claude` directory
 2. Run optimization if needed
 3. Update `manifest.json`
@@ -111,6 +119,7 @@ To update the templates:
 ## Support
 
 For issues or questions:
+
 - Check the documentation files
 - Run the test suite for validation
 - Refer to Claude Flow documentation

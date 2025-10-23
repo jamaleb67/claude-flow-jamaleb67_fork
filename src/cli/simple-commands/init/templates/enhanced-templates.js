@@ -41,11 +41,10 @@ export function createWrapperScript(type = 'unix') {
       return universalTemplate;
     }
   }
-  
-  const filename = type === 'unix' ? 'claude-flow' : 
-                   type === 'windows' ? 'claude-flow.bat' : 
-                   'claude-flow.ps1';
-  
+
+  const filename =
+    type === 'unix' ? 'claude-flow' : type === 'windows' ? 'claude-flow.bat' : 'claude-flow.ps1';
+
   const template = loadTemplate(filename);
   if (!template) {
     return createWrapperScriptFallback(type);
@@ -143,7 +142,7 @@ npx claude-flow analysis performance-report --compare swarm-123
 # Full metrics report
 npx claude-flow analysis performance-report --include-metrics --format markdown
 \`\`\`
-`
+`,
     },
     automation: {
       'auto-agent': `# auto-agent
@@ -223,7 +222,7 @@ npx claude-flow automation workflow-select --constraints "no-downtime,rollback"
 # Preview mode
 npx claude-flow automation workflow-select --task "Database migration" --preview
 \`\`\`
-`
+`,
     },
     coordination: {
       'swarm-init': `# swarm-init
@@ -303,7 +302,7 @@ npx claude-flow task orchestrate --task "Fix production bug" --priority critical
 # With specific strategy
 npx claude-flow task orchestrate --task "Refactor codebase" --strategy parallel
 \`\`\`
-`
+`,
     },
     github: {
       'github-swarm': `# github-swarm
@@ -436,7 +435,7 @@ npx claude-flow github code-review --pr-number 456 --focus security
 # With fix suggestions
 npx claude-flow github code-review --pr-number 456 --suggest-fixes
 \`\`\`
-`
+`,
     },
     hooks: {
       'pre-task': `# pre-task
@@ -568,7 +567,7 @@ npx claude-flow hook session-end --export-metrics
 # Full closure
 npx claude-flow hook session-end --export-metrics --generate-summary --persist-state
 \`\`\`
-`
+`,
     },
     memory: {
       'memory-usage': `# memory-usage
@@ -648,7 +647,7 @@ npx claude-flow memory search --pattern "api-.*"
 # Limited results
 npx claude-flow memory search --query "config" --limit 10
 \`\`\`
-`
+`,
     },
     monitoring: {
       'swarm-monitor': `# swarm-monitor
@@ -728,7 +727,7 @@ npx claude-flow monitoring real-time-view --filter errors
 # Highlight pattern
 npx claude-flow monitoring real-time-view --highlight "API"
 \`\`\`
-`
+`,
     },
     optimization: {
       'topology-optimize': `# topology-optimize
@@ -808,7 +807,7 @@ npx claude-flow optimization cache-manage --action clear
 # Set limits
 npx claude-flow optimization cache-manage --max-size 100 --ttl 3600
 \`\`\`
-`
+`,
     },
     training: {
       'neural-train': `# neural-train
@@ -888,7 +887,7 @@ npx claude-flow training model-update --model agent-selector
 # Incremental with validation
 npx claude-flow training model-update --incremental --validate
 \`\`\`
-`
+`,
     },
     workflows: {
       'workflow-create': `# workflow-create
@@ -968,11 +967,264 @@ npx claude-flow workflow export --name "test-suite" --format yaml
 # With history
 npx claude-flow workflow export --name "deploy-api" --include-history
 \`\`\`
-`
-    }
+`,
+    },
+    swarm: {
+      'swarm': `# swarm
+
+Main swarm orchestration command for Claude Flow.
+
+## Usage
+\`\`\`bash
+npx claude-flow swarm <objective> [options]
+\`\`\`
+
+## Options
+- \`--strategy <type>\` - Execution strategy (research, development, analysis, testing)
+- \`--mode <type>\` - Coordination mode (centralized, distributed, hierarchical, mesh)
+- \`--max-agents <n>\` - Maximum number of agents (default: 5)
+- \`--claude\` - Open Claude Code CLI with swarm prompt
+- \`--parallel\` - Enable parallel execution
+
+## Examples
+\`\`\`bash
+# Basic swarm
+npx claude-flow swarm "Build REST API"
+
+# With strategy
+npx claude-flow swarm "Research AI patterns" --strategy research
+
+# Open in Claude Code
+npx claude-flow swarm "Build API" --claude
+\`\`\`
+`,
+      'swarm-init': `# swarm-init
+
+Initialize a new swarm with specified topology.
+
+## Usage
+\`\`\`bash
+npx claude-flow swarm init [options]
+\`\`\`
+
+## Options
+- \`--topology <type>\` - Swarm topology (mesh, hierarchical, ring, star)
+- \`--max-agents <n>\` - Maximum agents
+- \`--strategy <type>\` - Distribution strategy
+
+## Examples
+\`\`\`bash
+npx claude-flow swarm init --topology mesh
+npx claude-flow swarm init --topology hierarchical --max-agents 8
+\`\`\`
+`,
+      'swarm-spawn': `# swarm-spawn
+
+Spawn agents in the swarm.
+
+## Usage
+\`\`\`bash
+npx claude-flow swarm spawn [options]
+\`\`\`
+
+## Options
+- \`--type <type>\` - Agent type
+- \`--count <n>\` - Number to spawn
+- \`--capabilities <list>\` - Agent capabilities
+
+## Examples
+\`\`\`bash
+npx claude-flow swarm spawn --type coder --count 3
+npx claude-flow swarm spawn --type researcher --capabilities "web-search,analysis"
+\`\`\`
+`,
+    },
+    'hive-mind': {
+      'hive-mind': `# hive-mind
+
+Hive Mind collective intelligence system for advanced swarm coordination.
+
+## Usage
+\`\`\`bash
+npx claude-flow hive-mind [subcommand] [options]
+\`\`\`
+
+## Subcommands
+- \`init\` - Initialize hive mind system
+- \`spawn\` - Spawn hive mind swarm
+- \`status\` - Show hive mind status
+- \`resume\` - Resume paused session
+- \`stop\` - Stop running session
+
+## Examples
+\`\`\`bash
+# Initialize hive mind
+npx claude-flow hive-mind init
+
+# Spawn swarm
+npx claude-flow hive-mind spawn "Build microservices"
+
+# Check status
+npx claude-flow hive-mind status
+\`\`\`
+`,
+      'hive-mind-init': `# hive-mind-init
+
+Initialize the Hive Mind collective intelligence system.
+
+## Usage
+\`\`\`bash
+npx claude-flow hive-mind init [options]
+\`\`\`
+
+## Options
+- \`--force\` - Force reinitialize
+- \`--config <file>\` - Configuration file
+
+## Examples
+\`\`\`bash
+npx claude-flow hive-mind init
+npx claude-flow hive-mind init --force
+\`\`\`
+`,
+      'hive-mind-spawn': `# hive-mind-spawn
+
+Spawn a Hive Mind swarm with queen-led coordination.
+
+## Usage
+\`\`\`bash
+npx claude-flow hive-mind spawn <objective> [options]
+\`\`\`
+
+## Options
+- \`--queen-type <type>\` - Queen type (strategic, tactical, adaptive)
+- \`--max-workers <n>\` - Maximum worker agents
+- \`--consensus <type>\` - Consensus algorithm
+- \`--claude\` - Generate Claude Code spawn commands
+
+## Examples
+\`\`\`bash
+npx claude-flow hive-mind spawn "Build API"
+npx claude-flow hive-mind spawn "Research patterns" --queen-type adaptive
+npx claude-flow hive-mind spawn "Build service" --claude
+\`\`\`
+`,
+    },
+    agents: {
+      'agent-types': `# agent-types
+
+Complete guide to all 54 available agent types in Claude Flow.
+
+## Core Development Agents
+- \`coder\` - Implementation specialist
+- \`reviewer\` - Code quality assurance
+- \`tester\` - Test creation and validation
+- \`planner\` - Strategic planning
+- \`researcher\` - Information gathering
+
+## Swarm Coordination Agents
+- \`hierarchical-coordinator\` - Queen-led coordination
+- \`mesh-coordinator\` - Peer-to-peer networks
+- \`adaptive-coordinator\` - Dynamic topology
+
+## Specialized Agents
+- \`backend-dev\` - API development
+- \`mobile-dev\` - React Native development
+- \`ml-developer\` - Machine learning
+- \`system-architect\` - High-level design
+
+For full list and details:
+\`\`\`bash
+npx claude-flow agents list
+\`\`\`
+`,
+      'agent-capabilities': `# agent-capabilities
+
+Matrix of agent capabilities and their specializations.
+
+## Capability Matrix
+
+| Agent Type | Primary Skills | Best For |
+|------------|---------------|----------|
+| coder | Implementation, debugging | Feature development |
+| researcher | Analysis, synthesis | Requirements gathering |
+| tester | Testing, validation | Quality assurance |
+| architect | Design, planning | System architecture |
+
+## Querying Capabilities
+\`\`\`bash
+# List all capabilities
+npx claude-flow agents capabilities
+
+# For specific agent
+npx claude-flow agents capabilities --type coder
+\`\`\`
+`,
+      'agent-coordination': `# agent-coordination
+
+Coordination patterns for multi-agent collaboration.
+
+## Coordination Patterns
+
+### Hierarchical
+Queen-led with worker specialization
+\`\`\`bash
+npx claude-flow swarm init --topology hierarchical
+\`\`\`
+
+### Mesh
+Peer-to-peer collaboration
+\`\`\`bash
+npx claude-flow swarm init --topology mesh
+\`\`\`
+
+### Adaptive
+Dynamic topology based on workload
+\`\`\`bash
+npx claude-flow swarm init --topology adaptive
+\`\`\`
+
+## Best Practices
+- Use hierarchical for complex projects
+- Use mesh for research tasks
+- Use adaptive for unknown workloads
+`,
+      'agent-spawning': `# agent-spawning
+
+Guide to spawning agents with Claude Code's Task tool.
+
+## Using Claude Code's Task Tool
+
+**CRITICAL**: Always use Claude Code's Task tool for actual agent execution:
+
+\`\`\`javascript
+// Spawn ALL agents in ONE message
+Task("Researcher", "Analyze requirements...", "researcher")
+Task("Coder", "Implement features...", "coder")
+Task("Tester", "Create tests...", "tester")
+\`\`\`
+
+## MCP Coordination Setup (Optional)
+
+MCP tools are ONLY for coordination:
+\`\`\`javascript
+mcp__claude-flow__swarm_init { topology: "mesh" }
+mcp__claude-flow__agent_spawn { type: "researcher" }
+\`\`\`
+
+## Best Practices
+1. Always spawn agents concurrently
+2. Use Task tool for execution
+3. MCP only for coordination
+4. Batch all operations
+`,
+    },
   };
 
-  return docs[category]?.[command] || `# ${command}\n\nCommand documentation for ${command} in category ${category}.\n\nUsage:\n\`\`\`bash\nnpx claude-flow ${category} ${command} [options]\n\`\`\`\n`;
+  return (
+    docs[category]?.[command] ||
+    `# ${command}\n\nCommand documentation for ${command} in category ${category}.\n\nUsage:\n\`\`\`bash\nnpx claude-flow ${category} ${command} [options]\n\`\`\`\n`
+  );
 }
 
 // Command categories and their commands
@@ -986,7 +1238,10 @@ export const COMMAND_STRUCTURE = {
   monitoring: ['swarm-monitor', 'agent-metrics', 'real-time-view'],
   optimization: ['topology-optimize', 'parallel-execute', 'cache-manage'],
   training: ['neural-train', 'pattern-learn', 'model-update'],
-  workflows: ['workflow-create', 'workflow-execute', 'workflow-export']
+  workflows: ['workflow-create', 'workflow-execute', 'workflow-export'],
+  swarm: ['swarm', 'swarm-init', 'swarm-spawn', 'swarm-status', 'swarm-monitor', 'swarm-strategies', 'swarm-modes', 'swarm-background', 'swarm-analysis'],
+  'hive-mind': ['hive-mind', 'hive-mind-init', 'hive-mind-spawn', 'hive-mind-status', 'hive-mind-resume', 'hive-mind-stop', 'hive-mind-sessions', 'hive-mind-consensus', 'hive-mind-memory', 'hive-mind-metrics', 'hive-mind-wizard'],
+  agents: ['agent-types', 'agent-capabilities', 'agent-coordination', 'agent-spawning'],
 };
 
 // Helper script content
@@ -1059,9 +1314,730 @@ echo "  - npx claude-flow github swarm"
 echo "  - npx claude-flow repo analyze"
 echo "  - npx claude-flow pr enhance"
 echo "  - npx claude-flow issue triage"
-`
-  };
+`,
+    'github-safe.js': `#!/usr/bin/env node
+
+/**
+ * Safe GitHub CLI Helper
+ * Prevents timeout issues when using gh commands with special characters
+ * 
+ * Usage:
+ *   ./github-safe.js issue comment 123 "Message with \`backticks\`"
+ *   ./github-safe.js pr create --title "Title" --body "Complex body"
+ */
+
+import { execSync } from 'child_process';
+import { writeFileSync, unlinkSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
+import { randomBytes } from 'crypto';
+
+const args = process.argv.slice(2);
+
+if (args.length < 2) {
+  console.log(\`
+Safe GitHub CLI Helper
+
+Usage:
+  ./github-safe.js issue comment <number> <body>
+  ./github-safe.js pr comment <number> <body>
+  ./github-safe.js issue create --title <title> --body <body>
+  ./github-safe.js pr create --title <title> --body <body>
+
+This helper prevents timeout issues with special characters like:
+- Backticks in code examples
+- Command substitution \\$(...)
+- Directory paths
+- Special shell characters
+\`);
+  process.exit(1);
+}
+
+const [command, subcommand, ...restArgs] = args;
+
+// Handle commands that need body content
+if ((command === 'issue' || command === 'pr') && 
+    (subcommand === 'comment' || subcommand === 'create')) {
   
+  let bodyIndex = -1;
+  let body = '';
+  
+  if (subcommand === 'comment' && restArgs.length >= 2) {
+    // Simple format: github-safe.js issue comment 123 "body"
+    body = restArgs[1];
+    bodyIndex = 1;
+  } else {
+    // Flag format: --body "content" 
+    bodyIndex = restArgs.indexOf('--body');
+    if (bodyIndex !== -1 && bodyIndex < restArgs.length - 1) {
+      body = restArgs[bodyIndex + 1];
+    }
+  }
+  
+  if (body) {
+    // Use temporary file for body content
+    const tmpFile = join(tmpdir(), \`gh-body-\${randomBytes(8).toString('hex')}.tmp\`);
+    
+    try {
+      writeFileSync(tmpFile, body, 'utf8');
+      
+      // Build new command with --body-file
+      const newArgs = [...restArgs];
+      if (subcommand === 'comment' && bodyIndex === 1) {
+        // Replace body with --body-file
+        newArgs[1] = '--body-file';
+        newArgs.push(tmpFile);
+      } else if (bodyIndex !== -1) {
+        // Replace --body with --body-file
+        newArgs[bodyIndex] = '--body-file';
+        newArgs[bodyIndex + 1] = tmpFile;
+      }
+      
+      // Execute safely
+      const ghCommand = \`gh \${command} \${subcommand} \${newArgs.join(' ')}\`;
+      console.log(\`Executing: \${ghCommand}\`);
+      
+      const result = execSync(ghCommand, { 
+        stdio: 'inherit',
+        timeout: 30000 // 30 second timeout
+      });
+      
+    } catch (error) {
+      console.error('Error:', error.message);
+      process.exit(1);
+    } finally {
+      // Clean up
+      try {
+        unlinkSync(tmpFile);
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+    }
+  } else {
+    // No body content, execute normally
+    execSync(\`gh \${args.join(' ')}\`, { stdio: 'inherit' });
+  }
+} else {
+  // Other commands, execute normally
+  execSync(\`gh \${args.join(' ')}\`, { stdio: 'inherit' });
+}
+`,
+    'checkpoint-hooks.sh': `#!/bin/bash
+# Checkpoint hook functions for Claude settings.json
+
+# Function to handle pre-edit checkpoints
+pre_edit_checkpoint() {
+    local tool_input="$1"
+    local file=$(echo "$tool_input" | jq -r '.file_path // empty')
+    
+    if [ -n "$file" ]; then
+        local checkpoint_branch="checkpoint/pre-edit-$(date +%Y%m%d-%H%M%S)"
+        local current_branch=$(git branch --show-current)
+        
+        # Create checkpoint
+        git add -A
+        git stash push -m "Pre-edit checkpoint for $file" >/dev/null 2>&1
+        git branch "$checkpoint_branch"
+        
+        # Store metadata
+        mkdir -p .claude/checkpoints
+        cat > ".claude/checkpoints/$(date +%s).json" <<EOF
+{
+  "branch": "$checkpoint_branch",
+  "file": "$file",
+  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "type": "pre-edit",
+  "original_branch": "$current_branch"
+}
+EOF
+        
+        # Restore working directory
+        git stash pop --quiet >/dev/null 2>&1 || true
+        
+        echo "✅ Created checkpoint: $checkpoint_branch for $file"
+    fi
+}
+
+# Function to handle post-edit checkpoints
+post_edit_checkpoint() {
+    local tool_input="$1"
+    local file=$(echo "$tool_input" | jq -r '.file_path // empty')
+    
+    if [ -n "$file" ] && [ -f "$file" ]; then
+        # Check if file was modified - first check if file is tracked
+        if ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
+            # File is not tracked, add it first
+            git add "$file"
+        fi
+        
+        # Now check if there are changes
+        if git diff --cached --quiet "$file" 2>/dev/null && git diff --quiet "$file" 2>/dev/null; then
+            echo "ℹ️  No changes to checkpoint for $file"
+        else
+            local tag_name="checkpoint-$(date +%Y%m%d-%H%M%S)"
+            local current_branch=$(git branch --show-current)
+            
+            # Create commit
+            git add "$file"
+            if git commit -m "🔖 Checkpoint: Edit $file
+
+Automatic checkpoint created by Claude
+- File: $file
+- Branch: $current_branch
+- Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+[Auto-checkpoint]" --quiet; then
+                # Create tag only if commit succeeded
+                git tag -a "$tag_name" -m "Checkpoint after editing $file"
+                
+                # Store metadata
+                mkdir -p .claude/checkpoints
+                local diff_stats=$(git diff HEAD~1 --stat | tr '\\n' ' ' | sed 's/"/\\\\"/g')
+                cat > ".claude/checkpoints/$(date +%s).json" <<EOF
+{
+  "tag": "$tag_name",
+  "file": "$file",
+  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "type": "post-edit",
+  "branch": "$current_branch",
+  "diff_summary": "$diff_stats"
+}
+EOF
+                
+                echo "✅ Created checkpoint: $tag_name for $file"
+            else
+                echo "ℹ️  No commit created (no changes or commit failed)"
+            fi
+        fi
+    fi
+}
+
+# Function to handle task checkpoints
+task_checkpoint() {
+    local user_prompt="$1"
+    local task=$(echo "$user_prompt" | head -c 100 | tr '\\n' ' ')
+    
+    if [ -n "$task" ]; then
+        local checkpoint_name="task-$(date +%Y%m%d-%H%M%S)"
+        
+        # Commit current state
+        git add -A
+        git commit -m "🔖 Task checkpoint: $task..." --quiet || true
+        
+        # No GitHub release in standard version
+        
+        # Store metadata
+        mkdir -p .claude/checkpoints
+        cat > ".claude/checkpoints/task-$(date +%s).json" <<EOF
+{
+  "checkpoint": "$checkpoint_name",
+  "task": "$task",
+  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "commit": "$(git rev-parse HEAD)"
+}
+EOF
+        
+        echo "✅ Created task checkpoint: $checkpoint_name"
+    fi
+}
+
+# Function to handle session end
+session_end_checkpoint() {
+    local session_id="session-$(date +%Y%m%d-%H%M%S)"
+    local summary_file=".claude/checkpoints/summary-$session_id.md"
+    
+    mkdir -p .claude/checkpoints
+    
+    # Create summary
+    cat > "$summary_file" <<EOF
+# Session Summary - $(date +'%Y-%m-%d %H:%M:%S')
+
+## Checkpoints Created
+$(find .claude/checkpoints -name '*.json' -mtime -1 -exec basename {} \\; | sort)
+
+## Files Modified
+$(git diff --name-only $(git log --format=%H -n 1 --before="1 hour ago" 2>/dev/null) 2>/dev/null || echo "No files tracked")
+
+## Recent Commits
+$(git log --oneline -10 --grep="Checkpoint" || echo "No checkpoint commits")
+
+## Rollback Instructions
+To rollback to a specific checkpoint:
+\\\`\\\`\\\`bash
+# List all checkpoints
+git tag -l 'checkpoint-*' | sort -r
+
+# Rollback to a checkpoint
+git checkout checkpoint-YYYYMMDD-HHMMSS
+
+# Or reset to a checkpoint (destructive)
+git reset --hard checkpoint-YYYYMMDD-HHMMSS
+\\\`\\\`\\\`
+EOF
+    
+    # Create final checkpoint
+    git add -A
+    git commit -m "🏁 Session end checkpoint: $session_id" --quiet || true
+    git tag -a "session-end-$session_id" -m "End of Claude session"
+    
+    echo "✅ Session summary saved to: $summary_file"
+    echo "📌 Final checkpoint: session-end-$session_id"
+}
+
+# Main entry point
+case "$1" in
+    pre-edit)
+        pre_edit_checkpoint "$2"
+        ;;
+    post-edit)
+        post_edit_checkpoint "$2"
+        ;;
+    task)
+        task_checkpoint "$2"
+        ;;
+    session-end)
+        session_end_checkpoint
+        ;;
+    *)
+        echo "Usage: $0 {pre-edit|post-edit|task|session-end} [input]"
+        exit 1
+        ;;
+esac
+`,
+    'checkpoint-manager.sh': `#!/bin/bash
+# Claude Checkpoint Manager
+# Provides easy rollback and management of Claude Code checkpoints
+
+set -e
+
+# Colors
+RED='\\033[0;31m'
+GREEN='\\033[0;32m'
+YELLOW='\\033[1;33m'
+BLUE='\\033[0;34m'
+NC='\\033[0m' # No Color
+
+# Configuration
+CHECKPOINT_DIR=".claude/checkpoints"
+BACKUP_DIR=".claude/backups"
+
+# Help function
+show_help() {
+    cat << EOF
+Claude Checkpoint Manager
+========================
+
+Usage: $0 <command> [options]
+
+Commands:
+  list              List all checkpoints
+  show <id>         Show details of a specific checkpoint
+  rollback <id>     Rollback to a specific checkpoint
+  diff <id>         Show diff since checkpoint
+  clean             Clean old checkpoints (older than 7 days)
+  summary           Show session summary
+  
+Options:
+  --hard            For rollback: use git reset --hard (destructive)
+  --soft            For rollback: use git reset --soft (default)
+  --branch          For rollback: create new branch from checkpoint
+
+Examples:
+  $0 list
+  $0 show checkpoint-20240130-143022
+  $0 rollback checkpoint-20240130-143022 --branch
+  $0 diff session-end-session-20240130-150000
+EOF
+}
+
+# List all checkpoints
+function list_checkpoints() {
+    echo -e "\${BLUE}📋 Available Checkpoints:\${NC}"
+    echo ""
+    
+    # List checkpoint tags
+    echo -e "\${YELLOW}Git Tags:\${NC}"
+    local tags=$(git tag -l 'checkpoint-*' -l 'session-end-*' -l 'task-*' --sort=-creatordate | head -20)
+    if [ -n "$tags" ]; then
+        echo "$tags"
+    else
+        echo "No checkpoint tags found"
+    fi
+    
+    echo ""
+    
+    # List checkpoint branches
+    echo -e "\${YELLOW}Checkpoint Branches:\${NC}"
+    local branches=$(git branch -a | grep "checkpoint/" | sed 's/^[ *]*//')
+    if [ -n "$branches" ]; then
+        echo "$branches"
+    else
+        echo "No checkpoint branches found"
+    fi
+    
+    echo ""
+    
+    # List checkpoint files
+    if [ -d "$CHECKPOINT_DIR" ]; then
+        echo -e "\${YELLOW}Recent Checkpoint Files:\${NC}"
+        find "$CHECKPOINT_DIR" -name "*.json" -type f -printf "%T@ %p\\n" | \\
+            sort -rn | head -10 | cut -d' ' -f2- | xargs -I {} basename {}
+    fi
+}
+
+# Show checkpoint details
+function show_checkpoint() {
+    local checkpoint_id="$1"
+    
+    echo -e "\${BLUE}📍 Checkpoint Details: $checkpoint_id\${NC}"
+    echo ""
+    
+    # Check if it's a tag
+    if git tag -l "$checkpoint_id" | grep -q "$checkpoint_id"; then
+        echo -e "\${YELLOW}Type:\${NC} Git Tag"
+        echo -e "\${YELLOW}Commit:\${NC} $(git rev-list -n 1 "$checkpoint_id")"
+        echo -e "\${YELLOW}Date:\${NC} $(git log -1 --format=%ai "$checkpoint_id")"
+        echo -e "\${YELLOW}Message:\${NC}"
+        git log -1 --format=%B "$checkpoint_id" | sed 's/^/  /'
+        echo ""
+        echo -e "\${YELLOW}Files changed:\${NC}"
+        git diff-tree --no-commit-id --name-status -r "$checkpoint_id" | sed 's/^/  /'
+    # Check if it's a branch
+    elif git branch -a | grep -q "$checkpoint_id"; then
+        echo -e "\${YELLOW}Type:\${NC} Git Branch"
+        echo -e "\${YELLOW}Latest commit:\${NC}"
+        git log -1 --oneline "$checkpoint_id"
+    else
+        echo -e "\${RED}❌ Checkpoint not found: $checkpoint_id\${NC}"
+        exit 1
+    fi
+}
+
+# Rollback to checkpoint
+function rollback_checkpoint() {
+    local checkpoint_id="$1"
+    local mode="$2"
+    
+    echo -e "\${YELLOW}🔄 Rolling back to checkpoint: $checkpoint_id\${NC}"
+    echo ""
+    
+    # Verify checkpoint exists
+    if ! git tag -l "$checkpoint_id" | grep -q "$checkpoint_id" && \\
+       ! git branch -a | grep -q "$checkpoint_id"; then
+        echo -e "\${RED}❌ Checkpoint not found: $checkpoint_id\${NC}"
+        exit 1
+    fi
+    
+    # Create backup before rollback
+    local backup_name="backup-$(date +%Y%m%d-%H%M%S)"
+    echo "Creating backup: $backup_name"
+    git tag "$backup_name" -m "Backup before rollback to $checkpoint_id"
+    
+    case "$mode" in
+        "--hard")
+            echo -e "\${RED}⚠️  Performing hard reset (destructive)\${NC}"
+            git reset --hard "$checkpoint_id"
+            echo -e "\${GREEN}✅ Rolled back to $checkpoint_id (hard reset)\${NC}"
+            ;;
+        "--branch")
+            local branch_name="rollback-$checkpoint_id-$(date +%Y%m%d-%H%M%S)"
+            echo "Creating new branch: $branch_name"
+            git checkout -b "$branch_name" "$checkpoint_id"
+            echo -e "\${GREEN}✅ Created branch $branch_name from $checkpoint_id\${NC}"
+            ;;
+        "--stash"|*)
+            echo "Stashing current changes..."
+            git stash push -m "Stash before rollback to $checkpoint_id"
+            git reset --soft "$checkpoint_id"
+            echo -e "\${GREEN}✅ Rolled back to $checkpoint_id (soft reset)\${NC}"
+            echo "Your changes are stashed. Use 'git stash pop' to restore them."
+            ;;
+    esac
+}
+
+# Show diff since checkpoint
+function diff_checkpoint() {
+    local checkpoint_id="$1"
+    
+    echo -e "\${BLUE}📊 Changes since checkpoint: $checkpoint_id\${NC}"
+    echo ""
+    
+    if git tag -l "$checkpoint_id" | grep -q "$checkpoint_id"; then
+        git diff "$checkpoint_id"
+    elif git branch -a | grep -q "$checkpoint_id"; then
+        git diff "$checkpoint_id"
+    else
+        echo -e "\${RED}❌ Checkpoint not found: $checkpoint_id\${NC}"
+        exit 1
+    fi
+}
+
+# Clean old checkpoints
+function clean_checkpoints() {
+    local days=\${1:-7}
+    
+    echo -e "\${YELLOW}🧹 Cleaning checkpoints older than $days days...\${NC}"
+    echo ""
+    
+    # Clean old checkpoint files
+    if [ -d "$CHECKPOINT_DIR" ]; then
+        find "$CHECKPOINT_DIR" -name "*.json" -type f -mtime +$days -delete
+        echo "✅ Cleaned old checkpoint files"
+    fi
+    
+    # List old tags (but don't delete automatically)
+    echo ""
+    echo "Old checkpoint tags (manual deletion required):"
+    git tag -l 'checkpoint-*' --sort=-creatordate | tail -n +50 || echo "No old tags found"
+}
+
+# Show session summary
+function show_summary() {
+    echo -e "\${BLUE}📊 Session Summary\${NC}"
+    echo ""
+    
+    # Find most recent session summary
+    if [ -d "$CHECKPOINT_DIR" ]; then
+        local latest_summary=$(find "$CHECKPOINT_DIR" -name "summary-*.md" -type f -printf "%T@ %p\\n" | \\
+            sort -rn | head -1 | cut -d' ' -f2-)
+        
+        if [ -n "$latest_summary" ]; then
+            echo -e "\${YELLOW}Latest session summary:\${NC}"
+            cat "$latest_summary"
+        else
+            echo "No session summaries found"
+        fi
+    fi
+}
+
+# Main command handling
+case "$1" in
+    list)
+        list_checkpoints
+        ;;
+    show)
+        if [ -z "$2" ]; then
+            echo -e "\${RED}Error: Please specify a checkpoint ID\${NC}"
+            show_help
+            exit 1
+        fi
+        show_checkpoint "$2"
+        ;;
+    rollback)
+        if [ -z "$2" ]; then
+            echo -e "\${RED}Error: Please specify a checkpoint ID\${NC}"
+            show_help
+            exit 1
+        fi
+        rollback_checkpoint "$2" "$3"
+        ;;
+    diff)
+        if [ -z "$2" ]; then
+            echo -e "\${RED}Error: Please specify a checkpoint ID\${NC}"
+            show_help
+            exit 1
+        fi
+        diff_checkpoint "$2"
+        ;;
+    clean)
+        clean_checkpoints "$2"
+        ;;
+    summary)
+        show_summary
+        ;;
+    help|--help|-h)
+        show_help
+        ;;
+    *)
+        echo -e "\${RED}Error: Unknown command: $1\${NC}"
+        echo ""
+        show_help
+        exit 1
+        ;;
+esac
+`,
+    'standard-checkpoint-hooks.sh': `#!/bin/bash
+# Standard checkpoint hook functions for Claude settings.json (without GitHub features)
+
+# Function to handle pre-edit checkpoints
+pre_edit_checkpoint() {
+    local tool_input="$1"
+    local file=$(echo "$tool_input" | jq -r '.file_path // empty')
+    
+    if [ -n "$file" ]; then
+        local checkpoint_branch="checkpoint/pre-edit-$(date +%Y%m%d-%H%M%S)"
+        local current_branch=$(git branch --show-current)
+        
+        # Create checkpoint
+        git add -A
+        git stash push -m "Pre-edit checkpoint for $file" >/dev/null 2>&1
+        git branch "$checkpoint_branch"
+        
+        # Store metadata
+        mkdir -p .claude/checkpoints
+        cat > ".claude/checkpoints/$(date +%s).json" <<EOF
+{
+  "branch": "$checkpoint_branch",
+  "file": "$file",
+  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "type": "pre-edit",
+  "original_branch": "$current_branch"
+}
+EOF
+        
+        # Restore working directory
+        git stash pop --quiet >/dev/null 2>&1 || true
+        
+        echo "✅ Created checkpoint: $checkpoint_branch for $file"
+    fi
+}
+
+# Function to handle post-edit checkpoints
+post_edit_checkpoint() {
+    local tool_input="$1"
+    local file=$(echo "$tool_input" | jq -r '.file_path // empty')
+    
+    if [ -n "$file" ] && [ -f "$file" ]; then
+        # Check if file was modified - first check if file is tracked
+        if ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
+            # File is not tracked, add it first
+            git add "$file"
+        fi
+        
+        # Now check if there are changes
+        if git diff --cached --quiet "$file" 2>/dev/null && git diff --quiet "$file" 2>/dev/null; then
+            echo "ℹ️  No changes to checkpoint for $file"
+        else
+            local tag_name="checkpoint-$(date +%Y%m%d-%H%M%S)"
+            local current_branch=$(git branch --show-current)
+            
+            # Create commit
+            git add "$file"
+            if git commit -m "🔖 Checkpoint: Edit $file
+
+Automatic checkpoint created by Claude
+- File: $file
+- Branch: $current_branch
+- Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+[Auto-checkpoint]" --quiet; then
+                # Create tag only if commit succeeded
+                git tag -a "$tag_name" -m "Checkpoint after editing $file"
+                
+                # Store metadata
+                mkdir -p .claude/checkpoints
+                local diff_stats=$(git diff HEAD~1 --stat | tr '\\n' ' ' | sed 's/"/\\"/g')
+                cat > ".claude/checkpoints/$(date +%s).json" <<EOF
+{
+  "tag": "$tag_name",
+  "file": "$file",
+  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "type": "post-edit",
+  "branch": "$current_branch",
+  "diff_summary": "$diff_stats"
+}
+EOF
+                
+                echo "✅ Created checkpoint: $tag_name for $file"
+            else
+                echo "ℹ️  No commit created (no changes or commit failed)"
+            fi
+        fi
+    fi
+}
+
+# Function to handle task checkpoints
+task_checkpoint() {
+    local user_prompt="$1"
+    local task=$(echo "$user_prompt" | head -c 100 | tr '\\n' ' ')
+    
+    if [ -n "$task" ]; then
+        local checkpoint_name="task-$(date +%Y%m%d-%H%M%S)"
+        
+        # Commit current state
+        git add -A
+        git commit -m "🔖 Task checkpoint: $task..." --quiet || true
+        
+        # Store metadata
+        mkdir -p .claude/checkpoints
+        cat > ".claude/checkpoints/task-$(date +%s).json" <<EOF
+{
+  "checkpoint": "$checkpoint_name",
+  "task": "$task",
+  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "commit": "$(git rev-parse HEAD)"
+}
+EOF
+        
+        echo "✅ Created task checkpoint: $checkpoint_name"
+    fi
+}
+
+# Function to handle session end
+session_end_checkpoint() {
+    local session_id="session-$(date +%Y%m%d-%H%M%S)"
+    local summary_file=".claude/checkpoints/summary-$session_id.md"
+    
+    mkdir -p .claude/checkpoints
+    
+    # Create summary
+    cat > "$summary_file" <<EOF
+# Session Summary - $(date +'%Y-%m-%d %H:%M:%S')
+
+## Checkpoints Created
+$(find .claude/checkpoints -name '*.json' -mtime -1 -exec basename {} \\; | sort)
+
+## Files Modified
+$(git diff --name-only $(git log --format=%H -n 1 --before="1 hour ago" 2>/dev/null) 2>/dev/null || echo "No files tracked")
+
+## Recent Commits
+$(git log --oneline -10 --grep="Checkpoint" || echo "No checkpoint commits")
+
+## Rollback Instructions
+To rollback to a specific checkpoint:
+\\\`\\\`\\\`bash
+# List all checkpoints
+git tag -l 'checkpoint-*' | sort -r
+
+# Rollback to a checkpoint
+git checkout checkpoint-YYYYMMDD-HHMMSS
+
+# Or reset to a checkpoint (destructive)
+git reset --hard checkpoint-YYYYMMDD-HHMMSS
+\\\`\\\`\\\`
+EOF
+    
+    # Create final checkpoint
+    git add -A
+    git commit -m "🏁 Session end checkpoint: $session_id" --quiet || true
+    git tag -a "session-end-$session_id" -m "End of Claude session"
+    
+    echo "✅ Session summary saved to: $summary_file"
+    echo "📌 Final checkpoint: session-end-$session_id"
+}
+
+# Main entry point
+case "$1" in
+    pre-edit)
+        pre_edit_checkpoint "$2"
+        ;;
+    post-edit)
+        post_edit_checkpoint "$2"
+        ;;
+    task)
+        task_checkpoint "$2"
+        ;;
+    session-end)
+        session_end_checkpoint
+        ;;
+    *)
+        echo "Usage: $0 {pre-edit|post-edit|task|session-end} [input]"
+        exit 1
+        ;;
+esac
+`,
+  };
+
   return scripts[name] || '';
 }
 
@@ -1224,97 +2200,128 @@ See full documentation in \`.claude/commands/\`
 }
 
 function createEnhancedSettingsJsonFallback() {
-  return JSON.stringify({
-    env: {
-      CLAUDE_FLOW_AUTO_COMMIT: "false",
-      CLAUDE_FLOW_AUTO_PUSH: "false",
-      CLAUDE_FLOW_HOOKS_ENABLED: "true",
-      CLAUDE_FLOW_TELEMETRY_ENABLED: "true",
-      CLAUDE_FLOW_REMOTE_EXECUTION: "true",
-      CLAUDE_FLOW_GITHUB_INTEGRATION: "true"
+  return JSON.stringify(
+    {
+      env: {
+        CLAUDE_FLOW_AUTO_COMMIT: 'false',
+        CLAUDE_FLOW_AUTO_PUSH: 'false',
+        CLAUDE_FLOW_HOOKS_ENABLED: 'true',
+        CLAUDE_FLOW_TELEMETRY_ENABLED: 'true',
+        CLAUDE_FLOW_REMOTE_EXECUTION: 'true',
+        CLAUDE_FLOW_CHECKPOINTS_ENABLED: 'true',
+      },
+      permissions: {
+        allow: [
+          'Bash(npx claude-flow:*)',
+          'Bash(npm run lint)',
+          'Bash(npm run test:*)',
+          'Bash(npm test:*)',
+          'Bash(git status)',
+          'Bash(git diff:*)',
+          'Bash(git log:*)',
+          'Bash(git add:*)',
+          'Bash(git commit:*)',
+          'Bash(git push)',
+          'Bash(git config:*)',
+          'Bash(git tag:*)',
+          'Bash(git branch:*)',
+          'Bash(git checkout:*)',
+          'Bash(git stash:*)',
+          'Bash(node:*)',
+          'Bash(which:*)',
+          'Bash(pwd)',
+          'Bash(ls:*)',
+          'Bash(jq:*)',
+        ],
+        deny: ['Bash(rm -rf /)'],
+      },
+      enabledMcpjsonServers: ['claude-flow', 'ruv-swarm'],
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: 'Bash',
+            hooks: [
+              {
+                type: 'command',
+                command:
+                  'cat | jq -r \'.tool_input.command // ""\' | xargs -I {} npx claude-flow@alpha hooks pre-command --command "{}" --validate-safety true --prepare-resources true',
+              },
+            ],
+          },
+          {
+            matcher: 'Write|Edit|MultiEdit',
+            hooks: [
+              {
+                type: 'command',
+                command:
+                  'cat | jq -r \'.tool_input.file_path // .tool_input.path // ""\' | xargs -I {} npx claude-flow@alpha hooks pre-edit --file "{}" --auto-assign-agents true --load-context true',
+              },
+              {
+                type: 'command',
+                command: './.claude/helpers/standard-checkpoint-hooks.sh pre-edit "{{tool_input}}"',
+              },
+            ],
+          },
+        ],
+        PostToolUse: [
+          {
+            matcher: 'Bash',
+            hooks: [
+              {
+                type: 'command',
+                command:
+                  'cat | jq -r \'.tool_input.command // ""\' | xargs -I {} npx claude-flow@alpha hooks post-command --command "{}" --track-metrics true --store-results true',
+              },
+            ],
+          },
+          {
+            matcher: 'Write|Edit|MultiEdit',
+            hooks: [
+              {
+                type: 'command',
+                command:
+                  'cat | jq -r \'.tool_input.file_path // .tool_input.path // ""\' | xargs -I {} npx claude-flow@alpha hooks post-edit --file "{}" --format true --update-memory true --train-neural true',
+              },
+              {
+                type: 'command',
+                command: './.claude/helpers/standard-checkpoint-hooks.sh post-edit "{{tool_input}}"',
+              },
+            ],
+          },
+        ],
+        UserPromptSubmit: [
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: './.claude/helpers/standard-checkpoint-hooks.sh task "{{user_prompt}}"',
+              },
+            ],
+          },
+        ],
+        Stop: [
+          {
+            hooks: [
+              {
+                type: 'command',
+                command:
+                  '/usr/bin/env bash -c \'if command -v npx >/dev/null 2>&1; then npx claude-flow@alpha hooks session-end --generate-summary true --persist-state true --export-metrics true; else echo "⚠️  npx not available, skipping Claude Flow session-end hook"; fi\'',
+              },
+              {
+                type: 'command',
+                command: '/usr/bin/env bash -c \'if [ -f ./.claude/helpers/standard-checkpoint-hooks.sh ]; then ./.claude/helpers/standard-checkpoint-hooks.sh session-end; else echo "⚠️  Checkpoint hooks not found"; fi\'',
+              },
+            ],
+          },
+        ],
+      },
+      includeCoAuthoredBy: true,
+      statusLine: {
+        type: 'command',
+        command: '.claude/statusline-command.sh',
+      },
     },
-    permissions: {
-      allow: [
-        "Bash(npx claude-flow *)",
-        "Bash(npm run lint)",
-        "Bash(npm run test:*)",
-        "Bash(npm test *)",
-        "Bash(git status)",
-        "Bash(git diff *)",
-        "Bash(git log *)",
-        "Bash(git add *)",
-        "Bash(git commit *)",
-        "Bash(git push)",
-        "Bash(git config *)",
-        "Bash(gh *)",
-        "Bash(node *)",
-        "Bash(which *)",
-        "Bash(pwd)",
-        "Bash(ls *)"
-      ],
-      deny: [
-        "Bash(rm -rf /)",
-        "Bash(curl * | bash)",
-        "Bash(wget * | sh)",
-        "Bash(eval *)"
-      ]
-    },
-    enabledMcpjsonServers: [
-      "claude-flow",
-      "ruv-swarm"
-    ],
-    hooks: {
-      PreToolUse: [
-        {
-          matcher: "Bash",
-          hooks: [
-            {
-              type: "command",
-              command: "cat | jq -r '.tool_input.command // \"\"' | xargs -I {} npx claude-flow@alpha hooks pre-command --command \"{}\" --validate-safety true --prepare-resources true"
-            }
-          ]
-        },
-        {
-          matcher: "Write|Edit|MultiEdit",
-          hooks: [
-            {
-              type: "command",
-              command: "cat | jq -r '.tool_input.file_path // .tool_input.path // \"\"' | xargs -I {} npx claude-flow@alpha hooks pre-edit --file \"{}\" --auto-assign-agents true --load-context true"
-            }
-          ]
-        }
-      ],
-      PostToolUse: [
-        {
-          matcher: "Bash",
-          hooks: [
-            {
-              type: "command",
-              command: "cat | jq -r '.tool_input.command // \"\"' | xargs -I {} npx claude-flow@alpha hooks post-command --command \"{}\" --track-metrics true --store-results true"
-            }
-          ]
-        },
-        {
-          matcher: "Write|Edit|MultiEdit",
-          hooks: [
-            {
-              type: "command",
-              command: "cat | jq -r '.tool_input.file_path // .tool_input.path // \"\"' | xargs -I {} npx claude-flow@alpha hooks post-edit --file \"{}\" --format true --update-memory true --train-neural true"
-            }
-          ]
-        }
-      ],
-      Stop: [
-        {
-          hooks: [
-            {
-              type: "command",
-              command: "npx claude-flow@alpha hooks session-end --generate-summary true --persist-state true --export-metrics true"
-            }
-          ]
-        }
-      ]
-    },
-    includeCoAuthoredBy: true
-  }, null, 2);
+    null,
+    2,
+  );
 }

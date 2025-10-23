@@ -5,6 +5,7 @@ Comprehensive task management with orchestration features for Claude-Flow. Integ
 ## Features
 
 ### Core Task Management
+
 - **Dependencies**: Complex dependency relationships (finish-to-start, start-to-start, etc.)
 - **Priority System**: 0-100 priority scoring with intelligent scheduling
 - **Resource Management**: CPU, memory, disk, network resource allocation
@@ -14,6 +15,7 @@ Comprehensive task management with orchestration features for Claude-Flow. Integ
 - **Progress Tracking**: Real-time progress monitoring with metrics
 
 ### Orchestration Features
+
 - **TodoWrite Integration**: Automatic task breakdown using TodoWrite patterns
 - **Memory Coordination**: Cross-agent state sharing via Memory tools
 - **Batch Operations**: Parallel file operations and tool coordination
@@ -21,6 +23,7 @@ Comprehensive task management with orchestration features for Claude-Flow. Integ
 - **Swarm Coordination**: Multiple coordination patterns (centralized, distributed, hierarchical, mesh, hybrid)
 
 ### Workflow Management
+
 - **Parallel Processing**: Configurable parallelism strategies
 - **Error Handling**: Fail-fast, continue-on-error, retry-failed patterns
 - **Dependency Visualization**: ASCII, DOT, JSON graph formats
@@ -66,17 +69,15 @@ const task = await engine.createTask({
   type: 'development',
   description: 'Implement user authentication',
   priority: 80,
-  dependencies: [
-    { taskId: 'design-task-123', type: 'finish-to-start' }
-  ],
+  dependencies: [{ taskId: 'design-task-123', type: 'finish-to-start' }],
   resourceRequirements: [
     { resourceId: 'cpu', type: 'cpu', amount: 2, unit: 'cores' },
-    { resourceId: 'memory', type: 'memory', amount: 1024, unit: 'MB' }
+    { resourceId: 'memory', type: 'memory', amount: 1024, unit: 'MB' },
   ],
   schedule: {
-    deadline: new Date('2024-02-15T18:00:00Z')
+    deadline: new Date('2024-02-15T18:00:00Z'),
   },
-  tags: ['auth', 'security', 'backend']
+  tags: ['auth', 'security', 'backend'],
 });
 ```
 
@@ -85,14 +86,14 @@ const task = await engine.createTask({
 ```typescript
 // Create comprehensive task breakdown
 const todos = await coordinator.createTaskTodos(
-  "Build e-commerce platform",
+  'Build e-commerce platform',
   {
     strategy: 'development',
     batchOptimized: true,
     parallelExecution: true,
-    memoryCoordination: true
+    memoryCoordination: true,
   },
-  context
+  context,
 );
 
 // Todos automatically include:
@@ -106,29 +107,32 @@ const todos = await coordinator.createTaskTodos(
 
 ```typescript
 // Launch coordinated agents using Task tool pattern
-const agentIds = await coordinator.launchParallelAgents([
-  {
-    agentType: 'researcher',
-    objective: 'Research microservices patterns',
-    mode: 'researcher',
-    memoryKey: 'microservices_research',
-    batchOptimized: true
-  },
-  {
-    agentType: 'architect',
-    objective: 'Design system architecture',
-    mode: 'architect',
-    memoryKey: 'system_architecture',
-    batchOptimized: true
-  },
-  {
-    agentType: 'coder',
-    objective: 'Implement core services',
-    mode: 'coder',
-    memoryKey: 'core_implementation',
-    batchOptimized: true
-  }
-], context);
+const agentIds = await coordinator.launchParallelAgents(
+  [
+    {
+      agentType: 'researcher',
+      objective: 'Research microservices patterns',
+      mode: 'researcher',
+      memoryKey: 'microservices_research',
+      batchOptimized: true,
+    },
+    {
+      agentType: 'architect',
+      objective: 'Design system architecture',
+      mode: 'architect',
+      memoryKey: 'system_architecture',
+      batchOptimized: true,
+    },
+    {
+      agentType: 'coder',
+      objective: 'Implement core services',
+      mode: 'coder',
+      memoryKey: 'core_implementation',
+      batchOptimized: true,
+    },
+  ],
+  context,
+);
 ```
 
 ### Memory Coordination
@@ -140,47 +144,48 @@ await coordinator.storeInMemory(
   {
     bestPractices: ['microservices', 'event-driven'],
     technologies: ['nodejs', 'redis', 'postgresql'],
-    patterns: ['saga', 'cqrs', 'event-sourcing']
+    patterns: ['saga', 'cqrs', 'event-sourcing'],
   },
   {
     namespace: 'project_coordination',
-    tags: ['research', 'architecture']
-  }
+    tags: ['research', 'architecture'],
+  },
 );
 
 // Other agents can retrieve and use this data
-const findings = await coordinator.retrieveFromMemory(
-  'research_findings',
-  'project_coordination'
-);
+const findings = await coordinator.retrieveFromMemory('research_findings', 'project_coordination');
 ```
 
 ### Batch Operations
 
 ```typescript
 // Coordinate multiple operations for efficiency
-const results = await coordinator.coordinateBatchOperations([
-  {
-    type: 'read',
-    targets: ['src/**/*.ts'],
-    configuration: { pattern: 'class.*{' }
-  },
-  {
-    type: 'search',
-    targets: ['docs/**/*.md'],
-    configuration: { term: 'API documentation' }
-  },
-  {
-    type: 'analyze',
-    targets: ['package.json', 'tsconfig.json'],
-    configuration: { focus: 'dependencies' }
-  }
-], context);
+const results = await coordinator.coordinateBatchOperations(
+  [
+    {
+      type: 'read',
+      targets: ['src/**/*.ts'],
+      configuration: { pattern: 'class.*{' },
+    },
+    {
+      type: 'search',
+      targets: ['docs/**/*.md'],
+      configuration: { term: 'API documentation' },
+    },
+    {
+      type: 'analyze',
+      targets: ['package.json', 'tsconfig.json'],
+      configuration: { focus: 'dependencies' },
+    },
+  ],
+  context,
+);
 ```
 
 ## CLI Commands
 
 ### Task Create
+
 ```bash
 # Create comprehensive task with all options
 claude-flow task create development "Implement authentication" \
@@ -197,6 +202,7 @@ claude-flow task create development "Implement authentication" \
 ```
 
 ### Task List
+
 ```bash
 # List with advanced filtering and visualization
 claude-flow task list \
@@ -212,6 +218,7 @@ claude-flow task list \
 ```
 
 ### Task Status
+
 ```bash
 # Detailed status with all metrics
 claude-flow task status task-789 \
@@ -224,6 +231,7 @@ claude-flow task status task-789 \
 ```
 
 ### Task Cancel
+
 ```bash
 # Safe cancellation with rollback
 claude-flow task cancel task-789 \
@@ -233,6 +241,7 @@ claude-flow task cancel task-789 \
 ```
 
 ### Workflow Management
+
 ```bash
 # Create workflow
 claude-flow task workflow create "E-commerce Platform" \
@@ -255,52 +264,58 @@ claude-flow task workflow visualize workflow-123 \
 ## Coordination Patterns
 
 ### Centralized
+
 Single coordinator manages all agents:
+
 ```typescript
 await coordinator.coordinateSwarm(
-  "Development project",
+  'Development project',
   { coordinationMode: 'centralized' },
-  agents
+  agents,
 );
 ```
 
 ### Distributed
+
 Multiple coordinators for different aspects:
+
 ```typescript
 await coordinator.coordinateSwarm(
-  "Complex system development",
+  'Complex system development',
   { coordinationMode: 'distributed' },
-  agents
+  agents,
 );
 ```
 
 ### Hierarchical
+
 Tree structure with team leads:
+
 ```typescript
 await coordinator.coordinateSwarm(
-  "Enterprise development",
+  'Enterprise development',
   { coordinationMode: 'hierarchical' },
-  agents
+  agents,
 );
 ```
 
 ### Mesh
+
 Peer-to-peer coordination:
+
 ```typescript
-await coordinator.coordinateSwarm(
-  "Adaptive development",
-  { coordinationMode: 'mesh' },
-  agents
-);
+await coordinator.coordinateSwarm('Adaptive development', { coordinationMode: 'mesh' }, agents);
 ```
 
 ### Hybrid
+
 Mixed patterns based on requirements:
+
 ```typescript
 await coordinator.coordinateSwarm(
-  "Complex adaptive project",
+  'Complex adaptive project',
   { coordinationMode: 'hybrid' },
-  agents
+  agents,
 );
 ```
 
@@ -309,21 +324,25 @@ await coordinator.coordinateSwarm(
 The task management system is designed to work seamlessly with Claude Code's batch tools:
 
 ### TodoWrite/TodoRead
+
 - Automatic task breakdown using TodoWrite patterns
 - Real-time progress tracking via TodoRead
 - Cross-session persistence and coordination
 
 ### Memory Tools
+
 - Persistent state storage across agents
 - Knowledge sharing between coordinated tasks
 - Cross-session information retrieval
 
 ### Task Tool
+
 - Parallel agent launching and coordination
 - Resource-aware task distribution
 - Swarm orchestration patterns
 
 ### Batch Operations
+
 - Coordinated file operations (Read, Write, Edit)
 - Parallel search operations (Glob, Grep)
 - Efficient tool utilization
@@ -331,6 +350,7 @@ The task management system is designed to work seamlessly with Claude Code's bat
 ## Best Practices
 
 ### Task Design
+
 1. **Break down complex objectives** into smaller, manageable tasks
 2. **Use dependencies** to ensure proper execution order
 3. **Set realistic priorities** based on business impact
@@ -338,6 +358,7 @@ The task management system is designed to work seamlessly with Claude Code's bat
 5. **Include checkpoints** for rollback capability
 
 ### Coordination
+
 1. **Use TodoWrite** for comprehensive task planning
 2. **Store shared data** in Memory for cross-agent access
 3. **Leverage batch operations** for efficiency
@@ -345,6 +366,7 @@ The task management system is designed to work seamlessly with Claude Code's bat
 5. **Monitor progress** with real-time status updates
 
 ### Performance
+
 1. **Enable parallel execution** where possible
 2. **Optimize resource allocation** to prevent bottlenecks
 3. **Use batch operations** to minimize tool calls
@@ -354,6 +376,7 @@ The task management system is designed to work seamlessly with Claude Code's bat
 ## Error Handling
 
 ### Retry Policies
+
 ```typescript
 retryPolicy: {
   maxAttempts: 3,
@@ -363,11 +386,13 @@ retryPolicy: {
 ```
 
 ### Rollback Strategies
+
 - `previous-checkpoint`: Roll back to last checkpoint
 - `initial-state`: Roll back to task start
 - `custom`: Use custom rollback handler
 
 ### Error Propagation
+
 - Configurable error handling per workflow
 - Dependent task cancellation options
 - Resource cleanup on failure
@@ -375,18 +400,21 @@ retryPolicy: {
 ## Monitoring and Metrics
 
 ### Task Metrics
+
 - CPU and memory usage
 - Disk and network I/O
 - Custom performance metrics
 - Progress tracking
 
 ### Workflow Metrics
+
 - Overall completion percentage
 - Resource utilization
 - Bottleneck identification
 - Performance optimization
 
 ### Real-time Monitoring
+
 - Live progress updates
 - Resource allocation status
 - Dependency satisfaction
@@ -395,6 +423,7 @@ retryPolicy: {
 ## Examples
 
 See the [examples directory](./examples/) for comprehensive usage examples including:
+
 - Basic task management
 - Complex workflow orchestration
 - Cross-agent coordination

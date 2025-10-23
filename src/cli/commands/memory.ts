@@ -1,10 +1,9 @@
 import chalk from 'chalk';
-import { getErrorMessage } from '../../utils/error-handler.js';
 /**
  * Memory management commands
  */
 
-import { Command } from 'commander';
+import { Command } from '../commander-fix.js';
 import { promises as fs } from 'node:fs';
 import * as Table from 'cli-table3';
 
@@ -16,7 +15,7 @@ interface MemoryEntry {
 }
 
 export class SimpleMemoryManager {
-  private filePath = "./memory/memory-store.json";
+  private filePath = './memory/memory-store.json';
   private data: Record<string, MemoryEntry[]> = {};
 
   async load() {
@@ -30,26 +29,26 @@ export class SimpleMemoryManager {
   }
 
   async save() {
-    await fs.mkdir("./memory", { recursive: true });
+    await fs.mkdir('./memory', { recursive: true });
     await fs.writeFile(this.filePath, JSON.stringify(this.data, null, 2));
   }
 
-  async store(key: string, value: string, namespace: string = "default") {
+  async store(key: string, value: string, namespace: string = 'default') {
     await this.load();
-    
+
     if (!this.data[namespace]) {
       this.data[namespace] = [];
     }
 
     // Remove existing entry with same key
-    this.data[namespace] = this.data[namespace].filter(e => e.key !== key);
-    
+    this.data[namespace] = this.data[namespace].filter((e) => e.key !== key);
+
     // Add new entry
     this.data[namespace].push({
       key,
       value,
       namespace,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     await this.save();
@@ -57,7 +56,7 @@ export class SimpleMemoryManager {
 
   async query(search: string, namespace?: string) {
     await this.load();
-    
+
     const results: MemoryEntry[] = [];
     const namespaces = namespace ? [namespace] : Object.keys(this.data);
 
@@ -76,7 +75,7 @@ export class SimpleMemoryManager {
 
   async getStats() {
     await this.load();
-    
+
     let totalEntries = 0;
     const namespaceStats: Record<string, number> = {};
 
@@ -89,7 +88,7 @@ export class SimpleMemoryManager {
       totalEntries,
       namespaces: Object.keys(this.data).length,
       namespaceStats,
-      sizeBytes: new TextEncoder().encode(JSON.stringify(this.data)).length
+      sizeBytes: new TextEncoder().encode(JSON.stringify(this.data)).length,
     };
   }
 
@@ -106,13 +105,13 @@ export class SimpleMemoryManager {
 
   async cleanup(daysOld: number = 30) {
     await this.load();
-    
-    const cutoffTime = Date.now() - (daysOld * 24 * 60 * 60 * 1000);
+
+    const cutoffTime = Date.now() - daysOld * 24 * 60 * 60 * 1000;
     let removedCount = 0;
 
     for (const namespace of Object.keys(this.data)) {
       const before = this.data[namespace].length;
-      this.data[namespace] = this.data[namespace].filter(e => e.timestamp > cutoffTime);
+      this.data[namespace] = this.data[namespace].filter((e) => e.timestamp > cutoffTime);
       removedCount += before - this.data[namespace].length;
     }
 
@@ -158,24 +157,28 @@ memoryCommand
     try {
       const memory = new SimpleMemoryManager();
       const results = await memory.query(search, options.namespace);
-      
+
       if (results.length === 0) {
         console.log(chalk.yellow('No results found'));
         return;
       }
 
       console.log(chalk.green(`✅ Found ${results.length} results:`));
-      
+
       const limited = results.slice(0, parseInt(options.limit));
       for (const entry of limited) {
         console.log(chalk.blue(`\n📌 ${entry.key}`));
         console.log(`   Namespace: ${entry.namespace}`);
-        console.log(`   Value: ${entry.value.substring(0, 100)}${entry.value.length > 100 ? '...' : ''}`);
+        console.log(
+          `   Value: ${entry.value.substring(0, 100)}${entry.value.length > 100 ? '...' : ''}`,
+        );
         console.log(`   Stored: ${new Date(entry.timestamp).toLocaleString()}`);
       }
 
       if (results.length > parseInt(options.limit)) {
-        console.log(chalk.gray(`\n... and ${results.length - parseInt(options.limit)} more results`));
+        console.log(
+          chalk.gray(`\n... and ${results.length - parseInt(options.limit)} more results`),
+        );
       }
     } catch (error) {
       console.error(chalk.red('Failed to query:'), (error as Error).message);
@@ -228,12 +231,12 @@ memoryCommand
     try {
       const memory = new SimpleMemoryManager();
       const stats = await memory.getStats();
-      
+
       console.log(chalk.green('📊 Memory Bank Statistics:'));
       console.log(`   Total Entries: ${stats.totalEntries}`);
       console.log(`   Namespaces: ${stats.namespaces}`);
       console.log(`   Size: ${(stats.sizeBytes / 1024).toFixed(2)} KB`);
-      
+
       if (stats.namespaces > 0) {
         console.log(chalk.blue('\n📁 Namespace Breakdown:'));
         for (const [namespace, count] of Object.entries(stats.namespaceStats)) {

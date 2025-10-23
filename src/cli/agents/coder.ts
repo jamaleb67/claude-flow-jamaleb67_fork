@@ -3,7 +3,12 @@
  */
 
 import { BaseAgent } from './base-agent.js';
-import type { AgentCapabilities, AgentConfig, AgentEnvironment, TaskDefinition } from '../../swarm/types.js';
+import type {
+  AgentCapabilities,
+  AgentConfig,
+  AgentEnvironment,
+  TaskDefinition,
+} from '../../swarm/types.js';
 import type { ILogger } from '../../core/logger.js';
 import type { IEventBus } from '../../core/event-bus.js';
 import type { DistributedMemorySystem } from '../../memory/distributed-memory.js';
@@ -33,7 +38,7 @@ export class CoderAgent extends BaseAgent {
     environment: AgentEnvironment,
     logger: ILogger,
     eventBus: IEventBus,
-    memory: DistributedMemorySystem
+    memory: DistributedMemorySystem,
   ) {
     super(id, 'coder', config, environment, logger, eventBus, memory);
   }
@@ -62,7 +67,7 @@ export class CoderAgent extends BaseAgent {
         'php',
         'ruby',
         'swift',
-        'kotlin'
+        'kotlin',
       ],
       frameworks: [
         'deno',
@@ -78,7 +83,7 @@ export class CoderAgent extends BaseAgent {
         'django',
         'flask',
         'spring',
-        'rails'
+        'rails',
       ],
       domains: [
         'web-development',
@@ -90,7 +95,7 @@ export class CoderAgent extends BaseAgent {
         'mobile-development',
         'microservices',
         'fullstack-development',
-        'system-architecture'
+        'system-architecture',
       ],
       tools: [
         'git',
@@ -104,14 +109,14 @@ export class CoderAgent extends BaseAgent {
         'docker',
         'kubernetes',
         'ci-cd',
-        'testing-framework'
+        'testing-framework',
       ],
       maxConcurrentTasks: 3,
       maxMemoryUsage: 1024 * 1024 * 1024, // 1GB
       maxExecutionTime: 1800000, // 30 minutes
       reliability: 0.95,
       speed: 0.75,
-      quality: 0.95
+      quality: 0.95,
     };
   }
 
@@ -131,24 +136,24 @@ export class CoderAgent extends BaseAgent {
         'terminal-access',
         'git-access',
         'package-install',
-        'docker-access'
+        'docker-access',
       ],
       trustedAgents: [],
       expertise: {
         'code-generation': 0.95,
-        'debugging': 0.90,
-        'testing': 0.85,
-        'refactoring': 0.92,
-        'architecture': 0.80,
-        'performance': 0.85
+        debugging: 0.9,
+        testing: 0.85,
+        refactoring: 0.92,
+        architecture: 0.8,
+        performance: 0.85,
       },
       preferences: {
         codeStyle: 'functional',
         testFramework: 'jest',
         lintingStrict: true,
         documentation: 'comprehensive',
-        errorHandling: 'robust'
-      }
+        errorHandling: 'robust',
+      },
     };
   }
 
@@ -156,7 +161,7 @@ export class CoderAgent extends BaseAgent {
     this.logger.info('Coder executing task', {
       agentId: this.id,
       taskType: task.type,
-      taskId: task.id
+      taskId: task.id,
     });
 
     try {
@@ -184,7 +189,7 @@ export class CoderAgent extends BaseAgent {
       this.logger.error('Coding task failed', {
         agentId: this.id,
         taskId: task.id,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -200,7 +205,7 @@ export class CoderAgent extends BaseAgent {
       requirements,
       language,
       framework,
-      style
+      style,
     });
 
     const result = {
@@ -215,56 +220,60 @@ export class CoderAgent extends BaseAgent {
         linesOfCode: 0,
         complexity: 0,
         testCoverage: 0,
-        quality: 0
+        quality: 0,
       },
       dependencies: [] as string[],
       buildInstructions: [] as string[],
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Store development progress
-    await this.memory.store(`code:${task.id}:progress`, {
-      status: 'generating',
-      startTime: new Date(),
-      requirements
-    }, {
-      type: 'code-progress',
-      tags: ['coding', this.id, language],
-      partition: 'tasks'
-    });
+    await this.memory.store(
+      `code:${task.id}:progress`,
+      {
+        status: 'generating',
+        startTime: new Date(),
+        requirements,
+      },
+      {
+        type: 'code-progress',
+        tags: ['coding', this.id, language],
+        partition: 'tasks',
+      },
+    );
 
     // Simulate code generation
     await this.delay(3000);
-    
+
     result.files = [
       {
         path: `src/main.${this.getFileExtension(language)}`,
         content: this.generateSampleCode(language, requirements),
-        type: 'main'
+        type: 'main',
       },
       {
         path: `src/types.${this.getFileExtension(language)}`,
         content: this.generateTypesCode(language),
-        type: 'types'
-      }
+        type: 'types',
+      },
     ];
-    
+
     result.tests = [
       {
         path: `tests/main.test.${this.getFileExtension(language)}`,
         content: this.generateTestCode(language, requirements),
-        framework: 'jest'
-      }
+        framework: 'jest',
+      },
     ];
-    
+
     result.documentation = this.generateDocumentation(requirements, language);
     result.metrics = {
       linesOfCode: 150,
       complexity: 3.2,
       testCoverage: 85,
-      quality: 0.92
+      quality: 0.92,
     };
-    
+
     result.dependencies = this.suggestDependencies(language, framework) as any[];
     result.buildInstructions = this.generateBuildInstructions(language, framework) as string[];
 
@@ -272,7 +281,7 @@ export class CoderAgent extends BaseAgent {
     await this.memory.store(`code:${task.id}:results`, result, {
       type: 'code-results',
       tags: ['coding', 'completed', this.id, language],
-      partition: 'tasks'
+      partition: 'tasks',
     });
 
     return result;
@@ -285,7 +294,7 @@ export class CoderAgent extends BaseAgent {
 
     this.logger.info('Reviewing code', {
       filesCount: files.length,
-      focus
+      focus,
     });
 
     const review = {
@@ -298,11 +307,11 @@ export class CoderAgent extends BaseAgent {
         readability: 0,
         performance: 0,
         security: 0,
-        testability: 0
+        testability: 0,
       },
       recommendations: [] as any[],
       priorityFixes: [] as any[],
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate code review
@@ -316,7 +325,7 @@ export class CoderAgent extends BaseAgent {
         message: 'Potential memory leak in async handler',
         file: 'src/handlers.ts',
         line: 45,
-        suggestion: 'Add proper cleanup in finally block'
+        suggestion: 'Add proper cleanup in finally block',
       },
       {
         type: 'security',
@@ -324,16 +333,16 @@ export class CoderAgent extends BaseAgent {
         message: 'Input validation missing',
         file: 'src/api.ts',
         line: 23,
-        suggestion: 'Implement input sanitization'
-      }
+        suggestion: 'Implement input sanitization',
+      },
     ];
-    
+
     review.metrics = {
       maintainability: 0.85,
-      readability: 0.90,
+      readability: 0.9,
       performance: 0.82,
       security: 0.75,
-      testability: 0.88
+      testability: 0.88,
     };
 
     return review;
@@ -346,7 +355,7 @@ export class CoderAgent extends BaseAgent {
 
     this.logger.info('Refactoring code', {
       goals,
-      preserveAPI
+      preserveAPI,
     });
 
     const refactoring = {
@@ -357,16 +366,16 @@ export class CoderAgent extends BaseAgent {
         maintainability: 0,
         performance: 0,
         readability: 0,
-        testability: 0
+        testability: 0,
       },
       breakingChanges: [] as any[],
       migrationGuide: '',
       testResults: {
         passed: 0,
         failed: 0,
-        coverage: 0
+        coverage: 0,
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate refactoring
@@ -376,14 +385,14 @@ export class CoderAgent extends BaseAgent {
       'Extracted common functionality into utility functions',
       'Improved error handling with custom error classes',
       'Optimized database queries using connection pooling',
-      'Added comprehensive type definitions'
+      'Added comprehensive type definitions',
     ];
-    
+
     refactoring.improvements = {
       maintainability: 0.25,
       performance: 0.15,
-      readability: 0.30,
-      testability: 0.20
+      readability: 0.3,
+      testability: 0.2,
     };
 
     return refactoring;
@@ -398,7 +407,7 @@ export class CoderAgent extends BaseAgent {
     this.logger.info('Writing tests', {
       testType,
       coverage,
-      framework
+      framework,
     });
 
     const testing = {
@@ -411,16 +420,16 @@ export class CoderAgent extends BaseAgent {
         lines: 0,
         functions: 0,
         branches: 0,
-        statements: 0
+        statements: 0,
       },
       testResults: {
         total: 0,
         passed: 0,
         failed: 0,
-        skipped: 0
+        skipped: 0,
       },
       mockingStrategy: '',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate test writing
@@ -430,27 +439,27 @@ export class CoderAgent extends BaseAgent {
       {
         path: 'tests/unit/service.test.ts',
         content: this.generateTestCode('typescript', 'service tests'),
-        testCount: 12
+        testCount: 12,
       },
       {
         path: 'tests/integration/api.test.ts',
         content: this.generateTestCode('typescript', 'API integration tests'),
-        testCount: 8
-      }
+        testCount: 8,
+      },
     ];
-    
+
     testing.coverage = {
       lines: 87,
       functions: 92,
       branches: 78,
-      statements: 89
+      statements: 89,
     };
-    
+
     testing.testResults = {
       total: 20,
       passed: 19,
       failed: 1,
-      skipped: 0
+      skipped: 0,
     };
 
     return testing;
@@ -465,7 +474,7 @@ export class CoderAgent extends BaseAgent {
     this.logger.info('Debugging code', {
       error: error?.message,
       symptoms,
-      environment
+      environment,
     });
 
     const debugging = {
@@ -479,7 +488,7 @@ export class CoderAgent extends BaseAgent {
       preventionMeasures: [] as string[],
       testCases: [] as any[],
       confidence: 0,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate debugging
@@ -489,9 +498,9 @@ export class CoderAgent extends BaseAgent {
       'Analyzed stack trace and error context',
       'Reviewed recent code changes',
       'Checked environment configuration',
-      'Examined dependency versions'
+      'Examined dependency versions',
     ];
-    
+
     debugging.rootCause = 'Race condition in async event handler';
     debugging.solution = 'Implement proper synchronization using mutex';
     debugging.confidence = 0.92;
@@ -508,7 +517,7 @@ export class CoderAgent extends BaseAgent {
     this.logger.info('Developing API', {
       framework,
       database,
-      auth
+      auth,
     });
 
     const api = {
@@ -524,19 +533,19 @@ export class CoderAgent extends BaseAgent {
         authorization: 'rbac',
         inputValidation: true,
         rateLimiting: true,
-        cors: true
+        cors: true,
       },
       testing: {
         unit: true,
         integration: true,
-        e2e: false
+        e2e: false,
       },
       deployment: {
         containerized: true,
         scalable: true,
-        monitoring: true
+        monitoring: true,
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate API development
@@ -547,7 +556,7 @@ export class CoderAgent extends BaseAgent {
       { method: 'POST', path: '/api/users', description: 'Create user' },
       { method: 'GET', path: '/api/users/:id', description: 'Get user by ID' },
       { method: 'PUT', path: '/api/users/:id', description: 'Update user' },
-      { method: 'DELETE', path: '/api/users/:id', description: 'Delete user' }
+      { method: 'DELETE', path: '/api/users/:id', description: 'Delete user' },
     ];
 
     return api;
@@ -560,7 +569,7 @@ export class CoderAgent extends BaseAgent {
 
     this.logger.info('Designing database', {
       dbType,
-      engine
+      engine,
     });
 
     const design = {
@@ -575,9 +584,9 @@ export class CoderAgent extends BaseAgent {
       performance: {
         queryOptimization: true,
         indexingStrategy: 'balanced',
-        cachingLayer: 'redis'
+        cachingLayer: 'redis',
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate database design
@@ -586,7 +595,7 @@ export class CoderAgent extends BaseAgent {
     design.tables = [
       { name: 'users', columns: ['id', 'email', 'password', 'created_at'] },
       { name: 'posts', columns: ['id', 'user_id', 'title', 'content', 'created_at'] },
-      { name: 'comments', columns: ['id', 'post_id', 'user_id', 'content', 'created_at'] }
+      { name: 'comments', columns: ['id', 'post_id', 'user_id', 'content', 'created_at'] },
     ];
 
     return design;
@@ -598,7 +607,7 @@ export class CoderAgent extends BaseAgent {
     const targets = task.input?.targets || ['speed', 'memory'];
 
     this.logger.info('Optimizing performance', {
-      targets
+      targets,
     });
 
     const optimization = {
@@ -606,16 +615,16 @@ export class CoderAgent extends BaseAgent {
       analysis: {
         bottlenecks: [] as string[],
         hotspots: [] as string[],
-        recommendations: [] as string[]
+        recommendations: [] as string[],
       },
       optimizations: [],
       results: {
         speedImprovement: 0,
         memoryReduction: 0,
-        throughputIncrease: 0
+        throughputIncrease: 0,
       },
       tradeoffs: [],
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate performance optimization
@@ -624,13 +633,13 @@ export class CoderAgent extends BaseAgent {
     optimization.analysis.bottlenecks = [
       'Database queries in loops',
       'Large object instantiation',
-      'Inefficient algorithms'
+      'Inefficient algorithms',
     ];
-    
+
     optimization.results = {
       speedImprovement: 0.35,
       memoryReduction: 0.22,
-      throughputIncrease: 0.45
+      throughputIncrease: 0.45,
     };
 
     return optimization;
@@ -638,7 +647,7 @@ export class CoderAgent extends BaseAgent {
 
   private async performGeneralDevelopment(task: TaskDefinition): Promise<any> {
     this.logger.info('Performing general development', {
-      description: task.description
+      description: task.description,
     });
 
     // Default to code generation
@@ -659,7 +668,7 @@ export class CoderAgent extends BaseAgent {
       php: 'php',
       ruby: 'rb',
       swift: 'swift',
-      kotlin: 'kt'
+      kotlin: 'kt',
     };
     return extensions[language as keyof typeof extensions] || 'txt';
   }
@@ -701,9 +710,12 @@ class Application:
     def start(self):
         # Implementation here
         pass
-`
+`,
     };
-    return templates[language as keyof typeof templates] || `// ${requirements}\n// Code implementation\n`;
+    return (
+      templates[language as keyof typeof templates] ||
+      `// ${requirements}\n// Code implementation\n`
+    );
   }
 
   private generateTypesCode(language: string): string {
@@ -765,7 +777,7 @@ describe('${description}', () => {
     expect(() => app.start()).not.toThrow();
   });
 });
-`
+`,
     };
     return templates[language as keyof typeof templates] || `// Test code for ${description}\n`;
   }
@@ -804,7 +816,7 @@ npm test
       javascript: ['lodash', 'axios'],
       python: ['requests', 'pytest'],
       rust: ['serde', 'tokio'],
-      go: ['gin', 'gorm']
+      go: ['gin', 'gorm'],
     };
 
     const frameworkDeps = {
@@ -812,7 +824,7 @@ npm test
       react: ['react', 'react-dom', '@types/react'],
       vue: ['vue', 'vue-router'],
       django: ['django', 'djangorestframework'],
-      spring: ['spring-boot', 'spring-data-jpa']
+      spring: ['spring-boot', 'spring-data-jpa'],
     };
 
     const deps = baseDeps[language as keyof typeof baseDeps] || [];
@@ -829,14 +841,16 @@ npm test
       javascript: ['npm install', 'npm start'],
       python: ['python -m pip install -r requirements.txt', 'python main.py'],
       rust: ['cargo build --release', 'cargo run'],
-      go: ['go mod tidy', 'go build', './main']
+      go: ['go mod tidy', 'go build', './main'],
     };
 
-    return instructions[language as keyof typeof instructions] || ['Build instructions not available'];
+    return (
+      instructions[language as keyof typeof instructions] || ['Build instructions not available']
+    );
   }
 
   private async delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   override getAgentStatus(): any {
@@ -850,7 +864,7 @@ npm test
       codeQualityScore: this.metrics.codeQuality,
       testCoverage: this.metrics.testCoverage,
       lastCodeGenerated: this.getLastTaskCompletedTime(),
-      preferredStyle: this.config.preferences?.codeStyle || 'functional'
+      preferredStyle: this.config.preferences?.codeStyle || 'functional',
     };
   }
 }
@@ -861,7 +875,7 @@ export const createCoderAgent = (
   environment: Partial<AgentEnvironment>,
   logger: ILogger,
   eventBus: IEventBus,
-  memory: DistributedMemorySystem
+  memory: DistributedMemorySystem,
 ): CoderAgent => {
   const defaultConfig = {
     autonomyLevel: 0.7,
@@ -878,22 +892,22 @@ export const createCoderAgent = (
       'directory-create',
       'code-execution',
       'package-management',
-      'git-operations'
+      'git-operations',
     ],
     trustedAgents: [],
     expertise: {
       'code-generation': 0.95,
-      'debugging': 0.90,
-      'refactoring': 0.88,
-      'testing': 0.85,
-      'performance-optimization': 0.87
+      debugging: 0.9,
+      refactoring: 0.88,
+      testing: 0.85,
+      'performance-optimization': 0.87,
     },
     preferences: {
       codingStyle: 'clean',
       testingApproach: 'comprehensive',
       documentationLevel: 'moderate',
-      refactoringFrequency: 'regular'
-    }
+      refactoringFrequency: 'regular',
+    },
   };
   const defaultEnv = {
     runtime: 'deno' as const,
@@ -903,19 +917,12 @@ export const createCoderAgent = (
     logDirectory: './logs/coder',
     apiEndpoints: {},
     credentials: {},
-    availableTools: [
-      'git',
-      'editor',
-      'debugger',
-      'linter',
-      'formatter',
-      'compiler'
-    ],
+    availableTools: ['git', 'editor', 'debugger', 'linter', 'formatter', 'compiler'],
     toolConfigs: {
       git: { autoCommit: false, autoSync: true },
       linter: { strict: true, autoFix: true },
-      formatter: { style: 'prettier', tabSize: 2 }
-    }
+      formatter: { style: 'prettier', tabSize: 2 },
+    },
   };
 
   return new CoderAgent(
@@ -924,6 +931,6 @@ export const createCoderAgent = (
     { ...defaultEnv, ...environment } as AgentEnvironment,
     logger,
     eventBus,
-    memory
+    memory,
   );
 };

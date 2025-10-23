@@ -8,12 +8,12 @@ export function isInteractive() {
   if (!process.stdin.isTTY) {
     return false;
   }
-  
+
   // Check if stdout is a TTY
   if (!process.stdout.isTTY) {
     return false;
   }
-  
+
   // Check for CI environment variables
   const ciVars = [
     'CI',
@@ -25,25 +25,25 @@ export function isInteractive() {
     'CIRCLECI',
     'CODEBUILD_BUILD_ID',
     'BUILDKITE',
-    'DRONE'
+    'DRONE',
   ];
-  
+
   for (const varName of ciVars) {
     if (process.env[varName]) {
       return false;
     }
   }
-  
+
   // Check if running inside Docker (common indicator)
   if (process.env.DOCKER_CONTAINER || process.env.KUBERNETES_SERVICE_HOST) {
     return false;
   }
-  
+
   // Check if running in non-interactive mode explicitly
   if (process.env.CLAUDE_FLOW_NON_INTERACTIVE === 'true') {
     return false;
   }
-  
+
   return true;
 }
 
@@ -92,7 +92,9 @@ export function handleNonInteractive(commandName, interactiveFn, nonInteractiveF
         console.error('3. Use --non-interactive flag with required parameters');
         console.error('4. If using Docker, run with: docker run -it');
         console.error('5. If using SSH, ensure pseudo-TTY allocation with: ssh -t');
-        console.error('\nFor more info: https://github.com/ruvnet/claude-code-flow/docs/non-interactive.md\n');
+        console.error(
+          '\nFor more info: https://github.com/ruvnet/claude-code-flow/docs/non-interactive.md\n',
+        );
         process.exit(1);
       }
     }
@@ -104,8 +106,12 @@ export function handleNonInteractive(commandName, interactiveFn, nonInteractiveF
  */
 export function warnNonInteractive(commandName) {
   if (!isInteractive()) {
-    console.warn(`\n⚠️  Running '${commandName}' in non-interactive mode (${getEnvironmentType()})`);
-    console.warn('Some features may be limited. For full functionality, use an interactive terminal.\n');
+    console.warn(
+      `\n⚠️  Running '${commandName}' in non-interactive mode (${getEnvironmentType()})`,
+    );
+    console.warn(
+      'Some features may be limited. For full functionality, use an interactive terminal.\n',
+    );
   }
 }
 

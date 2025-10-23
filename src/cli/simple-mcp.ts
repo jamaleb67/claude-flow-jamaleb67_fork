@@ -1,9 +1,8 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Simple MCP command implementation for Node.js compatibility
  */
 
-import { Command } from 'commander';
+import { Command } from './commander-fix.js';
 import http from 'http';
 
 function printSuccess(message: string) {
@@ -22,7 +21,7 @@ async function checkMCPStatus(host: string, port: number): Promise<boolean> {
       port: port,
       path: '/health',
       method: 'GET',
-      timeout: 2000
+      timeout: 2000,
     };
 
     const req = http.request(options, (res) => {
@@ -43,17 +42,15 @@ async function checkMCPStatus(host: string, port: number): Promise<boolean> {
 }
 
 export function createMCPCommand() {
-  const mcpCmd = new Command('mcp')
-    .description('Manage MCP server and tools')
-    .action(() => {
-      printSuccess('MCP Server Management');
-      console.log('\n🌐 Available MCP commands:');
-      console.log('  • mcp start - Start the MCP server');
-      console.log('  • mcp status - Show MCP server status');
-      console.log('  • mcp tools - List available MCP tools');
-      console.log('  • mcp stop - Stop the MCP server');
-      console.log('\n💡 Use "mcp start --port 3001" to use a different port');
-    });
+  const mcpCmd = new Command('mcp').description('Manage MCP server and tools').action(() => {
+    printSuccess('MCP Server Management');
+    console.log('\n🌐 Available MCP commands:');
+    console.log('  • mcp start - Start the MCP server');
+    console.log('  • mcp status - Show MCP server status');
+    console.log('  • mcp tools - List available MCP tools');
+    console.log('  • mcp stop - Stop the MCP server');
+    console.log('\n💡 Use "mcp start --port 3001" to use a different port');
+  });
 
   mcpCmd
     .command('start')
@@ -74,13 +71,13 @@ export function createMCPCommand() {
     .option('--host <host>', 'Host to check', 'localhost')
     .action(async (options) => {
       printSuccess('MCP Server Status:');
-      
+
       const host = options.host || 'localhost';
       const port = parseInt(options.port) || 3000;
-      
+
       // Check if server is actually running
       const isRunning = await checkMCPStatus(host, port);
-      
+
       if (isRunning) {
         console.log('🟢 Status: Running');
         console.log(`📍 Address: ${host}:${port}`);

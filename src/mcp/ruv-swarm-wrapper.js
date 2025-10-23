@@ -13,9 +13,9 @@ export class RuvSwarmWrapper {
       autoRestart: options.autoRestart !== false,
       maxRestarts: options.maxRestarts || 3,
       restartDelay: options.restartDelay || 1000,
-      ...options
+      ...options,
     };
-    
+
     this.process = null;
     this.restartCount = 0;
     this.isShuttingDown = false;
@@ -36,8 +36,8 @@ export class RuvSwarmWrapper {
             // Ensure stdio mode for MCP
             MCP_MODE: 'stdio',
             // Set log level to reduce noise
-            LOG_LEVEL: 'WARN'
-          }
+            LOG_LEVEL: 'WARN',
+          },
         });
 
         let initialized = false;
@@ -46,13 +46,13 @@ export class RuvSwarmWrapper {
         // Handle stdout (JSON-RPC messages)
         const rlOut = createInterface({
           input: this.process.stdout,
-          crlfDelay: Infinity
+          crlfDelay: Infinity,
         });
 
         rlOut.on('line', (line) => {
           try {
             const message = JSON.parse(line);
-            
+
             // Check for initialization
             if (message.method === 'server.initialized' && !initialized) {
               initialized = true;
@@ -60,10 +60,10 @@ export class RuvSwarmWrapper {
               resolve({
                 process: this.process,
                 stdout: this.process.stdout,
-                stdin: this.process.stdin
+                stdin: this.process.stdin,
               });
             }
-            
+
             // Forward JSON-RPC messages
             process.stdout.write(line + '\n');
           } catch (err) {
@@ -74,7 +74,7 @@ export class RuvSwarmWrapper {
         // Handle stderr (logs and errors)
         const rlErr = createInterface({
           input: this.process.stderr,
-          crlfDelay: Infinity
+          crlfDelay: Infinity,
         });
 
         rlErr.on('line', (line) => {
@@ -88,7 +88,9 @@ export class RuvSwarmWrapper {
                 case 'ERR_LOGGER_MEMORY_USAGE':
                   // Known issue with logger.logMemoryUsage in ruv-swarm
                   if (!this.options.silent) {
-                    console.error('⚠️  Known ruv-swarm logger issue detected (continuing normally)');
+                    console.error(
+                      '⚠️  Known ruv-swarm logger issue detected (continuing normally)',
+                    );
                   }
                   return;
                 case 'ERR_INITIALIZATION':
@@ -97,7 +99,10 @@ export class RuvSwarmWrapper {
                 default:
                   // Unknown error code, log it
                   if (!this.options.silent) {
-                    console.error(`RuvSwarm error [${errorData.error.code}]:`, errorData.error.message);
+                    console.error(
+                      `RuvSwarm error [${errorData.error.code}]:`,
+                      errorData.error.message,
+                    );
                   }
               }
               return;
@@ -108,18 +113,18 @@ export class RuvSwarmWrapper {
               {
                 pattern: /logger\.logMemoryUsage is not a function/,
                 code: 'LOGGER_METHOD_MISSING',
-                message: 'Known ruv-swarm logger issue detected (continuing normally)'
+                message: 'Known ruv-swarm logger issue detected (continuing normally)',
               },
               {
                 pattern: /Cannot find module/,
                 code: 'MODULE_NOT_FOUND',
-                message: 'Module not found error'
+                message: 'Module not found error',
               },
               {
                 pattern: /ECONNREFUSED/,
                 code: 'CONNECTION_REFUSED',
-                message: 'Connection refused error'
-              }
+                message: 'Connection refused error',
+              },
             ];
 
             for (const errorPattern of knownErrorPatterns) {
@@ -160,7 +165,9 @@ export class RuvSwarmWrapper {
         this.process.on('exit', (code, signal) => {
           if (!initialized) {
             clearTimeout(initTimeout);
-            reject(new Error(`RuvSwarm exited before initialization: code ${code}, signal ${signal}`));
+            reject(
+              new Error(`RuvSwarm exited before initialization: code ${code}, signal ${signal}`),
+            );
           } else {
             this.handleProcessExit(code || 0);
           }
@@ -173,7 +180,6 @@ export class RuvSwarmWrapper {
             reject(new Error('RuvSwarm initialization timeout'));
           }
         }, 30000); // 30 second timeout
-
       } catch (error) {
         reject(error);
       }
@@ -192,10 +198,12 @@ export class RuvSwarmWrapper {
     // Auto-restart if enabled and under limit
     if (this.options.autoRestart && this.restartCount < this.options.maxRestarts) {
       this.restartCount++;
-      console.log(`Attempting to restart RuvSwarm (attempt ${this.restartCount}/${this.options.maxRestarts})...`);
-      
+      console.log(
+        `Attempting to restart RuvSwarm (attempt ${this.restartCount}/${this.options.maxRestarts})...`,
+      );
+
       setTimeout(() => {
-        this.start().catch(err => {
+        this.start().catch((err) => {
           console.error('Failed to restart RuvSwarm:', err);
         });
       }, this.options.restartDelay);
@@ -204,7 +212,7 @@ export class RuvSwarmWrapper {
 
   async stop() {
     this.isShuttingDown = true;
-    
+
     if (!this.process) {
       return;
     }
@@ -234,7 +242,7 @@ export class RuvSwarmWrapper {
 // Export a function to start ruv-swarm with error handling
 export async function startRuvSwarmMCP(options = {}) {
   const wrapper = new RuvSwarmWrapper(options);
-  
+
   try {
     const result = await wrapper.start();
     console.log('✅ RuvSwarm MCP server started successfully');

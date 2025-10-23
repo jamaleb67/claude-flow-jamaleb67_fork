@@ -3,10 +3,10 @@
  * Tests deadlock detection, task scheduling, and resource management
  */
 
-import { describe, it, beforeEach, afterEach  } from "../test.utils.ts";
+import { describe, it, beforeEach, afterEach  } from "../../../test.utils";
 import { expect } from "@jest/globals";
 // FakeTime equivalent available in test.utils.ts
-import { spy, stub  } from "../test.utils.ts";
+import { spy, stub  } from "../../../test.utils";
 
 import { CoordinationManager } from '../../../src/coordination/manager.ts';
 import { TaskScheduler } from '../../../src/coordination/scheduler.ts';
@@ -24,7 +24,7 @@ import {
   MockFactory 
 } from '../../utils/test-utils.ts';
 import { generateCoordinationTasks, generateErrorScenarios } from '../../fixtures/generators.ts';
-import { setupTestEnv, cleanupTestEnv, TEST_CONFIG } from '../../test.config.ts';
+import { setupTestEnv, cleanupTestEnv, TEST_CONFIG } from '../../test.config';
 
 describe('Coordination System - Comprehensive Tests', () => {
   let coordinationManager: CoordinationManager;

@@ -22,7 +22,7 @@ const commands = {
   info: () => {
     const manifest = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
     const version = fs.readFileSync('VERSION', 'utf8').trim();
-    
+
     console.log('Claude Optimized Template');
     console.log('========================');
     console.log(`Version: ${version}`);
@@ -30,10 +30,10 @@ const commands = {
     console.log(`Categories: ${Object.keys(manifest.categories).join(', ')}`);
     console.log('\nFile breakdown:');
     for (const [category, info] of Object.entries(manifest.categories)) {
-      const count = manifest.files.filter(f => f.category === category).length;
+      const count = manifest.files.filter((f) => f.category === category).length;
       console.log(`  ${category}: ${count} files`);
     }
-    
+
     console.log('\nAvailable commands:');
     console.log('  install  - Install template files from source');
     console.log('  validate - Validate template installation');
@@ -44,15 +44,15 @@ const commands = {
   },
   update: () => {
     console.log('Updating template...');
-    
+
     // Run install to get latest files
     console.log('1. Refreshing template files...');
     execSync('node install-template.js', { stdio: 'inherit' });
-    
+
     // Validate
     console.log('2. Validating installation...');
     execSync('node validate-template.js', { stdio: 'inherit' });
-    
+
     console.log('3. Template updated successfully!');
   },
   test: () => {
@@ -62,7 +62,7 @@ const commands = {
     } else {
       console.log('Test harness not found. Run "install" first.');
     }
-  }
+  },
 };
 
 // Main execution

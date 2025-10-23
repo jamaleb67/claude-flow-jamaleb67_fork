@@ -42,6 +42,7 @@ The MCP implementation provides:
 ### 1. MCP Server (`server.ts`)
 
 The main MCP server implementation providing:
+
 - Protocol-compliant request/response handling
 - Tool execution and management
 - Session management
@@ -58,6 +59,7 @@ await server.start();
 ### 2. Lifecycle Manager (`lifecycle-manager.ts`)
 
 Manages server lifecycle with robust error handling:
+
 - State management (stopped, starting, running, stopping, error)
 - Health monitoring with configurable intervals
 - Auto-restart with exponential backoff
@@ -74,6 +76,7 @@ await lifecycle.start();
 ### 3. Tool Registry (`tools.ts`)
 
 Enhanced tool registration and discovery:
+
 - Capability-based tool registration
 - Tool discovery by category, tags, and permissions
 - Metrics tracking (invocations, success rate, execution time)
@@ -91,6 +94,7 @@ const tools = registry.discoverTools({ category: 'filesystem' });
 ### 4. Protocol Manager (`protocol-manager.ts`)
 
 Handles protocol version negotiation:
+
 - Version compatibility checking
 - Capability negotiation
 - Feature support detection
@@ -107,6 +111,7 @@ const result = await protocolManager.negotiateProtocol(clientParams);
 ### 5. Authentication Manager (`auth.ts`)
 
 Comprehensive security implementation:
+
 - Multiple auth methods (token, basic, OAuth)
 - Session management with timeouts
 - Permission-based authorization
@@ -123,6 +128,7 @@ const result = await auth.authenticate(request, session, context);
 ### 6. Performance Monitor (`performance-monitor.ts`)
 
 Real-time performance monitoring:
+
 - Request/response time tracking
 - Percentile calculations (P50, P95, P99)
 - Custom alerting rules
@@ -140,6 +146,7 @@ monitor.recordRequestEnd(requestId, response);
 ### 7. Orchestration Integration (`orchestration-integration.ts`)
 
 Seamless integration with Claude-Flow:
+
 - Component health monitoring
 - Tool registration for orchestration features
 - Event forwarding and coordination
@@ -153,7 +160,7 @@ const integration = new MCPOrchestrationIntegration(
   mcpConfig,
   orchestrationConfig,
   components,
-  logger
+  logger,
 );
 await integration.start();
 ```
@@ -166,7 +173,7 @@ await integration.start();
 import { MCPIntegrationFactory } from './mcp/index.js';
 
 // Development setup
-const { server, lifecycleManager, performanceMonitor } = 
+const { server, lifecycleManager, performanceMonitor } =
   await MCPIntegrationFactory.createDevelopmentSetup(logger);
 
 await lifecycleManager.start();
@@ -204,7 +211,7 @@ const integration = new MCPOrchestrationIntegration(
     eventBus,
     terminalManager,
   },
-  logger
+  logger,
 );
 
 await integration.start();
@@ -304,6 +311,7 @@ const orchestrationConfig: MCPOrchestrationConfig = {
 ### Performance Metrics
 
 The performance monitor tracks:
+
 - Request count and success rate
 - Response time percentiles (P50, P95, P99)
 - Throughput (requests per second)
@@ -329,6 +337,7 @@ performanceMonitor.addAlertRule({
 ### Optimization Suggestions
 
 The system automatically generates optimization suggestions based on:
+
 - Response time patterns
 - Memory usage trends
 - Throughput bottlenecks
@@ -376,6 +385,7 @@ The system automatically generates optimization suggestions based on:
 ## Testing
 
 Comprehensive test suite covering:
+
 - Unit tests for all components
 - Integration tests for cross-component interaction
 - Performance benchmarks
@@ -391,6 +401,7 @@ npm test src/mcp/tests/mcp-integration.test.ts
 ### Stdio Transport (`transports/stdio.ts`)
 
 For command-line and process-based communication:
+
 - Standard input/output handling
 - Process lifecycle management
 - Error stream handling
@@ -398,6 +409,7 @@ For command-line and process-based communication:
 ### HTTP Transport (`transports/http.ts`)
 
 For web-based communication:
+
 - RESTful API endpoints
 - WebSocket upgrade support
 - CORS handling
@@ -406,6 +418,7 @@ For web-based communication:
 ### WebSocket Transport (Planned)
 
 For real-time bidirectional communication:
+
 - Connection management
 - Message framing
 - Reconnection handling
@@ -415,6 +428,7 @@ For real-time bidirectional communication:
 ### Custom Tools
 
 Implement custom tools by providing:
+
 - Tool definition with schema
 - Handler function
 - Capability information
@@ -423,6 +437,7 @@ Implement custom tools by providing:
 ### Custom Transports
 
 Implement the `ITransport` interface:
+
 - Request/response handling
 - Connection management
 - Health status reporting
@@ -430,6 +445,7 @@ Implement the `ITransport` interface:
 ### Custom Authentication
 
 Extend the `AuthManager` class:
+
 - Custom authentication methods
 - Integration with external providers
 - Custom permission models
@@ -476,6 +492,7 @@ Extend the `AuthManager` class:
 ### Debug Mode
 
 Enable debug logging:
+
 ```typescript
 const logger = createLogger({ level: 'debug' });
 ```
@@ -483,6 +500,7 @@ const logger = createLogger({ level: 'debug' });
 ### Health Checks
 
 Monitor component health:
+
 ```typescript
 const health = await server.getHealthStatus();
 console.log('Server healthy:', health.healthy);
@@ -501,6 +519,7 @@ console.log('Metrics:', health.metrics);
 ## API Reference
 
 See the individual component files for detailed API documentation:
+
 - [Server API](./server.ts)
 - [Lifecycle Manager API](./lifecycle-manager.ts)
 - [Tool Registry API](./tools.ts)

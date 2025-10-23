@@ -2,23 +2,66 @@
  * Comprehensive unit tests for Terminal Manager
  */
 
-import { describe, it, beforeEach, afterEach  } from "../test.utils.ts";
+import { describe, it, beforeEach, afterEach, spy, stub, FakeTime } from "../../../test.utils";
 import { expect } from "@jest/globals";
-// FakeTime equivalent available in test.utils.ts
-import { spy, stub  } from "../test.utils.ts";
 
 import { TerminalManager } from '../../../src/terminal/manager.ts';
 import { TerminalPool } from '../../../src/terminal/pool.ts';
 import { NativeTerminalAdapter } from '../../../src/terminal/adapters/native.ts';
-import { 
-  AsyncTestUtils, 
-  MemoryTestUtils, 
-  PerformanceTestUtils,
-  TestAssertions,
-  MockFactory 
-} from '../../utils/test-utils.ts';
-import { generateTerminalSessions, generateEdgeCaseData } from '../../fixtures/generators.ts';
-import { setupTestEnv, cleanupTestEnv, TEST_CONFIG } from '../../test.config.ts';
+// Mock factories and utilities (inline for now)
+const AsyncTestUtils = {
+  waitFor: (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+};
+
+const MemoryTestUtils = {
+  measureMemory: () => process.memoryUsage()
+};
+
+const PerformanceTestUtils = {
+  measurePerformance: (fn: () => void) => {
+    const start = performance.now();
+    fn();
+    return performance.now() - start;
+  }
+};
+
+const TestAssertions = {
+  assertDeepEqual: (a: any, b: any) => expect(a).toEqual(b)
+};
+
+const MockFactory = {
+  createMock: (obj: any) => obj
+};
+// Test data generators (inline for now)
+const generateTerminalSessions = (count: number) => {
+  return Array.from({ length: count }, (_, i) => ({
+    id: `session-${i}`,
+    status: 'active',
+    created: new Date()
+  }));
+};
+
+const generateEdgeCaseData = () => ({
+  emptyCommand: '',
+  longCommand: 'x'.repeat(10000),
+  specialChars: '!@#$%^&*()_+{}[]|\\:";<>?,./~`',
+  unicode: '🚀💻🔥'
+});
+// Test configuration
+const TEST_CONFIG = {
+  timeout: 10000,
+  maxRetries: 3
+};
+
+const setupTestEnv = () => {
+  // Setup test environment
+  process.env.NODE_ENV = 'test';
+};
+
+const cleanupTestEnv = () => {
+  // Cleanup test environment
+  delete process.env.NODE_ENV;
+};
 
 describe('Terminal Manager - Comprehensive Tests', () => {
   let terminalManager: TerminalManager;

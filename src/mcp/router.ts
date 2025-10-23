@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Request router for MCP
  */

@@ -5,6 +5,7 @@ Unified memory persistence module for ruv-swarm, providing both generic SharedMe
 ## Features
 
 ### SharedMemory
+
 - **SQLite Backend**: Robust persistence with better-sqlite3
 - **High-Performance Caching**: LRU cache with memory pressure handling
 - **Migration Support**: Schema evolution with versioned migrations
@@ -14,6 +15,7 @@ Unified memory persistence module for ruv-swarm, providing both generic SharedMe
 - **Metrics**: Performance tracking and statistics
 
 ### SwarmMemory (extends SharedMemory)
+
 - **Agent Management**: Store and track swarm agents
 - **Task Coordination**: Persistent task state and assignment
 - **Communication History**: Inter-agent message logging
@@ -38,25 +40,29 @@ import { SharedMemory } from './memory/shared-memory.js';
 
 // Initialize
 const memory = new SharedMemory({
-  directory: '.hive-mind',      // Storage directory
-  filename: 'memory.db',        // Database filename
-  cacheSize: 1000,             // Max cache entries
-  cacheMemoryMB: 50,           // Max cache memory in MB
-  gcInterval: 300000           // Garbage collection interval (5 min)
+  directory: '.hive-mind', // Storage directory
+  filename: 'memory.db', // Database filename
+  cacheSize: 1000, // Max cache entries
+  cacheMemoryMB: 50, // Max cache memory in MB
+  gcInterval: 300000, // Garbage collection interval (5 min)
 });
 
 await memory.initialize();
 
 // Store data
-await memory.store('user:123', {
-  name: 'John Doe',
-  preferences: { theme: 'dark' }
-}, {
-  namespace: 'users',
-  ttl: 3600,                   // Expires in 1 hour
-  tags: ['active', 'premium'],
-  metadata: { source: 'api' }
-});
+await memory.store(
+  'user:123',
+  {
+    name: 'John Doe',
+    preferences: { theme: 'dark' },
+  },
+  {
+    namespace: 'users',
+    ttl: 3600, // Expires in 1 hour
+    tags: ['active', 'premium'],
+    metadata: { source: 'api' },
+  },
+);
 
 // Retrieve data
 const user = await memory.retrieve('user:123', 'users');
@@ -66,7 +72,7 @@ const results = await memory.search({
   pattern: 'user:*',
   namespace: 'users',
   tags: ['active'],
-  limit: 10
+  limit: 10,
 });
 
 // Get statistics
@@ -83,7 +89,7 @@ import { SwarmMemory } from './memory/swarm-memory.js';
 
 const swarm = new SwarmMemory({
   swarmId: 'my-swarm',
-  directory: '.swarm'
+  directory: '.swarm',
 });
 
 await swarm.initialize();
@@ -94,7 +100,7 @@ await swarm.storeAgent('agent-1', {
   name: 'Code Analyzer',
   type: 'analyzer',
   status: 'active',
-  capabilities: ['code-review', 'pattern-detection']
+  capabilities: ['code-review', 'pattern-detection'],
 });
 
 // Track tasks
@@ -103,13 +109,13 @@ await swarm.storeTask('task-1', {
   description: 'Analyze codebase',
   priority: 'high',
   status: 'pending',
-  assignedAgents: ['agent-1']
+  assignedAgents: ['agent-1'],
 });
 
 // Update task progress
 await swarm.updateTaskStatus('task-1', 'in_progress', {
   progress: 25,
-  currentFile: 'src/index.js'
+  currentFile: 'src/index.js',
 });
 
 // Store learned patterns
@@ -120,14 +126,17 @@ await swarm.storePattern('pattern-1', {
   data: {
     name: 'parallel-processing',
     conditions: ['large-dataset', 'cpu-intensive'],
-    strategy: 'worker-threads'
-  }
+    strategy: 'worker-threads',
+  },
 });
 
 // Find best patterns for context
-const patterns = await swarm.findBestPatterns({
-  tags: ['optimization', 'performance']
-}, 5);
+const patterns = await swarm.findBestPatterns(
+  {
+    tags: ['optimization', 'performance'],
+  },
+  5,
+);
 
 // Get comprehensive stats
 const stats = await swarm.getSwarmStats();
@@ -141,8 +150,8 @@ To migrate from the old CollectiveMemory or hive-mind database:
 import { MemoryMigration } from './memory/migration.js';
 
 const migration = new MemoryMigration({
-  dryRun: false,              // Set to true to preview
-  verbose: true               // Show detailed progress
+  dryRun: false, // Set to true to preview
+  verbose: true, // Show detailed progress
 });
 
 const result = await migration.migrate();
@@ -233,6 +242,7 @@ Inherits all SharedMemory options plus:
 ## Schema
 
 ### memory_store table
+
 - `id` - Auto-incrementing primary key
 - `key` - Unique key within namespace
 - `namespace` - Data namespace

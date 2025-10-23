@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Event bus implementation for Claude-Flow
  */
@@ -34,12 +33,12 @@ class TypedEventBus extends TypedEventEmitter<EventMap> {
     if (this.debug) {
       console.debug(`[EventBus] Emitting event: ${String(event)}`, data);
     }
-    
+
     // Track event metrics
     const count = this.eventCounts.get(event) || 0;
     this.eventCounts.set(event, count + 1);
     this.lastEventTimes.set(event, Date.now());
-    
+
     super.emit(event, data);
   }
 
@@ -48,7 +47,7 @@ class TypedEventBus extends TypedEventEmitter<EventMap> {
    */
   getEventStats(): { event: string; count: number; lastEmitted: Date | null }[] {
     const stats: { event: string; count: number; lastEmitted: Date | null }[] = [];
-    
+
     for (const [event, count] of this.eventCounts.entries()) {
       const lastTime = this.lastEventTimes.get(event);
       stats.push({
@@ -57,7 +56,7 @@ class TypedEventBus extends TypedEventEmitter<EventMap> {
         lastEmitted: lastTime ? new Date(lastTime) : null,
       });
     }
-    
+
     return stats.sort((a, b) => b.count - a.count);
   }
 

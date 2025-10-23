@@ -1,8 +1,8 @@
 /**
  * Memory Module - Unified memory persistence for ruv-swarm
- * 
+ *
  * Provides both generic SharedMemory and MCP-specific SwarmMemory implementations
- * 
+ *
  * @module memory
  */
 
@@ -19,7 +19,7 @@ export const SWARM_NAMESPACES = {
   CONSENSUS: 'swarm:consensus',
   PATTERNS: 'swarm:patterns',
   METRICS: 'swarm:metrics',
-  COORDINATION: 'swarm:coordination'
+  COORDINATION: 'swarm:coordination',
 };
 
 /**

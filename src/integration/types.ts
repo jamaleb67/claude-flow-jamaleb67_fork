@@ -6,36 +6,36 @@ export interface IntegrationConfig {
   // Core configuration
   logLevel?: 'debug' | 'info' | 'warn' | 'error';
   environment?: 'development' | 'production' | 'testing';
-  
+
   // Component-specific configuration
   orchestrator?: {
     maxConcurrency?: number;
     timeout?: number;
   };
-  
+
   agents?: {
     maxAgents?: number;
     defaultStrategy?: string;
   };
-  
+
   swarm?: {
     topology?: 'centralized' | 'distributed' | 'hierarchical' | 'mesh';
     maxDepth?: number;
     enablePersistence?: boolean;
   };
-  
+
   memory?: {
     backend?: 'memory' | 'file' | 'redis';
     ttl?: number;
     maxSize?: number;
   };
-  
+
   monitoring?: {
     enabled?: boolean;
     metrics?: boolean;
     realTime?: boolean;
   };
-  
+
   mcp?: {
     port?: number;
     host?: string;

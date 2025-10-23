@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * MCP Integration with Claude-Flow Orchestration System
  * Provides seamless integration between MCP servers and the broader orchestration components
@@ -62,11 +61,11 @@ export class MCPOrchestrationIntegration extends EventEmitter {
   private lifecycleManager?: MCPLifecycleManager;
   private performanceMonitor?: MCPPerformanceMonitor;
   private protocolManager?: MCPProtocolManager;
-  
+
   private integrationStatus = new Map<string, IntegrationStatus>();
   private healthCheckTimer?: NodeJS.Timeout;
   private reconnectTimers = new Map<string, NodeJS.Timeout>();
-  
+
   private readonly defaultConfig: MCPOrchestrationConfig = {
     enabledIntegrations: {
       orchestrator: true,
@@ -92,7 +91,7 @@ export class MCPOrchestrationIntegration extends EventEmitter {
     private logger: ILogger,
   ) {
     super();
-    
+
     this.orchestrationConfig = { ...this.defaultConfig, ...orchestrationConfig };
     this.initializeIntegration();
   }
@@ -264,7 +263,7 @@ export class MCPOrchestrationIntegration extends EventEmitter {
     }
 
     status.enabled = enabled;
-    
+
     if (enabled) {
       await this.connectComponent(component);
     } else {
@@ -289,7 +288,10 @@ export class MCPOrchestrationIntegration extends EventEmitter {
     for (const component of components) {
       this.integrationStatus.set(component, {
         component,
-        enabled: this.orchestrationConfig.enabledIntegrations[component as keyof typeof this.orchestrationConfig.enabledIntegrations],
+        enabled:
+          this.orchestrationConfig.enabledIntegrations[
+            component as keyof typeof this.orchestrationConfig.enabledIntegrations
+          ],
         connected: false,
         healthy: false,
         lastCheck: new Date(),
@@ -711,7 +713,7 @@ export class MCPOrchestrationIntegration extends EventEmitter {
       status.connected = false;
       status.healthy = false;
       status.error = error instanceof Error ? error.message : 'Unknown error';
-      
+
       this.logger.error('Failed to connect component', { component, error });
       this.scheduleReconnect(component);
     }
@@ -776,7 +778,12 @@ export class MCPOrchestrationIntegration extends EventEmitter {
         status.error = undefined;
       } catch (error) {
         status.healthy = false;
-        status.error = error instanceof Error ? (error instanceof Error ? error.message : String(error)) : 'Health check failed';
+        status.error =
+          error instanceof Error
+            ? error instanceof Error
+              ? error.message
+              : String(error)
+            : 'Health check failed';
         this.logger.warn('Component health check failed', { component, error });
       }
     }
@@ -798,14 +805,22 @@ export class MCPOrchestrationIntegration extends EventEmitter {
 
   private getComponentInstance(component: string): any {
     switch (component) {
-      case 'orchestrator': return this.components.orchestrator;
-      case 'swarm': return this.components.swarmCoordinator;
-      case 'agents': return this.components.agentManager;
-      case 'resources': return this.components.resourceManager;
-      case 'memory': return this.components.memoryManager;
-      case 'monitoring': return this.components.monitor;
-      case 'terminals': return this.components.terminalManager;
-      default: return null;
+      case 'orchestrator':
+        return this.components.orchestrator;
+      case 'swarm':
+        return this.components.swarmCoordinator;
+      case 'agents':
+        return this.components.agentManager;
+      case 'resources':
+        return this.components.resourceManager;
+      case 'memory':
+        return this.components.memoryManager;
+      case 'monitoring':
+        return this.components.monitor;
+      case 'terminals':
+        return this.components.terminalManager;
+      default:
+        return null;
     }
   }
 

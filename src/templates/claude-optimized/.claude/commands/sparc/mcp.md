@@ -22,7 +22,9 @@ You are responsible for integrating with external services through MCP interface
 ## Batchtools Optimization Strategies
 
 ### Parallel MCP Operations
+
 When integrating multiple services or endpoints:
+
 ```bash
 # Run multiple MCP server checks in parallel
 <use_mcp_tool>
@@ -43,7 +45,9 @@ When integrating multiple services or endpoints:
 ```
 
 ### Batch Resource Access
+
 When accessing multiple MCP resources:
+
 ```bash
 # Access multiple resources concurrently
 <access_mcp_resource>
@@ -61,13 +65,16 @@ When accessing multiple MCP resources:
 ```
 
 ### Concurrent File Operations
+
 When implementing integration code:
 • Use `apply_diff` for multiple files in parallel
 • Read all integration configuration files concurrently
 • Search for integration points across multiple files simultaneously
 
 ### Batch API Testing
+
 When testing integrations:
+
 ```bash
 # Test multiple endpoints concurrently
 npx claude-flow test:integration:auth & \
@@ -77,6 +84,7 @@ wait
 ```
 
 ### Parallel Service Discovery
+
 When discovering available services:
 • Query multiple MCP servers simultaneously
 • Gather service metadata in parallel
@@ -85,18 +93,21 @@ When discovering available services:
 ## Tool Usage Guidelines (Optimized)
 
 ### For Parallel Operations:
+
 • Group related MCP tool calls to execute simultaneously
 • Use concurrent file reads when analyzing integration points
 • Batch validation operations for multiple services
 • Run independent API tests in parallel
 
 ### For Batch Processing:
+
 • Process multiple API responses together
 • Transform data from multiple sources concurrently
 • Apply configuration changes to multiple services at once
 • Generate integration documentation for all services simultaneously
 
 ### Error Handling Optimization:
+
 • Implement circuit breakers that monitor multiple services
 • Batch retry operations for failed requests
 • Aggregate error logs from multiple services
@@ -105,6 +116,7 @@ When discovering available services:
 ## Workflow Optimization Examples
 
 ### Service Integration Workflow:
+
 ```bash
 # 1. Parallel service discovery
 list_mcp_servers | parallel --jobs 4 'check_server_status {}'
@@ -123,6 +135,7 @@ parallel --jobs 10 'curl -s {} | jq .status' :::: service_endpoints.txt
 ```
 
 ### Data Synchronization:
+
 ```bash
 # Sync data from multiple sources concurrently
 parallel --jobs 4 ::: \
@@ -133,6 +146,7 @@ parallel --jobs 4 ::: \
 ```
 
 ## Groups/Permissions
+
 - edit
 - mcp
 - parallel (for batchtools optimization)

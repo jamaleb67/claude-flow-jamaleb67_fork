@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * MCP (Model Context Protocol) server implementation
  */
@@ -30,7 +29,12 @@ import { AuthManager, IAuthManager } from './auth.js';
 import { LoadBalancer, ILoadBalancer, RequestQueue } from './load-balancer.js';
 import { createClaudeFlowTools, ClaudeFlowToolContext } from './claude-flow-tools.js';
 import { createSwarmTools, SwarmToolContext } from './swarm-tools.js';
-import { createRuvSwarmTools, RuvSwarmToolContext, isRuvSwarmAvailable, initializeRuvSwarmIntegration } from './ruv-swarm-tools.js';
+import {
+  createRuvSwarmTools,
+  RuvSwarmToolContext,
+  isRuvSwarmAvailable,
+  initializeRuvSwarmIntegration,
+} from './ruv-swarm-tools.js';
 import { platform, arch } from 'node:os';
 import { performance } from 'node:perf_hooks';
 
@@ -103,22 +107,22 @@ export class MCPServer implements IMCPServer {
   ) {
     // Initialize transport
     this.transport = this.createTransport();
-    
+
     // Initialize tool registry
     this.toolRegistry = new ToolRegistry(logger);
-    
+
     // Initialize session manager
     this.sessionManager = new SessionManager(config, logger);
-    
+
     // Initialize auth manager
     this.authManager = new AuthManager(config.auth || { enabled: false, method: 'token' }, logger);
-    
+
     // Initialize load balancer if enabled
     if (config.loadBalancer?.enabled) {
       this.loadBalancer = new LoadBalancer(config.loadBalancer, logger);
       this.requestQueue = new RequestQueue(1000, 30000, logger);
     }
-    
+
     // Initialize request router
     this.router = new RequestRouter(this.toolRegistry, logger);
   }
@@ -140,7 +144,7 @@ export class MCPServer implements IMCPServer {
       await this.transport.start();
 
       // Register built-in tools
-      this.registerBuiltInTools();
+      await this.registerBuiltInTools();
 
       this.running = true;
       this.logger.info('MCP server started successfully');
@@ -185,9 +189,9 @@ export class MCPServer implements IMCPServer {
     this.logger.info('Tool registered', { name: tool.name });
   }
 
-  async getHealthStatus(): Promise<{ 
-    healthy: boolean; 
-    error?: string; 
+  async getHealthStatus(): Promise<{
+    healthy: boolean;
+    error?: string;
     metrics?: Record<string, number>;
   }> {
     try {
@@ -265,7 +269,7 @@ export class MCPServer implements IMCPServer {
   }
 
   private async handleRequest(request: MCPRequest): Promise<MCPResponse> {
-    this.logger.debug('Handling MCP request', { 
+    this.logger.debug('Handling MCP request', {
       id: request.id,
       method: request.method,
     });
@@ -278,7 +282,7 @@ export class MCPServer implements IMCPServer {
 
       // Get or create session
       const session = this.getOrCreateSession();
-      
+
       // Check if session is initialized for non-initialize requests
       if (!session.isInitialized) {
         return {
@@ -315,7 +319,7 @@ export class MCPServer implements IMCPServer {
       try {
         // Process request through router
         const result = await this.router.route(request);
-        
+
         const response: MCPResponse = {
           jsonrpc: '2.0',
           id: request.id,
@@ -336,7 +340,7 @@ export class MCPServer implements IMCPServer {
         throw error;
       }
     } catch (error) {
-      this.logger.error('Error handling MCP request', { 
+      this.logger.error('Error handling MCP request', {
         id: request.id,
         method: request.method,
         error,
@@ -353,7 +357,7 @@ export class MCPServer implements IMCPServer {
   private async handleInitialize(request: MCPRequest): Promise<MCPResponse> {
     try {
       const params = request.params as MCPInitializeParams;
-      
+
       if (!params) {
         return {
           jsonrpc: '2.0',
@@ -416,7 +420,7 @@ export class MCPServer implements IMCPServer {
     switch (this.config.transport) {
       case 'stdio':
         return new StdioTransport(this.logger);
-      
+
       case 'http':
         return new HttpTransport(
           this.config.host || 'localhost',
@@ -424,13 +428,13 @@ export class MCPServer implements IMCPServer {
           this.config.tlsEnabled || false,
           this.logger,
         );
-      
+
       default:
         throw new MCPErrorClass(`Unknown transport type: ${this.config.transport}`);
     }
   }
 
-  private registerBuiltInTools(): void {
+  private async registerBuiltInTools(): Promise<void> {
     // System information tool
     this.registerTool({
       name: 'system/info',
@@ -502,8 +506,8 @@ export class MCPServer implements IMCPServer {
 
     // Register Claude-Flow specific tools if orchestrator is available
     if (this.orchestrator) {
-      const claudeFlowTools = createClaudeFlowTools(this.logger);
-      
+      const claudeFlowTools = await createClaudeFlowTools(this.logger);
+
       for (const tool of claudeFlowTools) {
         // Wrap the handler to inject orchestrator context
         const originalHandler = tool.handler;
@@ -512,13 +516,13 @@ export class MCPServer implements IMCPServer {
             ...context,
             orchestrator: this.orchestrator,
           } as ClaudeFlowToolContext;
-          
+
           return await originalHandler(input, claudeFlowContext);
         };
-        
+
         this.registerTool(tool);
       }
-      
+
       this.logger.info('Registered Claude-Flow tools', { count: claudeFlowTools.length });
     } else {
       this.logger.warn('Orchestrator not available - Claude-Flow tools not registered');
@@ -527,7 +531,7 @@ export class MCPServer implements IMCPServer {
     // Register Swarm-specific tools if swarm components are available
     if (this.swarmCoordinator || this.agentManager || this.resourceManager) {
       const swarmTools = createSwarmTools(this.logger);
-      
+
       for (const tool of swarmTools) {
         // Wrap the handler to inject swarm context
         const originalHandler = tool.handler;
@@ -540,13 +544,13 @@ export class MCPServer implements IMCPServer {
             messageBus: this.messagebus,
             monitor: this.monitor,
           } as SwarmToolContext;
-          
+
           return await originalHandler(input, swarmContext);
         };
-        
+
         this.registerTool(tool);
       }
-      
+
       this.logger.info('Registered Swarm tools', { count: swarmTools.length });
     } else {
       this.logger.warn('Swarm components not available - Swarm tools not registered');
@@ -563,7 +567,7 @@ export class MCPServer implements IMCPServer {
     try {
       // Check if ruv-swarm is available
       const available = await isRuvSwarmAvailable(this.logger);
-      
+
       if (!available) {
         this.logger.info('ruv-swarm not available - skipping ruv-swarm MCP tools registration');
         return;
@@ -572,15 +576,17 @@ export class MCPServer implements IMCPServer {
       // Initialize ruv-swarm integration
       const workingDirectory = process.cwd();
       const integration = await initializeRuvSwarmIntegration(workingDirectory, this.logger);
-      
+
       if (!integration.success) {
-        this.logger.warn('Failed to initialize ruv-swarm integration', { error: integration.error });
+        this.logger.warn('Failed to initialize ruv-swarm integration', {
+          error: integration.error,
+        });
         return;
       }
 
       // Create ruv-swarm tools
       const ruvSwarmTools = createRuvSwarmTools(this.logger);
-      
+
       for (const tool of ruvSwarmTools) {
         // Wrap the handler to inject ruv-swarm context
         const originalHandler = tool.handler;
@@ -589,20 +595,19 @@ export class MCPServer implements IMCPServer {
             ...context,
             workingDirectory,
             sessionId: `mcp-session-${Date.now()}`,
-            swarmId: process.env.CLAUDE_SWARM_ID || `mcp-swarm-${Date.now()}`
+            swarmId: process.env.CLAUDE_SWARM_ID || `mcp-swarm-${Date.now()}`,
           };
-          
+
           return await originalHandler(input, ruvSwarmContext);
         };
-        
+
         this.registerTool(tool);
       }
-      
-      this.logger.info('Registered ruv-swarm MCP tools', { 
+
+      this.logger.info('Registered ruv-swarm MCP tools', {
         count: ruvSwarmTools.length,
-        integration: integration.data 
+        integration: integration.data,
       });
-      
     } catch (error) {
       this.logger.error('Error registering ruv-swarm MCP tools', error);
     }
@@ -612,7 +617,7 @@ export class MCPServer implements IMCPServer {
     if (error instanceof MCPMethodNotFoundError) {
       return {
         code: -32601,
-        message: (error instanceof Error ? error.message : String(error)),
+        message: error instanceof Error ? error.message : String(error),
         data: error.details,
       };
     }
@@ -620,7 +625,7 @@ export class MCPServer implements IMCPServer {
     if (error instanceof MCPErrorClass) {
       return {
         code: -32603,
-        message: (error instanceof Error ? error.message : String(error)),
+        message: error instanceof Error ? error.message : String(error),
         data: error.details,
       };
     }
@@ -628,7 +633,7 @@ export class MCPServer implements IMCPServer {
     if (error instanceof Error) {
       return {
         code: -32603,
-        message: (error instanceof Error ? error.message : String(error)),
+        message: error instanceof Error ? error.message : String(error),
       };
     }
 

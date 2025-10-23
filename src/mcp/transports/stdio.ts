@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../../utils/error-handler.js';
 /**
  * Standard I/O transport for MCP
  */
@@ -66,7 +65,7 @@ export class StdioTransport implements ITransport {
     this.logger.info('Stopping stdio transport');
 
     this.running = false;
-    
+
     if (this.readline) {
       this.readline.close();
       this.readline = undefined;
@@ -83,10 +82,9 @@ export class StdioTransport implements ITransport {
     this.notificationHandler = handler;
   }
 
-
-  async getHealthStatus(): Promise<{ 
-    healthy: boolean; 
-    error?: string; 
+  async getHealthStatus(): Promise<{
+    healthy: boolean;
+    error?: string;
     metrics?: Record<string, number>;
   }> {
     return {
@@ -99,13 +97,12 @@ export class StdioTransport implements ITransport {
     };
   }
 
-
   private async processMessage(line: string): Promise<void> {
     let message: any;
 
     try {
       message = JSON.parse(line);
-      
+
       if (!message.jsonrpc || message.jsonrpc !== '2.0') {
         throw new Error('Invalid JSON-RPC version');
       }
@@ -115,7 +112,7 @@ export class StdioTransport implements ITransport {
       }
     } catch (error) {
       this.logger.error('Failed to parse message', { line, error });
-      
+
       // Send error response if we can extract an ID
       let id = 'unknown';
       try {
@@ -168,7 +165,7 @@ export class StdioTransport implements ITransport {
       await this.sendResponse(response);
     } catch (error) {
       this.logger.error('Request handler error', { request, error });
-      
+
       await this.sendResponse({
         jsonrpc: '2.0',
         id: request.id,
@@ -222,7 +219,7 @@ export class StdioTransport implements ITransport {
     // Send request to stdout
     const json = JSON.stringify(request);
     stdout.write(json + '\n');
-    
+
     // In STDIO transport, responses are handled asynchronously
     // This would need a proper request/response correlation mechanism
     throw new Error('STDIO transport sendRequest requires request/response correlation');

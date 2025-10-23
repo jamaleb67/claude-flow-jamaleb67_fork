@@ -27,15 +27,43 @@ The system monitors workload and spawns additional agents when:
 - Complexity increases
 - Parallel opportunities exist
 
+**Status Monitoring:**
+```javascript
+// Check swarm health
+mcp__claude-flow__swarm_status({
+  "swarmId": "current"
+})
+
+// Monitor agent performance
+mcp__claude-flow__agent_metrics({
+  "agentId": "agent-123"
+})
+```
+
 ## Configuration
-Already enabled in settings.json:
-```json
-{
-  "hooks": [{
-    "matcher": "^Task$",
-    "command": "npx ruv-swarm hook pre-task --auto-spawn-agents"
-  }]
-}
+
+### MCP Tool Integration
+Uses Claude Flow MCP tools for agent coordination:
+```javascript
+// Initialize swarm with appropriate topology
+mcp__claude-flow__swarm_init({
+  "topology": "mesh",
+  "maxAgents": 8,
+  "strategy": "auto"
+})
+
+// Spawn agents based on file type
+mcp__claude-flow__agent_spawn({
+  "type": "coder",
+  "name": "JavaScript Handler",
+  "capabilities": ["javascript", "typescript"]
+})
+```
+
+### Fallback Configuration
+If MCP tools are unavailable:
+```bash
+npx claude-flow hook pre-task --auto-spawn-agents
 ```
 
 ## Benefits

@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 import { spawn, ChildProcess } from 'node:child_process';
 import { EventEmitter } from 'node:events';
 import { Logger } from '../core/logger.js';
@@ -58,7 +57,7 @@ export class BackgroundExecutor extends EventEmitter {
       checkInterval: 1000, // 1 second
       cleanupInterval: 60000, // 1 minute
       maxRetries: 3,
-      ...config
+      ...config,
     };
 
     this.tasks = new Map();
@@ -121,7 +120,7 @@ export class BackgroundExecutor extends EventEmitter {
     type: BackgroundTask['type'],
     command: string,
     args: string[] = [],
-    options: BackgroundTask['options'] = {}
+    options: BackgroundTask['options'] = {},
   ): Promise<string> {
     const taskId = generateId('bgtask');
     const task: BackgroundTask = {
@@ -132,10 +131,10 @@ export class BackgroundExecutor extends EventEmitter {
       options: {
         timeout: this.config.defaultTimeout,
         retries: this.config.maxRetries,
-        ...options
+        ...options,
       },
       status: 'pending',
-      retryCount: 0
+      retryCount: 0,
     };
 
     this.tasks.set(taskId, task);
@@ -163,11 +162,11 @@ export class BackgroundExecutor extends EventEmitter {
       timeout: number;
       model?: string;
       maxTokens?: number;
-    }> = {}
+    }> = {},
   ): Promise<string> {
     // Build claude command arguments
     const args = ['-p', prompt];
-    
+
     if (tools.length > 0) {
       args.push('--allowedTools', tools.join(','));
     }
@@ -184,7 +183,7 @@ export class BackgroundExecutor extends EventEmitter {
 
     return this.submitTask('claude-spawn', 'claude', args, {
       ...options,
-      detached: true // Run in background
+      detached: true, // Run in background
     });
   }
 
@@ -192,8 +191,9 @@ export class BackgroundExecutor extends EventEmitter {
     if (!this.isRunning) return;
 
     // Check how many tasks are running
-    const runningTasks = Array.from(this.tasks.values())
-      .filter(t => t.status === 'running').length;
+    const runningTasks = Array.from(this.tasks.values()).filter(
+      (t) => t.status === 'running',
+    ).length;
 
     const availableSlots = this.config.maxConcurrentTasks - runningTasks;
 
@@ -227,7 +227,7 @@ export class BackgroundExecutor extends EventEmitter {
         cwd: task.options?.cwd,
         env: { ...process.env, ...task.options?.env },
         detached: task.options?.detached,
-        stdio: ['ignore', 'pipe', 'pipe']
+        stdio: ['ignore', 'pipe', 'pipe'],
       });
 
       task.pid = process.pid;
@@ -260,13 +260,15 @@ export class BackgroundExecutor extends EventEmitter {
         } else {
           task.status = 'failed';
           this.logger.error(`Task ${task.id} failed with code ${code}`);
-          
+
           // Retry logic
           if (task.retryCount < (task.options?.retries || 0)) {
             task.retryCount++;
             task.status = 'pending';
             this.queue.push(task.id);
-            this.logger.info(`Retrying task ${task.id} (${task.retryCount}/${task.options?.retries})`);
+            this.logger.info(
+              `Retrying task ${task.id} (${task.retryCount}/${task.options?.retries})`,
+            );
             this.emit('task:retry', task);
           } else {
             this.emit('task:failed', task);
@@ -300,12 +302,11 @@ export class BackgroundExecutor extends EventEmitter {
       if (this.config.enablePersistence) {
         await this.saveTaskState(task);
       }
-
     } catch (error) {
       task.status = 'failed';
       task.error = String(error);
       task.endTime = new Date();
-      
+
       this.logger.error(`Failed to execute task ${task.id}:`, error);
       this.emit('task:failed', task);
 
@@ -330,7 +331,7 @@ export class BackgroundExecutor extends EventEmitter {
         if (process) {
           this.logger.warn(`Killing timed out task ${taskId}`);
           process.kill('SIGTERM');
-          
+
           // Force kill after 5 seconds
           setTimeout(() => {
             if (this.processes.has(taskId)) {
@@ -371,11 +372,11 @@ export class BackgroundExecutor extends EventEmitter {
 
     try {
       const logDir = path.join(this.config.logPath, task.id);
-      
+
       if (task.output) {
         await fs.writeFile(path.join(logDir, 'stdout.log'), task.output);
       }
-      
+
       if (task.error) {
         await fs.writeFile(path.join(logDir, 'stderr.log'), task.error);
       }
@@ -394,7 +395,7 @@ export class BackgroundExecutor extends EventEmitter {
 
   getTasks(status?: BackgroundTask['status']): BackgroundTask[] {
     const tasks = Array.from(this.tasks.values());
-    return status ? tasks.filter(t => t.status === status) : tasks;
+    return status ? tasks.filter((t) => t.status === status) : tasks;
   }
 
   async waitForTask(taskId: string, timeout?: number): Promise<BackgroundTask> {
@@ -410,9 +411,11 @@ export class BackgroundExecutor extends EventEmitter {
         return;
       }
 
-      const timeoutHandle = timeout ? setTimeout(() => {
-        reject(new Error('Wait timeout'));
-      }, timeout) : undefined;
+      const timeoutHandle = timeout
+        ? setTimeout(() => {
+            reject(new Error('Wait timeout'));
+          }, timeout)
+        : undefined;
 
       const checkTask = () => {
         const currentTask = this.tasks.get(taskId);
@@ -444,7 +447,7 @@ export class BackgroundExecutor extends EventEmitter {
     if (process) {
       this.logger.info(`Killing task ${taskId}`);
       process.kill('SIGTERM');
-      
+
       // Force kill after 5 seconds
       setTimeout(() => {
         if (this.processes.has(taskId)) {
@@ -456,7 +459,7 @@ export class BackgroundExecutor extends EventEmitter {
     task.status = 'failed';
     task.error = 'Task killed by user';
     task.endTime = new Date();
-    
+
     this.emit('task:killed', task);
   }
 
@@ -469,11 +472,11 @@ export class BackgroundExecutor extends EventEmitter {
   } {
     const tasks = Array.from(this.tasks.values());
     return {
-      running: tasks.filter(t => t.status === 'running').length,
-      pending: tasks.filter(t => t.status === 'pending').length,
-      completed: tasks.filter(t => t.status === 'completed').length,
-      failed: tasks.filter(t => t.status === 'failed').length,
-      queueLength: this.queue.length
+      running: tasks.filter((t) => t.status === 'running').length,
+      pending: tasks.filter((t) => t.status === 'pending').length,
+      completed: tasks.filter((t) => t.status === 'completed').length,
+      failed: tasks.filter((t) => t.status === 'failed').length,
+      queueLength: this.queue.length,
     };
   }
 }

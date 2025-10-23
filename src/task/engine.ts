@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Task Engine Core - Comprehensive task management with orchestration features
  * Integrates with TodoWrite/TodoRead for coordination and Memory for persistence
@@ -140,7 +139,7 @@ export class TaskEngine extends EventEmitter {
 
   constructor(
     private maxConcurrent: number = 10,
-    private memoryManager?: any // Memory interface for persistence
+    private memoryManager?: any, // Memory interface for persistence
   ) {
     super();
     this.setupEventHandlers();
@@ -171,7 +170,7 @@ export class TaskEngine extends EventEmitter {
       retryPolicy: taskData.retryPolicy || {
         maxAttempts: 3,
         backoffMs: 1000,
-        backoffMultiplier: 2
+        backoffMultiplier: 2,
       },
       timeout: taskData.timeout || 300000, // 5 minutes default
       tags: taskData.tags || [],
@@ -179,12 +178,12 @@ export class TaskEngine extends EventEmitter {
       progressPercentage: 0,
       checkpoints: [],
       rollbackStrategy: taskData.rollbackStrategy || 'previous-checkpoint',
-      metadata: taskData.metadata || {}
+      metadata: taskData.metadata || {},
     };
 
     this.tasks.set(task.id, task);
     this.updateDependencyGraph(task);
-    
+
     // Store in memory if manager available
     if (this.memoryManager) {
       await this.memoryManager.store(`task:${task.id}`, task);
@@ -203,23 +202,31 @@ export class TaskEngine extends EventEmitter {
     filter?: TaskFilter,
     sort?: TaskSort,
     limit?: number,
-    offset?: number
+    offset?: number,
   ): Promise<{ tasks: WorkflowTask[]; total: number; hasMore: boolean }> {
     let filteredTasks = Array.from(this.tasks.values());
 
     // Apply filters
     if (filter) {
-      filteredTasks = filteredTasks.filter(task => {
+      filteredTasks = filteredTasks.filter((task) => {
         if (filter.status && !filter.status.includes(task.status)) return false;
-        if (filter.assignedAgent && !filter.assignedAgent.includes(task.assignedAgent || '')) return false;
+        if (filter.assignedAgent && !filter.assignedAgent.includes(task.assignedAgent || ''))
+          return false;
         if (filter.priority) {
-          if (filter.priority.min !== undefined && task.priority < filter.priority.min) return false;
-          if (filter.priority.max !== undefined && task.priority > filter.priority.max) return false;
+          if (filter.priority.min !== undefined && task.priority < filter.priority.min)
+            return false;
+          if (filter.priority.max !== undefined && task.priority > filter.priority.max)
+            return false;
         }
-        if (filter.tags && !filter.tags.some(tag => task.tags.includes(tag))) return false;
+        if (filter.tags && !filter.tags.some((tag) => task.tags.includes(tag))) return false;
         if (filter.createdAfter && task.createdAt < filter.createdAfter) return false;
         if (filter.createdBefore && task.createdAt > filter.createdBefore) return false;
-        if (filter.dueBefore && task.schedule?.deadline && task.schedule.deadline > filter.dueBefore) return false;
+        if (
+          filter.dueBefore &&
+          task.schedule?.deadline &&
+          task.schedule.deadline > filter.dueBefore
+        )
+          return false;
         if (filter.search && !this.matchesSearch(task, filter.search)) return false;
         return true;
       });
@@ -254,7 +261,7 @@ export class TaskEngine extends EventEmitter {
     return {
       tasks,
       total,
-      hasMore: endIndex < total
+      hasMore: endIndex < total,
     };
   }
 
@@ -272,29 +279,29 @@ export class TaskEngine extends EventEmitter {
     if (!task) return null;
 
     const execution = this.executions.get(taskId);
-    
+
     // Get dependency status
     const dependencies = await Promise.all(
-      task.dependencies.map(async dep => {
+      task.dependencies.map(async (dep) => {
         const depTask = this.tasks.get(dep.taskId);
         if (!depTask) throw new Error(`Dependency task ${dep.taskId} not found`);
         const satisfied = this.isDependencySatisfied(dep, depTask);
         return { task: depTask, satisfied };
-      })
+      }),
     );
 
     // Get dependent tasks
-    const dependents = Array.from(this.tasks.values()).filter(t => 
-      t.dependencies.some(dep => dep.taskId === taskId)
+    const dependents = Array.from(this.tasks.values()).filter((t) =>
+      t.dependencies.some((dep) => dep.taskId === taskId),
     );
 
     // Get resource status
-    const resourceStatus = task.resourceRequirements.map(req => {
+    const resourceStatus = task.resourceRequirements.map((req) => {
       const resource = this.resources.get(req.resourceId);
       return {
         required: req,
         available: !!resource,
-        allocated: resource?.lockedBy === taskId
+        allocated: resource?.lockedBy === taskId,
       };
     });
 
@@ -303,14 +310,18 @@ export class TaskEngine extends EventEmitter {
       execution,
       dependencies,
       dependents,
-      resourceStatus
+      resourceStatus,
     };
   }
 
   /**
    * Cancel task with rollback and cleanup
    */
-  async cancelTask(taskId: string, reason: string = 'User requested', rollback: boolean = true): Promise<void> {
+  async cancelTask(
+    taskId: string,
+    reason: string = 'User requested',
+    rollback: boolean = true,
+  ): Promise<void> {
     const task = this.tasks.get(taskId);
     if (!task) throw new Error(`Task ${taskId} not found`);
 
@@ -319,7 +330,7 @@ export class TaskEngine extends EventEmitter {
     }
 
     this.cancelledTasks.add(taskId);
-    
+
     // Stop running execution
     if (this.runningTasks.has(taskId)) {
       this.runningTasks.delete(taskId);
@@ -340,10 +351,10 @@ export class TaskEngine extends EventEmitter {
 
     // Update task status
     task.status = 'cancelled';
-    task.metadata = { 
-      ...task.metadata, 
-      cancellationReason: reason, 
-      cancelledAt: new Date() 
+    task.metadata = {
+      ...task.metadata,
+      cancellationReason: reason,
+      cancelledAt: new Date(),
     };
 
     // Update memory
@@ -354,8 +365,8 @@ export class TaskEngine extends EventEmitter {
     this.emit('task:cancelled', { taskId, reason });
 
     // Cancel dependent tasks if configured
-    const dependents = Array.from(this.tasks.values()).filter(t => 
-      t.dependencies.some(dep => dep.taskId === taskId)
+    const dependents = Array.from(this.tasks.values()).filter((t) =>
+      t.dependencies.some((dep) => dep.taskId === taskId),
     );
 
     for (const dependent of dependents) {
@@ -370,7 +381,7 @@ export class TaskEngine extends EventEmitter {
    */
   async executeWorkflow(workflow: Workflow): Promise<void> {
     this.workflows.set(workflow.id, workflow);
-    
+
     // Add all workflow tasks
     for (const task of workflow.tasks) {
       this.tasks.set(task.id, task);
@@ -394,19 +405,19 @@ export class TaskEngine extends EventEmitter {
       variables: workflowData.variables || {},
       parallelism: workflowData.parallelism || {
         maxConcurrent: this.maxConcurrent,
-        strategy: 'priority-based'
+        strategy: 'priority-based',
       },
       errorHandling: workflowData.errorHandling || {
         strategy: 'fail-fast',
-        maxRetries: 3
+        maxRetries: 3,
       },
       createdAt: new Date(),
       updatedAt: new Date(),
-      createdBy: workflowData.createdBy || 'system'
+      createdBy: workflowData.createdBy || 'system',
     };
 
     this.workflows.set(workflow.id, workflow);
-    
+
     if (this.memoryManager) {
       await this.memoryManager.store(`workflow:${workflow.id}`, workflow);
     }
@@ -418,14 +429,14 @@ export class TaskEngine extends EventEmitter {
    * Get dependency visualization
    */
   getDependencyGraph(): { nodes: any[]; edges: any[] } {
-    const nodes = Array.from(this.tasks.values()).map(task => ({
+    const nodes = Array.from(this.tasks.values()).map((task) => ({
       id: task.id,
       label: task.description,
       status: task.status,
       priority: task.priority,
       progress: task.progressPercentage,
       estimatedDuration: task.estimatedDurationMs,
-      tags: task.tags
+      tags: task.tags,
     }));
 
     const edges: any[] = [];
@@ -435,7 +446,7 @@ export class TaskEngine extends EventEmitter {
           from: dep.taskId,
           to: task.id,
           type: dep.type,
-          lag: dep.lag
+          lag: dep.lag,
         });
       }
     }
@@ -466,7 +477,7 @@ export class TaskEngine extends EventEmitter {
   }
 
   private areTaskDependenciesSatisfied(task: WorkflowTask): boolean {
-    return task.dependencies.every(dep => {
+    return task.dependencies.every((dep) => {
       const depTask = this.tasks.get(dep.taskId);
       return depTask && this.isDependencySatisfied(dep, depTask);
     });
@@ -500,7 +511,7 @@ export class TaskEngine extends EventEmitter {
   }
 
   private async executeTask(task: WorkflowTask): Promise<void> {
-    if (!await this.acquireTaskResources(task)) {
+    if (!(await this.acquireTaskResources(task))) {
       // Resources not available, put back in queue
       this.readyQueue.unshift(task.id);
       return;
@@ -518,9 +529,9 @@ export class TaskEngine extends EventEmitter {
         memoryUsage: 0,
         diskIO: 0,
         networkIO: 0,
-        customMetrics: {}
+        customMetrics: {},
       },
-      logs: []
+      logs: [],
     };
 
     this.executions.set(task.id, execution);
@@ -533,7 +544,7 @@ export class TaskEngine extends EventEmitter {
     try {
       // Simulate task execution - in real implementation, this would delegate to agents
       await this.simulateTaskExecution(task, execution);
-      
+
       task.status = 'completed';
       task.completedAt = new Date();
       task.progressPercentage = 100;
@@ -551,7 +562,7 @@ export class TaskEngine extends EventEmitter {
     } finally {
       this.runningTasks.delete(task.id);
       await this.releaseTaskResources(task.id);
-      
+
       if (this.memoryManager) {
         await this.memoryManager.store(`task:${task.id}`, task);
         await this.memoryManager.store(`execution:${execution.id}`, execution);
@@ -575,7 +586,7 @@ export class TaskEngine extends EventEmitter {
         await this.createCheckpoint(task, `Step ${i} completed`);
       }
 
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     task.output = { result: 'Task completed successfully', timestamp: new Date() };
@@ -586,12 +597,12 @@ export class TaskEngine extends EventEmitter {
       id: generateId('checkpoint'),
       timestamp: new Date(),
       description,
-      state: { ...this.taskState.get(task.id) || {} },
-      artifacts: []
+      state: { ...(this.taskState.get(task.id) || {}) },
+      artifacts: [],
     };
 
     task.checkpoints.push(checkpoint);
-    
+
     if (this.memoryManager) {
       await this.memoryManager.store(`checkpoint:${checkpoint.id}`, checkpoint);
     }
@@ -600,15 +611,16 @@ export class TaskEngine extends EventEmitter {
   private async rollbackTask(task: WorkflowTask): Promise<void> {
     if (task.checkpoints.length === 0) return;
 
-    const targetCheckpoint = task.rollbackStrategy === 'initial-state' 
-      ? task.checkpoints[0] 
-      : task.checkpoints[task.checkpoints.length - 1];
+    const targetCheckpoint =
+      task.rollbackStrategy === 'initial-state'
+        ? task.checkpoints[0]
+        : task.checkpoints[task.checkpoints.length - 1];
 
     // Restore state from checkpoint
     this.taskState.set(task.id, { ...targetCheckpoint.state });
-    
+
     // Remove checkpoints after the target
-    const targetIndex = task.checkpoints.findIndex(cp => cp.id === targetCheckpoint.id);
+    const targetIndex = task.checkpoints.findIndex((cp) => cp.id === targetCheckpoint.id);
     task.checkpoints = task.checkpoints.slice(0, targetIndex + 1);
 
     task.progressPercentage = Math.max(0, task.progressPercentage - 25);
@@ -618,9 +630,9 @@ export class TaskEngine extends EventEmitter {
     for (const requirement of task.resourceRequirements) {
       const resource = this.resources.get(requirement.resourceId);
       if (!resource) return false;
-      
+
       if (resource.locked && requirement.exclusive) return false;
-      
+
       resource.locked = true;
       resource.lockedBy = task.id;
       resource.lockedAt = new Date();
@@ -643,7 +655,7 @@ export class TaskEngine extends EventEmitter {
     return (
       task.description.toLowerCase().includes(searchLower) ||
       task.type.toLowerCase().includes(searchLower) ||
-      task.tags.some(tag => tag.toLowerCase().includes(searchLower)) ||
+      task.tags.some((tag) => tag.toLowerCase().includes(searchLower)) ||
       (task.assignedAgent ? task.assignedAgent.toLowerCase().includes(searchLower) : false)
     );
   }
@@ -662,8 +674,8 @@ export class TaskEngine extends EventEmitter {
 
   private handleTaskCompleted(data: { taskId: string; result: unknown }): void {
     // Schedule dependent tasks
-    const dependents = Array.from(this.tasks.values()).filter(task =>
-      task.dependencies.some(dep => dep.taskId === data.taskId)
+    const dependents = Array.from(this.tasks.values()).filter((task) =>
+      task.dependencies.some((dep) => dep.taskId === data.taskId),
     );
 
     for (const dependent of dependents) {
@@ -683,17 +695,21 @@ export class TaskEngine extends EventEmitter {
     // Implement retry logic based on retryPolicy
     if (task.retryPolicy && (task.metadata.retryCount || 0) < task.retryPolicy.maxAttempts) {
       const currentRetryCount = task.metadata.retryCount || 0;
-      task.metadata = { 
-        ...task.metadata, 
+      task.metadata = {
+        ...task.metadata,
         retryCount: currentRetryCount + 1,
-        lastRetryAt: new Date()
+        lastRetryAt: new Date(),
       };
       task.status = 'pending';
-      
+
       // Schedule retry with backoff
-      setTimeout(() => {
-        this.scheduleTask(task);
-      }, task.retryPolicy!.backoffMs * Math.pow(task.retryPolicy!.backoffMultiplier, currentRetryCount));
+      setTimeout(
+        () => {
+          this.scheduleTask(task);
+        },
+        task.retryPolicy!.backoffMs *
+          Math.pow(task.retryPolicy!.backoffMultiplier, currentRetryCount),
+      );
     }
   }
 

@@ -29,16 +29,19 @@ const analysisTask = [
   { tool: 'Glob', params: { pattern: '**/*.{ts,js,tsx,jsx}' } },
   { tool: 'Glob', params: { pattern: '**/package.json' } },
   { tool: 'Glob', params: { pattern: '**/*.test.*' } },
-  
+
   // Concurrent search for key patterns
   { tool: 'Grep', params: { pattern: 'TODO|FIXME|HACK', include: '*.{ts,js}' } },
   { tool: 'Grep', params: { pattern: 'class.*extends|interface.*{', include: '*.ts' } },
-  { tool: 'Grep', params: { pattern: 'export (default |const |function |class)', include: '*.{ts,js}' } },
-  
+  {
+    tool: 'Grep',
+    params: { pattern: 'export (default |const |function |class)', include: '*.{ts,js}' },
+  },
+
   // Parallel configuration analysis
   { tool: 'Read', params: { file_path: 'package.json' } },
   { tool: 'Read', params: { file_path: 'tsconfig.json' } },
-  { tool: 'Read', params: { file_path: '.env.example' } }
+  { tool: 'Read', params: { file_path: '.env.example' } },
 ];
 
 // Execute comprehensive analysis in parallel
@@ -48,18 +51,21 @@ const results = await batchtools.execute(analysisTask);
 ### Specification Generation Patterns
 
 1. **System Architecture Specs**:
+
    - Analyze all module exports and imports in parallel
    - Map component dependencies using concurrent file reading
    - Generate architecture diagrams data simultaneously
    - Create module interaction specs in batch
 
 2. **API Specification**:
+
    - Read all route definitions concurrently
    - Extract request/response schemas in parallel
    - Analyze middleware and authentication flows simultaneously
    - Generate OpenAPI specs using batch operations
 
 3. **Data Model Specs**:
+
    - Analyze all database schemas and models in parallel
    - Extract validation rules and constraints concurrently
    - Map relationships between entities using batch operations
@@ -77,39 +83,43 @@ const results = await batchtools.execute(analysisTask);
 // Example: Parallel pseudocode generation for authentication system
 const pseudocodeTask = [
   // Phase 1: Requirements Analysis (Parallel)
-  { 
+  {
     tool: 'MultiEdit',
     params: {
       file_path: 'specs/01_requirements.md',
       edits: [
-        { old_string: '', new_string: '# Authentication Requirements\n\n## Functional Requirements\n' },
+        {
+          old_string: '',
+          new_string: '# Authentication Requirements\n\n## Functional Requirements\n',
+        },
         { old_string: '', new_string: '## Non-Functional Requirements\n' },
-        { old_string: '', new_string: '## Edge Cases\n' }
-      ]
-    }
+        { old_string: '', new_string: '## Edge Cases\n' },
+      ],
+    },
   },
-  
+
   // Phase 2: Flow Diagrams (Concurrent)
   {
     tool: 'Write',
     params: {
       file_path: 'specs/02_auth_flow.md',
-      content: generateAuthFlowPseudocode()
-    }
+      content: generateAuthFlowPseudocode(),
+    },
   },
-  
+
   // Phase 3: Data Structures (Parallel)
   {
     tool: 'Write',
     params: {
       file_path: 'specs/03_data_structures.md',
-      content: generateDataStructureSpecs()
-    }
-  }
+      content: generateDataStructureSpecs(),
+    },
+  },
 ];
 ```
 
 ## Groups/Permissions
+
 - read
 - edit
 - batchtools

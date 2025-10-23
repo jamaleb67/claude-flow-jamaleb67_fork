@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 import { EventEmitter } from 'node:events';
 import { Logger } from '../core/logger.js';
 import { MemoryManager } from './manager.js';
@@ -82,7 +81,7 @@ export class SwarmMemoryManager extends EventEmitter {
       enableKnowledgeBase: true,
       enableCrossAgentSharing: true,
       persistencePath: './swarm-memory',
-      ...config
+      ...config,
     };
 
     this.entries = new Map();
@@ -90,14 +89,18 @@ export class SwarmMemoryManager extends EventEmitter {
     this.agentMemories = new Map();
 
     const eventBus = EventBus.getInstance();
-    this.baseMemory = new MemoryManager({
-      backend: 'sqlite',
-      namespace: this.config.namespace,
-      cacheSizeMB: 50,
-      syncOnExit: true,
-      maxEntries: this.config.maxEntries,
-      ttlMinutes: 60
-    }, eventBus, this.logger);
+    this.baseMemory = new MemoryManager(
+      {
+        backend: 'sqlite',
+        namespace: this.config.namespace,
+        cacheSizeMB: 50,
+        syncOnExit: true,
+        maxEntries: this.config.maxEntries,
+        ttlMinutes: 60,
+      },
+      eventBus,
+      this.logger,
+    );
   }
 
   async initialize(): Promise<void> {
@@ -147,7 +150,7 @@ export class SwarmMemoryManager extends EventEmitter {
     agentId: string,
     type: SwarmMemoryEntry['type'],
     content: any,
-    metadata: Partial<SwarmMemoryEntry['metadata']> = {}
+    metadata: Partial<SwarmMemoryEntry['metadata']> = {},
   ): Promise<string> {
     const entryId = generateId('mem');
     const entry: SwarmMemoryEntry = {
@@ -159,8 +162,8 @@ export class SwarmMemoryManager extends EventEmitter {
       metadata: {
         shareLevel: 'team',
         priority: 1,
-        ...metadata
-      }
+        ...metadata,
+      },
     };
 
     this.entries.set(entryId, entry);
@@ -180,8 +183,8 @@ export class SwarmMemoryManager extends EventEmitter {
         type: 'swarm-memory',
         agentId,
         entryType: type,
-        shareLevel: entry.metadata.shareLevel
-      }
+        shareLevel: entry.metadata.shareLevel,
+      },
     });
 
     this.logger.debug(`Agent ${agentId} remembered: ${type} - ${entryId}`);
@@ -203,38 +206,37 @@ export class SwarmMemoryManager extends EventEmitter {
 
     // Apply filters
     if (query.agentId) {
-      results = results.filter(e => e.agentId === query.agentId);
+      results = results.filter((e) => e.agentId === query.agentId);
     }
 
     if (query.type) {
-      results = results.filter(e => e.type === query.type);
+      results = results.filter((e) => e.type === query.type);
     }
 
     if (query.taskId) {
-      results = results.filter(e => e.metadata.taskId === query.taskId);
+      results = results.filter((e) => e.metadata.taskId === query.taskId);
     }
 
     if (query.objectiveId) {
-      results = results.filter(e => e.metadata.objectiveId === query.objectiveId);
+      results = results.filter((e) => e.metadata.objectiveId === query.objectiveId);
     }
 
     if (query.tags && query.tags.length > 0) {
-      results = results.filter(e => 
-        e.metadata.tags && 
-        query.tags!.some(tag => e.metadata.tags!.includes(tag))
+      results = results.filter(
+        (e) => e.metadata.tags && query.tags!.some((tag) => e.metadata.tags!.includes(tag)),
       );
     }
 
     if (query.since) {
-      results = results.filter(e => e.timestamp >= query.since!);
+      results = results.filter((e) => e.timestamp >= query.since!);
     }
 
     if (query.before) {
-      results = results.filter(e => e.timestamp <= query.before!);
+      results = results.filter((e) => e.timestamp <= query.before!);
     }
 
     if (query.shareLevel) {
-      results = results.filter(e => e.metadata.shareLevel === query.shareLevel);
+      results = results.filter((e) => e.metadata.shareLevel === query.shareLevel);
     }
 
     // Sort by timestamp (newest first)
@@ -273,8 +275,8 @@ export class SwarmMemoryManager extends EventEmitter {
         originalId: entryId,
         sharedFrom: entry.agentId,
         sharedTo: targetAgentId,
-        sharedAt: new Date()
-      }
+        sharedAt: new Date(),
+      },
     };
 
     this.entries.set(sharedEntry.id, sharedEntry);
@@ -299,8 +301,8 @@ export class SwarmMemoryManager extends EventEmitter {
       throw new Error('Cannot broadcast private memory');
     }
 
-    const targets = agentIds || Array.from(this.agentMemories.keys())
-      .filter(id => id !== entry.agentId);
+    const targets =
+      agentIds || Array.from(this.agentMemories.keys()).filter((id) => id !== entry.agentId);
 
     for (const targetId of targets) {
       try {
@@ -317,7 +319,7 @@ export class SwarmMemoryManager extends EventEmitter {
     name: string,
     description: string,
     domain: string,
-    expertise: string[]
+    expertise: string[],
   ): Promise<string> {
     const kbId = generateId('kb');
     const knowledgeBase: SwarmKnowledgeBase = {
@@ -329,8 +331,8 @@ export class SwarmMemoryManager extends EventEmitter {
         domain,
         expertise,
         contributors: [],
-        lastUpdated: new Date()
-      }
+        lastUpdated: new Date(),
+      },
     };
 
     this.knowledgeBases.set(kbId, knowledgeBase);
@@ -345,17 +347,17 @@ export class SwarmMemoryManager extends EventEmitter {
     if (!this.config.enableKnowledgeBase) return;
 
     // Find relevant knowledge bases
-    const relevantKBs = Array.from(this.knowledgeBases.values())
-      .filter(kb => {
-        // Simple matching based on tags and content
-        const tags = entry.metadata.tags || [];
-        return tags.some(tag => 
-          kb.metadata.expertise.some(exp => 
+    const relevantKBs = Array.from(this.knowledgeBases.values()).filter((kb) => {
+      // Simple matching based on tags and content
+      const tags = entry.metadata.tags || [];
+      return tags.some((tag) =>
+        kb.metadata.expertise.some(
+          (exp) =>
             exp.toLowerCase().includes(tag.toLowerCase()) ||
-            tag.toLowerCase().includes(exp.toLowerCase())
-          )
-        );
-      });
+            tag.toLowerCase().includes(exp.toLowerCase()),
+        ),
+      );
+    });
 
     for (const kb of relevantKBs) {
       // Add entry to knowledge base
@@ -374,15 +376,15 @@ export class SwarmMemoryManager extends EventEmitter {
   async searchKnowledge(
     query: string,
     domain?: string,
-    expertise?: string[]
+    expertise?: string[],
   ): Promise<SwarmMemoryEntry[]> {
     const allEntries: SwarmMemoryEntry[] = [];
 
     // Search in knowledge bases
     for (const kb of this.knowledgeBases.values()) {
       if (domain && kb.metadata.domain !== domain) continue;
-      
-      if (expertise && !expertise.some(exp => kb.metadata.expertise.includes(exp))) {
+
+      if (expertise && !expertise.some((exp) => kb.metadata.expertise.includes(exp))) {
         continue;
       }
 
@@ -391,7 +393,7 @@ export class SwarmMemoryManager extends EventEmitter {
 
     // Simple text search (in real implementation, use better search)
     const queryLower = query.toLowerCase();
-    const results = allEntries.filter(entry => {
+    const results = allEntries.filter((entry) => {
       const contentStr = JSON.stringify(entry.content).toLowerCase();
       return contentStr.includes(queryLower);
     });
@@ -407,24 +409,24 @@ export class SwarmMemoryManager extends EventEmitter {
   }> {
     const agentEntryIds = this.agentMemories.get(agentId) || new Set();
     const agentEntries = Array.from(agentEntryIds)
-      .map(id => this.entries.get(id))
+      .map((id) => this.entries.get(id))
       .filter(Boolean) as SwarmMemoryEntry[];
 
     const recentEntries = agentEntries
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
       .slice(0, 10);
 
-    const knowledgeContributions = agentEntries
-      .filter(e => e.type === 'knowledge').length;
+    const knowledgeContributions = agentEntries.filter((e) => e.type === 'knowledge').length;
 
-    const sharedEntries = agentEntries
-      .filter(e => e.metadata.shareLevel === 'public' || e.metadata.shareLevel === 'team').length;
+    const sharedEntries = agentEntries.filter(
+      (e) => e.metadata.shareLevel === 'public' || e.metadata.shareLevel === 'team',
+    ).length;
 
     return {
       totalEntries: agentEntries.length,
       recentEntries,
       knowledgeContributions,
-      sharedEntries
+      sharedEntries,
     };
   }
 
@@ -435,11 +437,11 @@ export class SwarmMemoryManager extends EventEmitter {
       try {
         const entriesData = await fs.readFile(entriesFile, 'utf-8');
         const entriesArray = JSON.parse(entriesData);
-        
+
         for (const entry of entriesArray) {
           this.entries.set(entry.id, {
             ...entry,
-            timestamp: new Date(entry.timestamp)
+            timestamp: new Date(entry.timestamp),
           });
 
           // Rebuild agent memory associations
@@ -459,18 +461,18 @@ export class SwarmMemoryManager extends EventEmitter {
       try {
         const kbData = await fs.readFile(kbFile, 'utf-8');
         const kbArray = JSON.parse(kbData);
-        
+
         for (const kb of kbArray) {
           this.knowledgeBases.set(kb.id, {
             ...kb,
             metadata: {
               ...kb.metadata,
-              lastUpdated: new Date(kb.metadata.lastUpdated)
+              lastUpdated: new Date(kb.metadata.lastUpdated),
             },
             entries: kb.entries.map((e: any) => ({
               ...e,
-              timestamp: new Date(e.timestamp)
-            }))
+              timestamp: new Date(e.timestamp),
+            })),
           });
         }
 
@@ -478,7 +480,6 @@ export class SwarmMemoryManager extends EventEmitter {
       } catch (error) {
         this.logger.warn('No existing knowledge bases found');
       }
-
     } catch (error) {
       this.logger.error('Error loading memory state:', error);
     }
@@ -518,14 +519,14 @@ export class SwarmMemoryManager extends EventEmitter {
 
     // Remove oldest entries that are not marked as important
     const entries = Array.from(this.entries.values())
-      .filter(e => (e.metadata.priority || 1) <= 1) // Only remove low priority
+      .filter((e) => (e.metadata.priority || 1) <= 1) // Only remove low priority
       .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
     const toRemove = entries.slice(0, this.entries.size - this.config.maxEntries);
 
     for (const entry of toRemove) {
       this.entries.delete(entry.id);
-      
+
       // Remove from agent memory
       const agentEntries = this.agentMemories.get(entry.agentId);
       if (agentEntries) {
@@ -563,24 +564,22 @@ export class SwarmMemoryManager extends EventEmitter {
       entriesByType,
       entriesByAgent,
       knowledgeBases: this.knowledgeBases.size,
-      memoryUsage
+      memoryUsage,
     };
   }
 
   async exportMemory(agentId?: string): Promise<any> {
-    const entries = agentId 
-      ? await this.recall({ agentId })
-      : Array.from(this.entries.values());
+    const entries = agentId ? await this.recall({ agentId }) : Array.from(this.entries.values());
 
     return {
       entries,
-      knowledgeBases: agentId 
-        ? Array.from(this.knowledgeBases.values()).filter(kb => 
-            kb.metadata.contributors.includes(agentId)
+      knowledgeBases: agentId
+        ? Array.from(this.knowledgeBases.values()).filter((kb) =>
+            kb.metadata.contributors.includes(agentId),
           )
         : Array.from(this.knowledgeBases.values()),
       exportedAt: new Date(),
-      stats: this.getMemoryStats()
+      stats: this.getMemoryStats(),
     };
   }
 
@@ -608,19 +607,19 @@ export class SwarmMemoryManager extends EventEmitter {
   async store(key: string, value: any): Promise<void> {
     // Extract namespace and actual key from the path
     const parts = key.split('/');
-    const type = parts[0] as SwarmMemoryEntry['type'] || 'state';
+    const type = (parts[0] as SwarmMemoryEntry['type']) || 'state';
     const agentId = parts[1] || 'system';
-    
+
     await this.remember(agentId, type, value, {
       tags: [parts[0], parts[1]].filter(Boolean),
-      shareLevel: 'team'
+      shareLevel: 'team',
     });
   }
 
   async search(pattern: string, limit: number = 10): Promise<any[]> {
     // Simple pattern matching on stored keys/content
     const results: any[] = [];
-    
+
     for (const entry of this.entries.values()) {
       const entryString = JSON.stringify(entry);
       if (entryString.includes(pattern.replace('*', ''))) {
@@ -628,7 +627,7 @@ export class SwarmMemoryManager extends EventEmitter {
         if (results.length >= limit) break;
       }
     }
-    
+
     return results;
   }
 }

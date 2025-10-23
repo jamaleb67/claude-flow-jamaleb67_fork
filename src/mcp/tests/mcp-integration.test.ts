@@ -22,7 +22,7 @@ const mockLogger: ILogger = {
   info: jest.fn(),
   warn: jest.fn(),
   error: jest.fn(),
-  configure: jest.fn()
+  configure: jest.fn(),
 };
 
 // Mock event bus
@@ -42,11 +42,7 @@ describe('MCP Server', () => {
   let server: MCPServer;
 
   beforeEach(() => {
-    server = new MCPServer(
-      mockMCPConfig,
-      mockEventBus,
-      mockLogger,
-    );
+    server = new MCPServer(mockMCPConfig, mockEventBus, mockLogger);
   });
 
   afterEach(async () => {
@@ -59,14 +55,14 @@ describe('MCP Server', () => {
     it('should start and stop server successfully', async () => {
       await server.start();
       expect(mockLogger.info).toHaveBeenCalledWith('MCP server started successfully');
-      
+
       await server.stop();
       expect(mockLogger.info).toHaveBeenCalledWith('MCP server stopped');
     });
 
     it('should handle initialization request', async () => {
       await server.start();
-      
+
       const initParams: MCPInitializeParams = {
         protocolVersion: { major: 2024, minor: 11, patch: 5 },
         capabilities: {
@@ -88,9 +84,9 @@ describe('MCP Server', () => {
       // Mock transport handler
       const transport = (server as any).transport;
       transport.onRequest = jest.fn();
-      
+
       const response = await (server as any).handleRequest(request);
-      
+
       expect(response.jsonrpc).toBe('2.0');
       expect(response.id).toBe('test-init');
       expect(response.result).toBeDefined();
@@ -152,7 +148,7 @@ describe('MCP Server', () => {
 
     it('should report healthy status when running', async () => {
       const health = await server.getHealthStatus();
-      
+
       expect(health.healthy).toBe(true);
       expect(health.metrics).toBeDefined();
       expect(health.metrics?.registeredTools).toBeGreaterThan(0);
@@ -160,7 +156,7 @@ describe('MCP Server', () => {
 
     it('should include metrics in health status', async () => {
       const health = await server.getHealthStatus();
-      
+
       expect(health.metrics).toBeDefined();
       expect(typeof health.metrics?.registeredTools).toBe('number');
       expect(typeof health.metrics?.totalRequests).toBe('number');
@@ -175,17 +171,9 @@ describe('MCP Lifecycle Manager', () => {
   let mockServerFactory: Mock;
 
   beforeEach(() => {
-    mockServerFactory = jest.fn(() => new MCPServer(
-      mockMCPConfig,
-      mockEventBus,
-      mockLogger,
-    ));
-    
-    lifecycleManager = new MCPLifecycleManager(
-      mockMCPConfig,
-      mockLogger,
-      mockServerFactory,
-    );
+    mockServerFactory = jest.fn(() => new MCPServer(mockMCPConfig, mockEventBus, mockLogger));
+
+    lifecycleManager = new MCPLifecycleManager(mockMCPConfig, mockLogger, mockServerFactory);
   });
 
   afterEach(async () => {
@@ -233,7 +221,7 @@ describe('MCP Lifecycle Manager', () => {
         healthCheckInterval: 100,
         enableHealthChecks: true,
       };
-      
+
       lifecycleManager = new MCPLifecycleManager(
         mockMCPConfig,
         mockLogger,
@@ -242,10 +230,10 @@ describe('MCP Lifecycle Manager', () => {
       );
 
       await lifecycleManager.start();
-      
+
       // Wait for health check
-      await new Promise(resolve => setTimeout(resolve, 150));
-      
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
       const health = await lifecycleManager.healthCheck();
       expect(health).toBeDefined();
       expect(health.state).toBeDefined();
@@ -253,10 +241,10 @@ describe('MCP Lifecycle Manager', () => {
 
     it('should track uptime', async () => {
       await lifecycleManager.start();
-      
+
       // Wait a bit
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
       const uptime = lifecycleManager.getUptime();
       expect(uptime).toBeGreaterThan(0);
     });
@@ -298,10 +286,10 @@ describe('MCP Performance Monitor', () => {
 
       const requestId = performanceMonitor.recordRequestStart(mockRequest, mockSession);
       expect(requestId).toBeDefined();
-      
+
       // Simulate request completion
-      await new Promise(resolve => setTimeout(resolve, 10));
-      
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       performanceMonitor.recordRequestEnd(requestId, {
         jsonrpc: '2.0',
         id: 'test-request',
@@ -326,7 +314,7 @@ describe('MCP Protocol Manager', () => {
     it('should check version compatibility correctly', () => {
       const clientVersion = { major: 2024, minor: 11, patch: 5 };
       const compatibility = protocolManager.checkCompatibility(clientVersion);
-      
+
       expect(compatibility.compatible).toBe(true);
       expect(compatibility.errors).toHaveLength(0);
     });
@@ -334,7 +322,7 @@ describe('MCP Protocol Manager', () => {
     it('should reject incompatible major versions', () => {
       const clientVersion = { major: 2023, minor: 11, patch: 5 };
       const compatibility = protocolManager.checkCompatibility(clientVersion);
-      
+
       expect(compatibility.compatible).toBe(false);
       expect(compatibility.errors.length).toBeGreaterThan(0);
     });
@@ -355,7 +343,7 @@ describe('MCP Protocol Manager', () => {
       };
 
       const result = await protocolManager.negotiateProtocol(clientParams);
-      
+
       expect(result.agreedVersion).toEqual(clientParams.protocolVersion);
       expect(result.agreedCapabilities).toBeDefined();
       expect(result.agreedCapabilities.tools?.listChanged).toBe(true);
@@ -394,7 +382,7 @@ describe('Tool Registry', () => {
       };
 
       toolRegistry.register(tool, capability);
-      
+
       const registeredCapability = toolRegistry.getToolCapability('test/tool');
       expect(registeredCapability).toEqual(capability);
     });
@@ -435,14 +423,18 @@ describe('Tool Registry', () => {
       };
 
       toolRegistry.register(tool);
-      
+
       // Execute tool multiple times
       await toolRegistry.executeTool('test/metric-tool', {});
       await toolRegistry.executeTool('test/metric-tool', {});
-      
+
       const metrics = toolRegistry.getToolMetrics('test/metric-tool');
-      expect(Array.isArray(metrics) ? metrics[0].totalInvocations : metrics.totalInvocations).toBe(2);
-      expect(Array.isArray(metrics) ? metrics[0].successfulInvocations : metrics.successfulInvocations).toBe(2);
+      expect(Array.isArray(metrics) ? metrics[0].totalInvocations : metrics.totalInvocations).toBe(
+        2,
+      );
+      expect(
+        Array.isArray(metrics) ? metrics[0].successfulInvocations : metrics.successfulInvocations,
+      ).toBe(2);
     });
   });
 });
@@ -493,20 +485,20 @@ describe('MCP Orchestration Integration', () => {
   describe('Integration Management', () => {
     it('should start integration successfully', async () => {
       await integration.start();
-      
+
       const status = integration.getIntegrationStatus();
       expect(status).toHaveLength(7); // All component types
-      
-      const orchestratorStatus = status.find(s => s.component === 'orchestrator');
+
+      const orchestratorStatus = status.find((s) => s.component === 'orchestrator');
       expect(orchestratorStatus?.enabled).toBe(true);
     });
 
     it('should register orchestrator tools when enabled', async () => {
       await integration.start();
-      
+
       const server = integration.getServer();
       expect(server).toBeDefined();
-      
+
       // Check that orchestrator tools are registered
       const tools = (server as any).toolRegistry.listTools();
       const orchestratorTools = tools.filter((t: any) => t.name.startsWith('orchestrator/'));
@@ -515,10 +507,12 @@ describe('MCP Orchestration Integration', () => {
 
     it('should handle component connection failures gracefully', async () => {
       // Mock a failing component
-      mockComponents.orchestrator.getStatus = jest.fn().mockRejectedValue(new Error('Connection failed'));
-      
+      mockComponents.orchestrator.getStatus = jest
+        .fn()
+        .mockRejectedValue(new Error('Connection failed'));
+
       await integration.start();
-      
+
       const status = integration.getComponentStatus('orchestrator');
       expect(status).toBeDefined();
       // Connection status can vary in test environment
@@ -528,13 +522,13 @@ describe('MCP Orchestration Integration', () => {
   describe('Health Monitoring', () => {
     it('should monitor component health', async () => {
       await integration.start();
-      
+
       // Wait for health check
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       const status = integration.getIntegrationStatus();
-      const enabledComponents = status.filter(s => s.enabled);
-      
+      const enabledComponents = status.filter((s) => s.enabled);
+
       for (const component of enabledComponents) {
         expect(component.lastCheck).toBeInstanceOf(Date);
       }

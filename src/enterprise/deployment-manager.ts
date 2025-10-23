@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 import { EventEmitter } from 'events';
 import { writeFile, readFile, mkdir, readdir } from 'fs/promises';
 import { join } from 'path';
@@ -273,16 +272,22 @@ export interface DeploymentMetrics {
   meanTimeToRecovery: number;
   changeFailureRate: number;
   leadTime: number;
-  environmentMetrics: Record<string, {
-    deployments: number;
-    successRate: number;
-    averageTime: number;
-  }>;
-  strategyMetrics: Record<string, {
-    deployments: number;
-    successRate: number;
-    rollbackRate: number;
-  }>;
+  environmentMetrics: Record<
+    string,
+    {
+      deployments: number;
+      successRate: number;
+      averageTime: number;
+    }
+  >;
+  strategyMetrics: Record<
+    string,
+    {
+      deployments: number;
+      successRate: number;
+      rollbackRate: number;
+    }
+  >;
 }
 
 export class DeploymentManager extends EventEmitter {
@@ -295,11 +300,7 @@ export class DeploymentManager extends EventEmitter {
   private logger: Logger;
   private config: ConfigManager;
 
-  constructor(
-    deploymentsPath: string = './deployments',
-    logger?: Logger,
-    config?: ConfigManager
-  ) {
+  constructor(deploymentsPath: string = './deployments', logger?: Logger, config?: ConfigManager) {
     super();
     this.deploymentsPath = deploymentsPath;
     this.logger = logger || new Logger({ level: 'info', format: 'text', destination: 'console' });
@@ -312,10 +313,10 @@ export class DeploymentManager extends EventEmitter {
       await mkdir(join(this.deploymentsPath, 'environments'), { recursive: true });
       await mkdir(join(this.deploymentsPath, 'strategies'), { recursive: true });
       await mkdir(join(this.deploymentsPath, 'pipelines'), { recursive: true });
-      
+
       await this.loadConfigurations();
       await this.initializeDefaultStrategies();
-      
+
       this.logger.info('Deployment Manager initialized successfully');
     } catch (error) {
       this.logger.error('Failed to initialize Deployment Manager', { error });
@@ -323,7 +324,9 @@ export class DeploymentManager extends EventEmitter {
     }
   }
 
-  async createEnvironment(environmentData: Partial<DeploymentEnvironment>): Promise<DeploymentEnvironment> {
+  async createEnvironment(
+    environmentData: Partial<DeploymentEnvironment>,
+  ): Promise<DeploymentEnvironment> {
     const environment: DeploymentEnvironment = {
       id: environmentData.id || `env-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: environmentData.name || 'Unnamed Environment',
@@ -339,9 +342,9 @@ export class DeploymentManager extends EventEmitter {
           cpu: '1',
           memory: '1Gi',
           storage: '10Gi',
-          replicas: 1
+          replicas: 1,
         },
-        ...environmentData.configuration
+        ...environmentData.configuration,
       },
       healthCheck: {
         url: '/health',
@@ -350,7 +353,7 @@ export class DeploymentManager extends EventEmitter {
         timeout: 30000,
         interval: 60000,
         retries: 3,
-        ...environmentData.healthCheck
+        ...environmentData.healthCheck,
       },
       monitoring: {
         enabled: true,
@@ -359,9 +362,9 @@ export class DeploymentManager extends EventEmitter {
         logs: {
           level: 'info',
           retention: '30d',
-          aggregation: true
+          aggregation: true,
         },
-        ...environmentData.monitoring
+        ...environmentData.monitoring,
       },
       security: {
         tls: true,
@@ -371,12 +374,12 @@ export class DeploymentManager extends EventEmitter {
         scanning: {
           vulnerabilities: true,
           secrets: true,
-          licenses: true
+          licenses: true,
         },
-        ...environmentData.security
+        ...environmentData.security,
       },
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     this.environments.set(environment.id, environment);
@@ -420,31 +423,31 @@ export class DeploymentManager extends EventEmitter {
       source: deploymentData.source,
       artifacts: {
         files: [],
-        ...deploymentData.artifacts
+        ...deploymentData.artifacts,
       },
       metrics: {
         startTime: new Date(),
         deploymentSize: 0,
         successRate: 0,
         errorRate: 0,
-        performanceMetrics: {}
+        performanceMetrics: {},
       },
-      stages: strategy.stages.map(stage => ({
+      stages: strategy.stages.map((stage) => ({
         ...stage,
         status: 'pending',
-        logs: []
+        logs: [],
       })),
       approvals: [],
       notifications: [],
       auditLog: [],
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     this.addAuditEntry(deployment, deploymentData.initiatedBy, 'deployment_created', 'deployment', {
       deploymentId: deployment.id,
       environment: environment.name,
-      strategy: strategy.name
+      strategy: strategy.name,
     });
 
     this.deployments.set(deployment.id, deployment);
@@ -471,7 +474,7 @@ export class DeploymentManager extends EventEmitter {
     deployment.updatedAt = new Date();
 
     this.addAuditEntry(deployment, 'system', 'deployment_started', 'deployment', {
-      deploymentId
+      deploymentId,
     });
 
     await this.saveDeployment(deployment);
@@ -480,7 +483,7 @@ export class DeploymentManager extends EventEmitter {
     try {
       for (const stage of deployment.stages) {
         await this.executeStage(deployment, stage);
-        
+
         if (stage.status === 'failed') {
           await this.handleDeploymentFailure(deployment, stage);
           return;
@@ -496,9 +499,9 @@ export class DeploymentManager extends EventEmitter {
   private async executeStage(deployment: Deployment, stage: DeploymentStage): Promise<void> {
     stage.status = 'running';
     stage.startTime = new Date();
-    
+
     this.addLog(stage, 'info', `Starting stage: ${stage.name}`, 'system');
-    
+
     try {
       // Check conditions
       if (!this.evaluateStageConditions(deployment, stage)) {
@@ -508,12 +511,12 @@ export class DeploymentManager extends EventEmitter {
       }
 
       // Handle approvals
-      if (stage.type === 'deploy' && await this.requiresApproval(deployment, stage)) {
+      if (stage.type === 'deploy' && (await this.requiresApproval(deployment, stage))) {
         await this.requestApproval(deployment, stage);
-        
+
         // Wait for approval
         while (await this.isPendingApproval(deployment, stage)) {
-          await new Promise(resolve => setTimeout(resolve, 10000)); // Check every 10 seconds
+          await new Promise((resolve) => setTimeout(resolve, 10000)); // Check every 10 seconds
         }
 
         if (!(await this.isApproved(deployment, stage))) {
@@ -531,15 +534,19 @@ export class DeploymentManager extends EventEmitter {
       stage.status = 'success';
       stage.endTime = new Date();
       stage.duration = stage.endTime.getTime() - stage.startTime!.getTime();
-      
+
       this.addLog(stage, 'info', `Stage completed successfully in ${stage.duration}ms`, 'system');
-      
     } catch (error) {
       stage.status = 'failed';
       stage.endTime = new Date();
-      
-      this.addLog(stage, 'error', `Stage failed: ${(error instanceof Error ? error.message : String(error))}`, 'system');
-      
+
+      this.addLog(
+        stage,
+        'error',
+        `Stage failed: ${error instanceof Error ? error.message : String(error)}`,
+        'system',
+      );
+
       // Retry logic
       if (stage.retryPolicy.maxRetries > 0) {
         await this.retryStage(deployment, stage);
@@ -553,26 +560,31 @@ export class DeploymentManager extends EventEmitter {
   private async executeCommand(
     deployment: Deployment,
     stage: DeploymentStage,
-    command: DeploymentCommand
+    command: DeploymentCommand,
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       const environment = this.environments.get(deployment.environmentId);
-      
+
       const processEnv = {
         ...process.env,
         ...environment?.configuration.environment_variables,
         ...command.environment,
         DEPLOYMENT_ID: deployment.id,
         DEPLOYMENT_VERSION: deployment.version,
-        ENVIRONMENT_ID: deployment.environmentId
+        ENVIRONMENT_ID: deployment.environmentId,
       };
 
-      this.addLog(stage, 'info', `Executing: ${command.command} ${command.args.join(' ')}`, 'command');
+      this.addLog(
+        stage,
+        'info',
+        `Executing: ${command.command} ${command.args.join(' ')}`,
+        'command',
+      );
 
       const childProcess = spawn(command.command, command.args, {
         cwd: command.workingDirectory || process.cwd(),
         env: processEnv,
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
 
       this.activeProcesses.set(`${deployment.id}-${stage.id}-${command.id}`, childProcess);
@@ -603,9 +615,14 @@ export class DeploymentManager extends EventEmitter {
 
         // Check success criteria
         const success = this.evaluateCommandSuccess(command, code, stdout, stderr);
-        
+
         if (success) {
-          this.addLog(stage, 'info', `Command completed successfully (exit code: ${code})`, 'command');
+          this.addLog(
+            stage,
+            'info',
+            `Command completed successfully (exit code: ${code})`,
+            'command',
+          );
           resolve();
         } else {
           this.addLog(stage, 'error', `Command failed (exit code: ${code})`, 'command');
@@ -616,7 +633,12 @@ export class DeploymentManager extends EventEmitter {
       childProcess.on('error', (error) => {
         clearTimeout(timeout);
         this.activeProcesses.delete(`${deployment.id}-${stage.id}-${command.id}`);
-        this.addLog(stage, 'error', `Command error: ${(error instanceof Error ? error.message : String(error))}`, 'command');
+        this.addLog(
+          stage,
+          'error',
+          `Command error: ${error instanceof Error ? error.message : String(error)}`,
+          'command',
+        );
         reject(error);
       });
     });
@@ -625,7 +647,7 @@ export class DeploymentManager extends EventEmitter {
   async rollbackDeployment(
     deploymentId: string,
     reason: string,
-    userId: string = 'system'
+    userId: string = 'system',
   ): Promise<void> {
     const deployment = this.deployments.get(deploymentId);
     if (!deployment) {
@@ -636,7 +658,7 @@ export class DeploymentManager extends EventEmitter {
     const previousDeployment = await this.getPreviousSuccessfulDeployment(
       deployment.projectId,
       deployment.environmentId,
-      deploymentId
+      deploymentId,
     );
 
     if (!previousDeployment) {
@@ -650,7 +672,7 @@ export class DeploymentManager extends EventEmitter {
       reason,
       timestamp: rollbackStartTime,
       previousDeploymentId: previousDeployment.id,
-      rollbackDuration: 0
+      rollbackDuration: 0,
     };
 
     deployment.status = 'rolled-back';
@@ -659,27 +681,26 @@ export class DeploymentManager extends EventEmitter {
     this.addAuditEntry(deployment, userId, 'rollback_initiated', 'deployment', {
       deploymentId,
       previousDeploymentId: previousDeployment.id,
-      reason
+      reason,
     });
 
     try {
       // Execute rollback strategy
       await this.executeRollbackStrategy(deployment, previousDeployment);
-      
+
       deployment.rollback.rollbackDuration = Date.now() - rollbackStartTime.getTime();
-      
+
       this.addAuditEntry(deployment, userId, 'rollback_completed', 'deployment', {
         deploymentId,
-        rollbackDuration: deployment.rollback.rollbackDuration
+        rollbackDuration: deployment.rollback.rollbackDuration,
       });
 
       this.emit('deployment:rolled-back', deployment);
       this.logger.info(`Deployment rolled back: ${deploymentId}`);
-
     } catch (error) {
       this.addAuditEntry(deployment, userId, 'rollback_failed', 'deployment', {
         deploymentId,
-        error: (error instanceof Error ? error.message : String(error))
+        error: error instanceof Error ? error.message : String(error),
       });
 
       this.logger.error(`Rollback failed for deployment ${deploymentId}`, { error });
@@ -689,78 +710,85 @@ export class DeploymentManager extends EventEmitter {
     await this.saveDeployment(deployment);
   }
 
-  async getDeploymentMetrics(
-    filters?: {
-      projectId?: string;
-      environmentId?: string;
-      strategyId?: string;
-      timeRange?: { start: Date; end: Date };
-    }
-  ): Promise<DeploymentMetrics> {
+  async getDeploymentMetrics(filters?: {
+    projectId?: string;
+    environmentId?: string;
+    strategyId?: string;
+    timeRange?: { start: Date; end: Date };
+  }): Promise<DeploymentMetrics> {
     let deployments = Array.from(this.deployments.values());
 
     // Apply filters
     if (filters) {
       if (filters.projectId) {
-        deployments = deployments.filter(d => d.projectId === filters.projectId);
+        deployments = deployments.filter((d) => d.projectId === filters.projectId);
       }
       if (filters.environmentId) {
-        deployments = deployments.filter(d => d.environmentId === filters.environmentId);
+        deployments = deployments.filter((d) => d.environmentId === filters.environmentId);
       }
       if (filters.strategyId) {
-        deployments = deployments.filter(d => d.strategyId === filters.strategyId);
+        deployments = deployments.filter((d) => d.strategyId === filters.strategyId);
       }
       if (filters.timeRange) {
-        deployments = deployments.filter(d => 
-          d.createdAt >= filters.timeRange!.start && 
-          d.createdAt <= filters.timeRange!.end
+        deployments = deployments.filter(
+          (d) => d.createdAt >= filters.timeRange!.start && d.createdAt <= filters.timeRange!.end,
         );
       }
     }
 
     const totalDeployments = deployments.length;
-    const successfulDeployments = deployments.filter(d => d.status === 'success').length;
-    const failedDeployments = deployments.filter(d => d.status === 'failed').length;
-    const rolledBackDeployments = deployments.filter(d => d.status === 'rolled-back').length;
+    const successfulDeployments = deployments.filter((d) => d.status === 'success').length;
+    const failedDeployments = deployments.filter((d) => d.status === 'failed').length;
+    const rolledBackDeployments = deployments.filter((d) => d.status === 'rolled-back').length;
 
-    const completedDeployments = deployments.filter(d => 
-      d.metrics.endTime && d.metrics.startTime
+    const completedDeployments = deployments.filter(
+      (d) => d.metrics.endTime && d.metrics.startTime,
     );
 
-    const averageDeploymentTime = completedDeployments.length > 0 ?
-      completedDeployments.reduce((sum, d) => 
-        sum + (d.metrics.endTime!.getTime() - d.metrics.startTime.getTime()), 0
-      ) / completedDeployments.length : 0;
+    const averageDeploymentTime =
+      completedDeployments.length > 0
+        ? completedDeployments.reduce(
+            (sum, d) => sum + (d.metrics.endTime!.getTime() - d.metrics.startTime.getTime()),
+            0,
+          ) / completedDeployments.length
+        : 0;
 
     // Calculate environment metrics
     const environmentMetrics: Record<string, any> = {};
     for (const env of this.environments.values()) {
-      const envDeployments = deployments.filter(d => d.environmentId === env.id);
-      const envSuccessful = envDeployments.filter(d => d.status === 'success').length;
-      
+      const envDeployments = deployments.filter((d) => d.environmentId === env.id);
+      const envSuccessful = envDeployments.filter((d) => d.status === 'success').length;
+
       environmentMetrics[env.id] = {
         deployments: envDeployments.length,
         successRate: envDeployments.length > 0 ? (envSuccessful / envDeployments.length) * 100 : 0,
-        averageTime: envDeployments.length > 0 ? 
-          envDeployments.reduce((sum, d) => 
-            sum + (d.metrics.duration || 0), 0
-          ) / envDeployments.length : 0
+        averageTime:
+          envDeployments.length > 0
+            ? envDeployments.reduce((sum, d) => sum + (d.metrics.duration || 0), 0) /
+              envDeployments.length
+            : 0,
       };
     }
 
     // Calculate strategy metrics
     const strategyMetrics: Record<string, any> = {};
     for (const strategy of this.strategies.values()) {
-      const strategyDeployments = deployments.filter(d => d.strategyId === strategy.id);
-      const strategySuccessful = strategyDeployments.filter(d => d.status === 'success').length;
-      const strategyRolledBack = strategyDeployments.filter(d => d.status === 'rolled-back').length;
-      
+      const strategyDeployments = deployments.filter((d) => d.strategyId === strategy.id);
+      const strategySuccessful = strategyDeployments.filter((d) => d.status === 'success').length;
+      const strategyRolledBack = strategyDeployments.filter(
+        (d) => d.status === 'rolled-back',
+      ).length;
+
       strategyMetrics[strategy.id] = {
         deployments: strategyDeployments.length,
-        successRate: strategyDeployments.length > 0 ? 
-          (strategySuccessful / strategyDeployments.length) * 100 : 0,
-        rollbackRate: strategyDeployments.length > 0 ? 
-          (strategyRolledBack / strategyDeployments.length) * 100 : 0
+        successRate:
+          strategyDeployments.length > 0
+            ? (strategySuccessful / strategyDeployments.length) * 100
+            : 0,
+        rollbackRate:
+          strategyDeployments.length > 0
+            ? (strategyRolledBack / strategyDeployments.length) * 100
+            : 0,
       };
     }
 
@@ -772,10 +800,11 @@ export class DeploymentManager extends EventEmitter {
       averageDeploymentTime,
       deploymentFrequency: this.calculateDeploymentFrequency(deployments),
       meanTimeToRecovery: this.calculateMTTR(deployments),
-      changeFailureRate: (failedDeployments + rolledBackDeployments) / Math.max(totalDeployments, 1) * 100,
+      changeFailureRate:
+        ((failedDeployments + rolledBackDeployments) / Math.max(totalDeployments, 1)) * 100,
       leadTime: this.calculateLeadTime(deployments),
       environmentMetrics,
-      strategyMetrics
+      strategyMetrics,
     };
   }
 
@@ -784,27 +813,29 @@ export class DeploymentManager extends EventEmitter {
     // Load environments, strategies, and pipelines from disk
     try {
       const envFiles = await readdir(join(this.deploymentsPath, 'environments'));
-      for (const file of envFiles.filter(f => f.endsWith('.json'))) {
+      for (const file of envFiles.filter((f) => f.endsWith('.json'))) {
         const content = await readFile(join(this.deploymentsPath, 'environments', file), 'utf-8');
         const env: DeploymentEnvironment = JSON.parse(content);
         this.environments.set(env.id, env);
       }
 
       const strategyFiles = await readdir(join(this.deploymentsPath, 'strategies'));
-      for (const file of strategyFiles.filter(f => f.endsWith('.json'))) {
+      for (const file of strategyFiles.filter((f) => f.endsWith('.json'))) {
         const content = await readFile(join(this.deploymentsPath, 'strategies', file), 'utf-8');
         const strategy: DeploymentStrategy = JSON.parse(content);
         this.strategies.set(strategy.id, strategy);
       }
 
       const pipelineFiles = await readdir(join(this.deploymentsPath, 'pipelines'));
-      for (const file of pipelineFiles.filter(f => f.endsWith('.json'))) {
+      for (const file of pipelineFiles.filter((f) => f.endsWith('.json'))) {
         const content = await readFile(join(this.deploymentsPath, 'pipelines', file), 'utf-8');
         const pipeline: DeploymentPipeline = JSON.parse(content);
         this.pipelines.set(pipeline.id, pipeline);
       }
 
-      this.logger.info(`Loaded ${this.environments.size} environments, ${this.strategies.size} strategies, ${this.pipelines.size} pipelines`);
+      this.logger.info(
+        `Loaded ${this.environments.size} environments, ${this.strategies.size} strategies, ${this.pipelines.size} pipelines`,
+      );
     } catch (error) {
       this.logger.warn('Failed to load some configurations', { error });
     }
@@ -818,7 +849,7 @@ export class DeploymentManager extends EventEmitter {
         configuration: {
           monitoringDuration: 300000, // 5 minutes
           automatedRollback: true,
-          rollbackThreshold: 5
+          rollbackThreshold: 5,
         },
         stages: [
           {
@@ -832,7 +863,7 @@ export class DeploymentManager extends EventEmitter {
             timeout: 600000,
             retryPolicy: { maxRetries: 2, backoffMultiplier: 2, initialDelay: 1000 },
             artifacts: { inputs: [], outputs: [] },
-            logs: []
+            logs: [],
           },
           {
             id: 'deploy-green',
@@ -845,7 +876,7 @@ export class DeploymentManager extends EventEmitter {
             timeout: 900000,
             retryPolicy: { maxRetries: 1, backoffMultiplier: 2, initialDelay: 5000 },
             artifacts: { inputs: [], outputs: [] },
-            logs: []
+            logs: [],
           },
           {
             id: 'verify',
@@ -858,7 +889,7 @@ export class DeploymentManager extends EventEmitter {
             timeout: 300000,
             retryPolicy: { maxRetries: 3, backoffMultiplier: 1.5, initialDelay: 2000 },
             artifacts: { inputs: [], outputs: [] },
-            logs: []
+            logs: [],
           },
           {
             id: 'switch-traffic',
@@ -871,8 +902,8 @@ export class DeploymentManager extends EventEmitter {
             timeout: 60000,
             retryPolicy: { maxRetries: 1, backoffMultiplier: 1, initialDelay: 1000 },
             artifacts: { inputs: [], outputs: [] },
-            logs: []
-          }
+            logs: [],
+          },
         ],
         rollbackStrategy: {
           automatic: true,
@@ -882,11 +913,11 @@ export class DeploymentManager extends EventEmitter {
               threshold: 5,
               operator: '>',
               duration: 60000,
-              description: 'Error rate exceeds 5%'
-            }
+              description: 'Error rate exceeds 5%',
+            },
           ],
-          timeout: 300000
-        }
+          timeout: 300000,
+        },
       },
       {
         name: 'Canary Deployment',
@@ -895,7 +926,7 @@ export class DeploymentManager extends EventEmitter {
           trafficSplitPercentage: 10,
           monitoringDuration: 600000, // 10 minutes
           automatedRollback: true,
-          rollbackThreshold: 2
+          rollbackThreshold: 2,
         },
         stages: [
           {
@@ -909,7 +940,7 @@ export class DeploymentManager extends EventEmitter {
             timeout: 600000,
             retryPolicy: { maxRetries: 2, backoffMultiplier: 2, initialDelay: 1000 },
             artifacts: { inputs: [], outputs: [] },
-            logs: []
+            logs: [],
           },
           {
             id: 'deploy-canary',
@@ -922,7 +953,7 @@ export class DeploymentManager extends EventEmitter {
             timeout: 900000,
             retryPolicy: { maxRetries: 1, backoffMultiplier: 2, initialDelay: 5000 },
             artifacts: { inputs: [], outputs: [] },
-            logs: []
+            logs: [],
           },
           {
             id: 'monitor-canary',
@@ -935,7 +966,7 @@ export class DeploymentManager extends EventEmitter {
             timeout: 600000,
             retryPolicy: { maxRetries: 1, backoffMultiplier: 1, initialDelay: 10000 },
             artifacts: { inputs: [], outputs: [] },
-            logs: []
+            logs: [],
           },
           {
             id: 'promote-full',
@@ -948,8 +979,8 @@ export class DeploymentManager extends EventEmitter {
             timeout: 300000,
             retryPolicy: { maxRetries: 1, backoffMultiplier: 1, initialDelay: 1000 },
             artifacts: { inputs: [], outputs: [] },
-            logs: []
-          }
+            logs: [],
+          },
         ],
         rollbackStrategy: {
           automatic: true,
@@ -959,18 +990,18 @@ export class DeploymentManager extends EventEmitter {
               threshold: 2,
               operator: '>',
               duration: 120000,
-              description: 'Canary error rate exceeds 2%'
+              description: 'Canary error rate exceeds 2%',
             },
             {
               metric: 'response_time',
               threshold: 500,
               operator: '>',
               duration: 180000,
-              description: 'Response time exceeds 500ms'
-            }
+              description: 'Response time exceeds 500ms',
+            },
           ],
-          timeout: 180000
-        }
+          timeout: 180000,
+        },
       },
       {
         name: 'Rolling Deployment',
@@ -979,7 +1010,7 @@ export class DeploymentManager extends EventEmitter {
           maxUnavailable: 1,
           maxSurge: 1,
           monitoringDuration: 120000,
-          automatedRollback: false
+          automatedRollback: false,
         },
         stages: [
           {
@@ -993,7 +1024,7 @@ export class DeploymentManager extends EventEmitter {
             timeout: 600000,
             retryPolicy: { maxRetries: 2, backoffMultiplier: 2, initialDelay: 1000 },
             artifacts: { inputs: [], outputs: [] },
-            logs: []
+            logs: [],
           },
           {
             id: 'rolling-update',
@@ -1006,7 +1037,7 @@ export class DeploymentManager extends EventEmitter {
             timeout: 1200000,
             retryPolicy: { maxRetries: 1, backoffMultiplier: 2, initialDelay: 5000 },
             artifacts: { inputs: [], outputs: [] },
-            logs: []
+            logs: [],
           },
           {
             id: 'health-check',
@@ -1019,26 +1050,26 @@ export class DeploymentManager extends EventEmitter {
             timeout: 300000,
             retryPolicy: { maxRetries: 3, backoffMultiplier: 1.5, initialDelay: 5000 },
             artifacts: { inputs: [], outputs: [] },
-            logs: []
-          }
+            logs: [],
+          },
         ],
         rollbackStrategy: {
           automatic: false,
           conditions: [],
-          timeout: 600000
-        }
-      }
+          timeout: 600000,
+        },
+      },
     ];
 
     for (const strategyData of defaultStrategies) {
-      if (!Array.from(this.strategies.values()).some(s => s.name === strategyData.name)) {
+      if (!Array.from(this.strategies.values()).some((s) => s.name === strategyData.name)) {
         const strategy: DeploymentStrategy = {
           id: `strategy-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           notifications: {
             channels: [],
-            events: ['deployment:started', 'deployment:completed', 'deployment:failed']
+            events: ['deployment:started', 'deployment:completed', 'deployment:failed'],
           },
-          ...strategyData
+          ...strategyData,
         } as DeploymentStrategy;
 
         this.strategies.set(strategy.id, strategy);
@@ -1067,7 +1098,7 @@ export class DeploymentManager extends EventEmitter {
     userId: string,
     action: string,
     target: string,
-    details: Record<string, any>
+    details: Record<string, any>,
   ): void {
     const entry: DeploymentAuditEntry = {
       id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -1075,7 +1106,7 @@ export class DeploymentManager extends EventEmitter {
       userId,
       action,
       target,
-      details
+      details,
     };
 
     deployment.auditLog.push(entry);
@@ -1086,14 +1117,14 @@ export class DeploymentManager extends EventEmitter {
     level: DeploymentLog['level'],
     message: string,
     source: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): void {
     const log: DeploymentLog = {
       timestamp: new Date(),
       level,
       message,
       source,
-      metadata
+      metadata,
     };
 
     stage.logs.push(log);
@@ -1114,7 +1145,10 @@ export class DeploymentManager extends EventEmitter {
     this.emit('approval:requested', { deployment, stage });
   }
 
-  private async isPendingApproval(deployment: Deployment, stage: DeploymentStage): Promise<boolean> {
+  private async isPendingApproval(
+    deployment: Deployment,
+    stage: DeploymentStage,
+  ): Promise<boolean> {
     // Check if there are pending approvals for this stage
     return false; // Simplified for now
   }
@@ -1128,9 +1162,12 @@ export class DeploymentManager extends EventEmitter {
     command: DeploymentCommand,
     exitCode: number | null,
     stdout: string,
-    stderr: string
+    stderr: string,
   ): boolean {
-    if (command.successCriteria.exitCode !== undefined && exitCode !== command.successCriteria.exitCode) {
+    if (
+      command.successCriteria.exitCode !== undefined &&
+      exitCode !== command.successCriteria.exitCode
+    ) {
       return false;
     }
 
@@ -1158,7 +1195,10 @@ export class DeploymentManager extends EventEmitter {
     this.logger.info(`Retrying stage: ${stage.name}`);
   }
 
-  private async handleDeploymentFailure(deployment: Deployment, failedStage: DeploymentStage): Promise<void> {
+  private async handleDeploymentFailure(
+    deployment: Deployment,
+    failedStage: DeploymentStage,
+  ): Promise<void> {
     deployment.status = 'failed';
     deployment.metrics.endTime = new Date();
     deployment.updatedAt = new Date();
@@ -1166,7 +1206,7 @@ export class DeploymentManager extends EventEmitter {
     this.addAuditEntry(deployment, 'system', 'deployment_failed', 'deployment', {
       deploymentId: deployment.id,
       failedStage: failedStage.name,
-      reason: 'Stage execution failed'
+      reason: 'Stage execution failed',
     });
 
     await this.saveDeployment(deployment);
@@ -1186,7 +1226,7 @@ export class DeploymentManager extends EventEmitter {
 
     this.addAuditEntry(deployment, 'system', 'deployment_error', 'deployment', {
       deploymentId: deployment.id,
-      error: (error instanceof Error ? error.message : String(error))
+      error: error instanceof Error ? error.message : String(error),
     });
 
     await this.saveDeployment(deployment);
@@ -1198,12 +1238,13 @@ export class DeploymentManager extends EventEmitter {
   private async completeDeployment(deployment: Deployment): Promise<void> {
     deployment.status = 'success';
     deployment.metrics.endTime = new Date();
-    deployment.metrics.duration = deployment.metrics.endTime.getTime() - deployment.metrics.startTime.getTime();
+    deployment.metrics.duration =
+      deployment.metrics.endTime.getTime() - deployment.metrics.startTime.getTime();
     deployment.updatedAt = new Date();
 
     this.addAuditEntry(deployment, 'system', 'deployment_completed', 'deployment', {
       deploymentId: deployment.id,
-      duration: deployment.metrics.duration
+      duration: deployment.metrics.duration,
     });
 
     await this.saveDeployment(deployment);
@@ -1215,14 +1256,15 @@ export class DeploymentManager extends EventEmitter {
   private async getPreviousSuccessfulDeployment(
     projectId: string,
     environmentId: string,
-    currentDeploymentId: string
+    currentDeploymentId: string,
   ): Promise<Deployment | null> {
     const deployments = Array.from(this.deployments.values())
-      .filter(d => 
-        d.projectId === projectId &&
-        d.environmentId === environmentId &&
-        d.status === 'success' &&
-        d.id !== currentDeploymentId
+      .filter(
+        (d) =>
+          d.projectId === projectId &&
+          d.environmentId === environmentId &&
+          d.status === 'success' &&
+          d.id !== currentDeploymentId,
       )
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
@@ -1231,62 +1273,63 @@ export class DeploymentManager extends EventEmitter {
 
   private async executeRollbackStrategy(
     deployment: Deployment,
-    previousDeployment: Deployment
+    previousDeployment: Deployment,
   ): Promise<void> {
     // Implement rollback execution logic
     this.logger.info(`Executing rollback from ${deployment.id} to ${previousDeployment.id}`);
-    
+
     // This would typically involve:
     // 1. Switching traffic back to previous version
     // 2. Updating load balancer configuration
     // 3. Rolling back container deployments
     // 4. Reverting database migrations if needed
     // 5. Updating DNS records
-    
+
     this.emit('rollback:executed', { deployment, previousDeployment });
   }
 
   private calculateDeploymentFrequency(deployments: Deployment[]): number {
     if (deployments.length === 0) return 0;
-    
-    const sortedDeployments = deployments.sort((a, b) => 
-      a.createdAt.getTime() - b.createdAt.getTime()
+
+    const sortedDeployments = deployments.sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
     );
-    
+
     const firstDeployment = sortedDeployments[0];
     const lastDeployment = sortedDeployments[sortedDeployments.length - 1];
-    
+
     const timeSpan = lastDeployment.createdAt.getTime() - firstDeployment.createdAt.getTime();
     const days = timeSpan / (1000 * 60 * 60 * 24);
-    
+
     return deployments.length / Math.max(days, 1);
   }
 
   private calculateMTTR(deployments: Deployment[]): number {
-    const failedDeployments = deployments.filter(d => 
-      d.status === 'failed' || d.status === 'rolled-back'
+    const failedDeployments = deployments.filter(
+      (d) => d.status === 'failed' || d.status === 'rolled-back',
     );
-    
+
     if (failedDeployments.length === 0) return 0;
-    
+
     const recoveryTimes = failedDeployments
-      .map(d => d.rollback?.rollbackDuration || 0)
-      .filter(time => time > 0);
-    
+      .map((d) => d.rollback?.rollbackDuration || 0)
+      .filter((time) => time > 0);
+
     if (recoveryTimes.length === 0) return 0;
-    
+
     return recoveryTimes.reduce((sum, time) => sum + time, 0) / recoveryTimes.length;
   }
 
   private calculateLeadTime(deployments: Deployment[]): number {
     // This would typically calculate from commit to production
     // For now, return average deployment time
-    const completedDeployments = deployments.filter(d => d.metrics.duration);
-    
+    const completedDeployments = deployments.filter((d) => d.metrics.duration);
+
     if (completedDeployments.length === 0) return 0;
-    
-    return completedDeployments.reduce((sum, d) => 
-      sum + (d.metrics.duration || 0), 0
-    ) / completedDeployments.length;
+
+    return (
+      completedDeployments.reduce((sum, d) => sum + (d.metrics.duration || 0), 0) /
+      completedDeployments.length
+    );
   }
 }

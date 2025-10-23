@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import fs from 'node:fs';
 import https from 'node:https';
-import { spawn } from 'node:child_process';
+import { spawn, exec } from 'node:child_process';
 
 console.log('Installing Claude-Flow...');
 
@@ -26,28 +26,39 @@ async function installDeno() {
   console.log('Deno not found. Installing Deno...');
   
   const platform = os.platform();
-  const arch = os.arch();
   
   if (platform === 'win32') {
-    console.log('Please install Deno manually from https://deno.land/');
-    process.exit(1);
-  }
-  
-  return new Promise((resolve, reject) => {
-    const installScript = spawn('curl', ['-fsSL', 'https://deno.land/x/install/install.sh'], { stdio: 'pipe' });
-    const sh = spawn('sh', [], { stdio: ['pipe', 'inherit', 'inherit'] });
-    
-    installScript.stdout.pipe(sh.stdin);
-    
-    sh.on('close', (code) => {
-      if (code === 0) {
-        console.log('Deno installed successfully!');
-        resolve();
-      } else {
-        reject(new Error('Failed to install Deno'));
-      }
+    return new Promise((resolve, reject) => {
+      console.log('Installing Deno on Windows using PowerShell...');
+      const psCommand = `powershell -Command "irm https://deno.land/install.ps1 | iex"`;
+      exec(psCommand, (error, stdout, stderr) => {
+        if (error) {
+          console.error('Failed to install Deno with PowerShell:', stderr);
+          console.log('Please install Deno manually from https://deno.land/');
+          reject(new Error('Failed to install Deno'));
+        } else {
+          console.log('Deno installed successfully!');
+          resolve();
+        }
+      });
     });
-  });
+  } else {
+    return new Promise((resolve, reject) => {
+      const installScript = spawn('curl', ['-fsSL', 'https://deno.land/x/install/install.sh'], { stdio: 'pipe' });
+      const sh = spawn('sh', [], { stdio: ['pipe', 'inherit', 'inherit'] });
+      
+      installScript.stdout.pipe(sh.stdin);
+      
+      sh.on('close', (code) => {
+        if (code === 0) {
+          console.log('Deno installed successfully!');
+          resolve();
+        } else {
+          reject(new Error('Failed to install Deno'));
+        }
+      });
+    });
+  }
 }
 
 // Main installation process

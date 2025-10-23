@@ -199,10 +199,10 @@ class MetricsAggregator:
         """Aggregate process tracker metrics."""
         summary = self._process_tracker.get_execution_summary()
         
-        metrics.total_processes = summary["total_executions"]
-        metrics.success_rate = summary["overall_success_rate"]
+        metrics.total_processes = summary.get("total_executions", 0)
+        metrics.success_rate = summary.get("overall_success_rate", 0.0)
         metrics.error_rate = 1.0 - metrics.success_rate
-        metrics.total_output_size = summary["total_output_lines"]
+        metrics.total_output_size = summary.get("total_output_lines", 0)
         
         if metrics.total_processes > 0:
             metrics.average_output_size = metrics.total_output_size // metrics.total_processes

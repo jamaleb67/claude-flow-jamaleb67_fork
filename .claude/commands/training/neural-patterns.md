@@ -15,7 +15,11 @@ Every successful operation trains the neural networks:
 ### 2. Manual Training
 ```
 Tool: mcp__claude-flow__neural_train
-Parameters: {"iterations": 20}
+Parameters: {
+  "pattern_type": "coordination",
+  "training_data": "successful task patterns",
+  "epochs": 50
+}
 ```
 
 ### 3. Pattern Types
@@ -42,8 +46,29 @@ Result: {
 }
 ```
 
+## Pattern Analysis
+```
+Tool: mcp__claude-flow__neural_patterns
+Parameters: {
+  "action": "analyze",
+  "operation": "recent_edits"
+}
+```
+
 ## Benefits
 - 🧠 Learns your coding style
 - 📈 Improves with each use
 - 🎯 Better task predictions
 - ⚡ Faster coordination
+
+## CLI Usage
+```bash
+# Train neural patterns via CLI
+npx claude-flow neural train --type coordination --epochs 50
+
+# Check neural status
+npx claude-flow neural status
+
+# Analyze patterns
+npx claude-flow neural patterns --analyze
+```

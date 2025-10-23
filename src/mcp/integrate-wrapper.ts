@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import { getErrorMessage } from '../utils/error-handler.js';
 import { spawn } from 'child_process';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
@@ -20,11 +19,7 @@ export class MCPIntegration {
   async connectToClaudeCode(): Promise<void> {
     try {
       // Start Claude Code MCP server process
-      const claudeCodeProcess = spawn('npx', [
-        '-y',
-        '@anthropic/claude-code',
-        'mcp'
-      ], {
+      const claudeCodeProcess = spawn('npx', ['-y', '@anthropic/claude-code', 'mcp'], {
         stdio: ['pipe', 'pipe', 'pipe'],
       });
 
@@ -33,12 +28,15 @@ export class MCPIntegration {
         args: ['-y', '@anthropic/claude-code', 'mcp'],
       });
 
-      this.claudeCodeClient = new Client({
-        name: 'claude-flow-wrapper-client',
-        version: '1.0.0',
-      }, {
-        capabilities: {},
-      });
+      this.claudeCodeClient = new Client(
+        {
+          name: 'claude-flow-wrapper-client',
+          version: '1.0.0',
+        },
+        {
+          capabilities: {},
+        },
+      );
 
       await this.claudeCodeClient.connect(transport);
 
@@ -64,16 +62,18 @@ export class MCPIntegration {
 // Update the wrapper to use the real Claude Code MCP client
 export function injectClaudeCodeClient(wrapper: ClaudeCodeMCPWrapper, client: Client): void {
   // Override the forwardToClaudeCode method
-  (wrapper as any).forwardToClaudeCode = async function(toolName: string, args: any) {
+  (wrapper as any).forwardToClaudeCode = async function (toolName: string, args: any) {
     try {
       const result = await client.callTool(toolName, args);
       return result;
     } catch (error) {
       return {
-        content: [{
-          type: 'text',
-          text: `Error calling Claude Code tool ${toolName}: ${error instanceof Error ? error.message : String(error)}`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `Error calling Claude Code tool ${toolName}: ${error instanceof Error ? error.message : String(error)}`,
+          },
+        ],
         isError: true,
       };
     }

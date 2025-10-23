@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../../utils/error-handler.js';
 /**
  * Fallback Coordinator for MCP
  * Manages graceful degradation to CLI when MCP connection fails
@@ -54,11 +53,11 @@ export class FallbackCoordinator extends EventEmitter {
 
   constructor(
     private logger: ILogger,
-    config?: Partial<FallbackConfig>
+    config?: Partial<FallbackConfig>,
   ) {
     super();
     this.config = { ...this.defaultConfig, ...config };
-    
+
     this.state = {
       isFallbackActive: false,
       queuedOperations: 0,
@@ -94,13 +93,13 @@ export class FallbackCoordinator extends EventEmitter {
     }
 
     this.logger.warn('Enabling CLI fallback mode');
-    
+
     this.state.isFallbackActive = true;
     this.state.lastFallbackActivation = new Date();
-    
+
     // Start notification timer
     this.startNotificationTimer();
-    
+
     this.emit('fallbackEnabled', this.state);
   }
 
@@ -113,17 +112,17 @@ export class FallbackCoordinator extends EventEmitter {
     }
 
     this.logger.info('Disabling CLI fallback mode');
-    
+
     this.state.isFallbackActive = false;
-    
+
     // Stop notification timer
     this.stopNotificationTimer();
-    
+
     this.emit('fallbackDisabled', this.state);
-    
+
     // Process any queued operations
     if (this.operationQueue.length > 0) {
-      this.processQueue().catch(error => {
+      this.processQueue().catch((error) => {
         this.logger.error('Error processing queue after fallback disabled', error);
       });
     }
@@ -164,7 +163,7 @@ export class FallbackCoordinator extends EventEmitter {
 
     // If in fallback mode, try to execute via CLI
     if (this.state.isFallbackActive && !this.processingQueue) {
-      this.executeViaCliFallback(queuedOp).catch(error => {
+      this.executeViaCliFallback(queuedOp).catch((error) => {
         this.logger.error('CLI fallback execution failed', { operation: queuedOp, error });
       });
     }
@@ -193,7 +192,7 @@ export class FallbackCoordinator extends EventEmitter {
     // Process operations in order
     while (this.operationQueue.length > 0) {
       const operation = this.operationQueue.shift()!;
-      
+
       // Check if operation has expired
       if (this.isOperationExpired(operation)) {
         this.logger.warn('Operation expired', { id: operation.id });
@@ -248,7 +247,7 @@ export class FallbackCoordinator extends EventEmitter {
     const clearedCount = this.operationQueue.length;
     this.operationQueue = [];
     this.state.queuedOperations = 0;
-    
+
     this.logger.info('Operation queue cleared', { clearedCount });
     this.emit('queueCleared', clearedCount);
   }
@@ -262,13 +261,13 @@ export class FallbackCoordinator extends EventEmitter {
     try {
       // Map MCP operations to CLI commands
       const cliCommand = this.mapOperationToCli(operation);
-      
+
       if (!cliCommand) {
         throw new Error(`No CLI mapping for operation: ${operation.method}`);
       }
 
       const { stdout, stderr } = await execAsync(cliCommand);
-      
+
       if (stderr) {
         this.logger.warn('CLI command stderr', { stderr });
       }
@@ -313,18 +312,19 @@ export class FallbackCoordinator extends EventEmitter {
     const mappings: Record<string, (params: any) => string> = {
       // Tool operations
       'tools/list': () => `${this.config.cliPath} tools list`,
-      'tools/call': (params) => `${this.config.cliPath} tools call ${params.name} '${JSON.stringify(params.arguments)}'`,
-      
+      'tools/call': (params) =>
+        `${this.config.cliPath} tools call ${params.name} '${JSON.stringify(params.arguments)}'`,
+
       // Resource operations
       'resources/list': () => `${this.config.cliPath} resources list`,
       'resources/read': (params) => `${this.config.cliPath} resources read ${params.uri}`,
-      
+
       // Session operations
-      'initialize': () => `${this.config.cliPath} session init`,
-      'shutdown': () => `${this.config.cliPath} session shutdown`,
-      
+      initialize: () => `${this.config.cliPath} session init`,
+      shutdown: () => `${this.config.cliPath} session shutdown`,
+
       // Custom operations
-      'heartbeat': () => `${this.config.cliPath} health check`,
+      heartbeat: () => `${this.config.cliPath} health check`,
     };
 
     const mapper = mappings[operation.method];

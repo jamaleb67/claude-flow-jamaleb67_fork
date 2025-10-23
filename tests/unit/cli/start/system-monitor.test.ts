@@ -2,8 +2,7 @@
  * Test suite for SystemMonitor
  */
 
-import { describe, it, beforeEach, afterEach, expect } from "../test.utils.ts";
-import { describe, it, beforeEach, afterEach, expect } from "../test.utils.ts";
+import { describe, it, beforeEach, afterEach, expect } from "../../../../test.utils";
 import { SystemMonitor } from '../../../../src/cli/commands/start/system-monitor.ts';
 import { ProcessManager } from '../../../../src/cli/commands/start/process-manager.ts';
 import { eventBus } from '../../../../src/core/event-bus.ts';

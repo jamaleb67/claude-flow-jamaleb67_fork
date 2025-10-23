@@ -31,13 +31,23 @@ jobs:
         run: npm ci
 
       - name: Run security audit
-        run: npm audit --audit-level=high || true
+        run: |
+          npm audit --audit-level=high
+          npm audit --production --audit-level=moderate
         
       - name: Lint code
-        run: npm run lint || true
+        run: npm run lint
 
       - name: Type check
-        run: npm run typecheck || true
+        run: npm run typecheck
+
+      - name: Check for outdated dependencies
+        run: npm outdated || true
+        continue-on-error: true
+
+      - name: License compliance check
+        run: npx license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0' || true
+        continue-on-error: true
 
   # All tests
   test:
@@ -61,11 +71,11 @@ jobs:
         run: npm ci
 
       - name: Run all tests  
-        run: timeout 120 npm test || echo "Tests completed with issues"
+        run: npm test
 
       - name: Generate coverage report
         if: matrix.os == 'ubuntu-latest'
-        run: echo "Coverage generation disabled"
+        run: npm run test:coverage
 
       - name: Upload test results
         if: always()
@@ -92,7 +102,7 @@ jobs:
       - name: Check documentation
         run: |
           echo "✅ Documentation check passed"
-          ls -la README.md CHANGELOG.md || true
+          ls -la README.md CHANGELOG.md
 
   # Build and package
   build:
@@ -116,12 +126,12 @@ jobs:
       - name: Build project
         run: |
           echo "Building project..."
-          npm run build:ts || echo "Build needs fixing"
+          npm run build:ts
 
       - name: Test CLI binary
         run: |
-          chmod +x ./bin/claude-flow || true
-          ./bin/claude-flow --version || echo "Binary test needs fixing"
+          chmod +x ./bin/claude-flow
+          ./bin/claude-flow --version
 
       - name: Package build
         run: |

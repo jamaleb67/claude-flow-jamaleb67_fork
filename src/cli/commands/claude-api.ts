@@ -4,7 +4,7 @@
 
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { Command } from 'commander';
+import { Command } from '../commander-fix.js';
 import { ConfigManager } from '../../config/config-manager.js';
 import { ClaudeAPIClient, ClaudeModel } from '../../api/claude-client.js';
 import { Logger } from '../../core/logger.js';
@@ -41,7 +41,7 @@ claudeApiCommand
             name: 'apiKey',
             message: 'Enter your Claude API key:',
             default: config.apiKey || process.env.ANTHROPIC_API_KEY,
-            validate: (input) => input ? true : 'API key is required',
+            validate: (input) => (input ? true : 'API key is required'),
           },
           {
             type: 'list',
@@ -64,7 +64,7 @@ claudeApiCommand
             default: config.temperature?.toString() || '0.7',
             validate: (input) => {
               const num = parseFloat(input);
-              return (num >= 0 && num <= 1) ? true : 'Temperature must be between 0.0 and 1.0';
+              return num >= 0 && num <= 1 ? true : 'Temperature must be between 0.0 and 1.0';
             },
             filter: (input) => parseFloat(input),
           },
@@ -75,7 +75,7 @@ claudeApiCommand
             default: config.maxTokens?.toString() || '4096',
             validate: (input) => {
               const num = parseInt(input);
-              return (num > 0 && num <= 100000) ? true : 'Max tokens must be between 1 and 100000';
+              return num > 0 && num <= 100000 ? true : 'Max tokens must be between 1 and 100000';
             },
             filter: (input) => parseInt(input),
           },
@@ -98,7 +98,6 @@ claudeApiCommand
       console.log(chalk.gray(`Model: ${config.model}`));
       console.log(chalk.gray(`Temperature: ${config.temperature}`));
       console.log(chalk.gray(`Max tokens: ${config.maxTokens}`));
-
     } catch (error) {
       console.error(chalk.red('❌ Failed to configure Claude API:'), getErrorMessage(error));
       process.exit(1);
@@ -111,11 +110,15 @@ claudeApiCommand
   .description('Test Claude API connectivity')
   .option('--model <model>', 'Model to test')
   .option('--temperature <temp>', 'Temperature for test', parseFloat)
-  .option('--prompt <prompt>', 'Test prompt', 'Hello, Claude! Please respond with a brief greeting.')
+  .option(
+    '--prompt <prompt>',
+    'Test prompt',
+    'Hello, Claude! Please respond with a brief greeting.',
+  )
   .action(async (options: any) => {
     try {
       const configManager = ConfigManager.getInstance();
-      
+
       if (!configManager.isClaudeAPIConfigured()) {
         console.error(chalk.red('❌ Claude API not configured. Run "claude-api configure" first.'));
         process.exit(1);
@@ -138,7 +141,6 @@ claudeApiCommand
       console.log(chalk.gray(`Duration: ${duration}ms`));
       console.log(chalk.cyan('\nResponse:'));
       console.log(response);
-
     } catch (error) {
       console.error(chalk.red('❌ Claude API test failed:'), getErrorMessage(error));
       process.exit(1);
@@ -163,15 +165,16 @@ claudeApiCommand
         console.log(chalk.gray(`Temperature: ${config.temperature ?? 0.7}`));
         console.log(chalk.gray(`Max tokens: ${config.maxTokens || 4096}`));
         console.log(chalk.gray(`API key: ${config.apiKey ? '***masked***' : 'Not set'}`));
-        
+
         if (process.env.ANTHROPIC_API_KEY && !config.apiKey) {
-          console.log(chalk.yellow('⚠️  Using API key from ANTHROPIC_API_KEY environment variable'));
+          console.log(
+            chalk.yellow('⚠️  Using API key from ANTHROPIC_API_KEY environment variable'),
+          );
         }
       } else {
         console.log(chalk.red('❌ Not configured'));
         console.log(chalk.gray('Run "claude-api configure" to set up Claude API.'));
       }
-
     } catch (error) {
       console.error(chalk.red('❌ Failed to get status:'), getErrorMessage(error));
       process.exit(1);
@@ -231,7 +234,7 @@ claudeApiCommand
     });
   });
 
-// Update command  
+// Update command
 claudeApiCommand
   .command('update')
   .description('Update specific Claude API settings')
@@ -241,7 +244,7 @@ claudeApiCommand
   .action(async (options: any) => {
     try {
       const configManager = ConfigManager.getInstance();
-      
+
       if (!configManager.isClaudeAPIConfigured()) {
         console.error(chalk.red('❌ Claude API not configured. Run "claude-api configure" first.'));
         process.exit(1);
@@ -253,7 +256,9 @@ claudeApiCommand
       if (options.maxTokens !== undefined) updates.maxTokens = options.maxTokens;
 
       if (Object.keys(updates).length === 0) {
-        console.log(chalk.yellow('⚠️  No updates specified. Use --model, --temperature, or --max-tokens.'));
+        console.log(
+          chalk.yellow('⚠️  No updates specified. Use --model, --temperature, or --max-tokens.'),
+        );
         return;
       }
 
@@ -264,7 +269,6 @@ claudeApiCommand
       Object.entries(updates).forEach(([key, value]) => {
         console.log(chalk.gray(`${key}: ${value}`));
       });
-
     } catch (error) {
       console.error(chalk.red('❌ Failed to update configuration:'), getErrorMessage(error));
       process.exit(1);

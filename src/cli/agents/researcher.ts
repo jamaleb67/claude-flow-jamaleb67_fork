@@ -3,7 +3,12 @@
  */
 
 import { BaseAgent } from './base-agent.js';
-import type { AgentCapabilities, AgentConfig, AgentEnvironment, TaskDefinition } from '../../swarm/types.js';
+import type {
+  AgentCapabilities,
+  AgentConfig,
+  AgentEnvironment,
+  TaskDefinition,
+} from '../../swarm/types.js';
 import type { ILogger } from '../../core/logger.js';
 import type { IEventBus } from '../../core/event-bus.js';
 import type { DistributedMemorySystem } from '../../memory/distributed-memory.js';
@@ -15,7 +20,7 @@ export class ResearcherAgent extends BaseAgent {
     environment: AgentEnvironment,
     logger: ILogger,
     eventBus: IEventBus,
-    memory: DistributedMemorySystem
+    memory: DistributedMemorySystem,
   ) {
     super(id, 'researcher', config, environment, logger, eventBus, memory);
   }
@@ -43,7 +48,7 @@ export class ResearcherAgent extends BaseAgent {
         'academic-research',
         'fact-checking',
         'trend-analysis',
-        'literature-review'
+        'literature-review',
       ],
       tools: [
         'web-search',
@@ -54,14 +59,14 @@ export class ResearcherAgent extends BaseAgent {
         'trend-tracker',
         'fact-checker',
         'source-validator',
-        'research-planner'
+        'research-planner',
       ],
       maxConcurrentTasks: 5,
       maxMemoryUsage: 512 * 1024 * 1024, // 512MB
       maxExecutionTime: 900000, // 15 minutes
       reliability: 0.92,
       speed: 0.85,
-      quality: 0.95
+      quality: 0.95,
     };
   }
 
@@ -75,28 +80,22 @@ export class ResearcherAgent extends BaseAgent {
       timeoutThreshold: 900000,
       reportingInterval: 30000,
       heartbeatInterval: 10000,
-      permissions: [
-        'web-access',
-        'file-read',
-        'api-access',
-        'search-engines',
-        'database-read'
-      ],
+      permissions: ['web-access', 'file-read', 'api-access', 'search-engines', 'database-read'],
       trustedAgents: [],
       expertise: {
         research: 0.95,
-        analysis: 0.90,
+        analysis: 0.9,
         documentation: 0.85,
         'data-collection': 0.92,
-        'fact-checking': 0.88
+        'fact-checking': 0.88,
       },
       preferences: {
         verbose: true,
         detailed: true,
         citeSources: true,
         validateFacts: true,
-        crossReference: true
-      }
+        crossReference: true,
+      },
     };
   }
 
@@ -104,7 +103,7 @@ export class ResearcherAgent extends BaseAgent {
     this.logger.info('Researcher executing task', {
       agentId: this.id,
       taskType: task.type,
-      taskId: task.id
+      taskId: task.id,
     });
 
     try {
@@ -126,7 +125,7 @@ export class ResearcherAgent extends BaseAgent {
       this.logger.error('Research task failed', {
         agentId: this.id,
         taskId: task.id,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -140,7 +139,7 @@ export class ResearcherAgent extends BaseAgent {
     this.logger.info('Starting research task', {
       query,
       sources,
-      depth
+      depth,
     });
 
     const results = {
@@ -154,34 +153,35 @@ export class ResearcherAgent extends BaseAgent {
         searchTime: new Date(),
         totalSources: 0,
         sourcesAnalyzed: 0,
-        researchDepth: depth
-      }
+        researchDepth: depth,
+      },
     };
 
     // Store research progress
-    await this.memory.store(`research:${task.id}:progress`, {
-      status: 'in-progress',
-      startTime: new Date(),
-      query
-    }, {
-      type: 'research-progress',
-      tags: ['research', this.id],
-      partition: 'tasks'
-    });
+    await this.memory.store(
+      `research:${task.id}:progress`,
+      {
+        status: 'in-progress',
+        startTime: new Date(),
+        query,
+      },
+      {
+        type: 'research-progress',
+        tags: ['research', this.id],
+        partition: 'tasks',
+      },
+    );
 
     // Simulate research process
     await this.delay(2000);
-    
+
     results.summary = `Research findings for: ${query}`;
     results.findings = [
       'Key insight 1 based on research',
       'Important trend identified',
-      'Relevant data points discovered'
+      'Relevant data points discovered',
     ];
-    results.recommendations = [
-      'Recommendation based on findings',
-      'Suggested next steps'
-    ];
+    results.recommendations = ['Recommendation based on findings', 'Suggested next steps'];
     results.confidence = 0.85;
     results.metadata.totalSources = 15;
     results.metadata.sourcesAnalyzed = 12;
@@ -190,7 +190,7 @@ export class ResearcherAgent extends BaseAgent {
     await this.memory.store(`research:${task.id}:results`, results, {
       type: 'research-results',
       tags: ['research', 'completed', this.id],
-      partition: 'tasks'
+      partition: 'tasks',
     });
 
     return results;
@@ -202,7 +202,7 @@ export class ResearcherAgent extends BaseAgent {
 
     this.logger.info('Analyzing data', {
       analysisType,
-      dataSize: data ? Object.keys(data).length : 0
+      dataSize: data ? Object.keys(data).length : 0,
     });
 
     const analysis = {
@@ -212,7 +212,7 @@ export class ResearcherAgent extends BaseAgent {
       anomalies: [] as any[],
       confidence: 0,
       methodology: analysisType,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate analysis
@@ -221,7 +221,7 @@ export class ResearcherAgent extends BaseAgent {
     analysis.insights = [
       'Pattern A shows significant correlation',
       'Trend B indicates growth potential',
-      'Factor C requires attention'
+      'Factor C requires attention',
     ];
     analysis.confidence = 0.82;
 
@@ -234,7 +234,7 @@ export class ResearcherAgent extends BaseAgent {
 
     this.logger.info('Fact-checking claims', {
       claimsCount: claims.length,
-      sources
+      sources,
     });
 
     const verification = {
@@ -242,7 +242,7 @@ export class ResearcherAgent extends BaseAgent {
       overallAccuracy: 0,
       sourcesChecked: [] as string[],
       methodology: 'cross-reference',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate fact-checking
@@ -262,7 +262,7 @@ export class ResearcherAgent extends BaseAgent {
     this.logger.info('Conducting literature review', {
       topic,
       timeframe,
-      scope
+      scope,
     });
 
     const review = {
@@ -275,7 +275,7 @@ export class ResearcherAgent extends BaseAgent {
       recommendations: [] as any[],
       confidence: 0,
       methodology: 'systematic-review',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate literature review
@@ -284,9 +284,9 @@ export class ResearcherAgent extends BaseAgent {
     review.keyFindings = [
       'Consistent finding across multiple studies',
       'Emerging trend in recent publications',
-      'Contradictory results require further investigation'
+      'Contradictory results require further investigation',
     ];
-    review.confidence = 0.90;
+    review.confidence = 0.9;
 
     return review;
   }
@@ -297,7 +297,7 @@ export class ResearcherAgent extends BaseAgent {
 
     this.logger.info('Analyzing market', {
       market,
-      metrics
+      metrics,
     });
 
     const analysis = {
@@ -307,7 +307,7 @@ export class ResearcherAgent extends BaseAgent {
       opportunities: [] as any[],
       threats: [] as any[],
       confidence: 0,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate market analysis
@@ -316,7 +316,7 @@ export class ResearcherAgent extends BaseAgent {
     analysis.trends = [
       'Growing demand in segment X',
       'Declining interest in feature Y',
-      'Emerging technology Z shows promise'
+      'Emerging technology Z shows promise',
     ];
     analysis.confidence = 0.83;
 
@@ -325,7 +325,7 @@ export class ResearcherAgent extends BaseAgent {
 
   private async performGeneralResearch(task: TaskDefinition): Promise<any> {
     this.logger.info('Performing general research', {
-      description: task.description
+      description: task.description,
     });
 
     // Default research approach
@@ -333,7 +333,7 @@ export class ResearcherAgent extends BaseAgent {
   }
 
   private async delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   override getAgentStatus(): any {
@@ -346,12 +346,12 @@ export class ResearcherAgent extends BaseAgent {
         'Market Analysis',
         'Fact Checking',
         'Data Collection',
-        'Trend Analysis'
+        'Trend Analysis',
       ],
       currentResearchProjects: this.getCurrentTasks().length,
       averageResearchTime: '8-15 minutes',
       preferredSources: ['Academic', 'Government', 'Industry Reports', 'News'],
-      lastResearchCompleted: this.getLastTaskCompletedTime()
+      lastResearchCompleted: this.getLastTaskCompletedTime(),
     };
   }
 }
@@ -362,7 +362,7 @@ export const createResearcherAgent = (
   environment: Partial<AgentEnvironment>,
   logger: ILogger,
   eventBus: IEventBus,
-  memory: DistributedMemorySystem
+  memory: DistributedMemorySystem,
 ): ResearcherAgent => {
   const defaultConfig = {
     autonomyLevel: 0.8,
@@ -373,27 +373,21 @@ export const createResearcherAgent = (
     timeoutThreshold: 600000,
     reportingInterval: 120000,
     heartbeatInterval: 60000,
-    permissions: [
-      'web-search',
-      'data-access',
-      'file-read',
-      'api-access',
-      'research-tools'
-    ],
+    permissions: ['web-search', 'data-access', 'file-read', 'api-access', 'research-tools'],
     trustedAgents: [],
     expertise: {
       'information-gathering': 0.95,
       'fact-checking': 0.92,
       'data-analysis': 0.88,
-      'literature-review': 0.90,
-      'market-research': 0.85
+      'literature-review': 0.9,
+      'market-research': 0.85,
     },
     preferences: {
       searchDepth: 'comprehensive',
       sourceVerification: 'rigorous',
       reportingDetail: 'detailed',
-      timeInvestment: 'thorough'
-    }
+      timeInvestment: 'thorough',
+    },
   };
   const defaultEnv = {
     runtime: 'deno' as const,
@@ -403,13 +397,8 @@ export const createResearcherAgent = (
     logDirectory: './logs/researcher',
     apiEndpoints: {},
     credentials: {},
-    availableTools: [
-      'web-search',
-      'document-reader',
-      'data-extractor',
-      'citation-generator'
-    ],
-    toolConfigs: {}
+    availableTools: ['web-search', 'document-reader', 'data-extractor', 'citation-generator'],
+    toolConfigs: {},
   };
 
   return new ResearcherAgent(
@@ -418,6 +407,6 @@ export const createResearcherAgent = (
     { ...defaultEnv, ...environment } as AgentEnvironment,
     logger,
     eventBus,
-    memory
+    memory,
   );
 };

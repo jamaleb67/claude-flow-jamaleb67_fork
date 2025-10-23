@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Conflict resolution mechanisms for multi-agent coordination
  */
@@ -49,7 +48,7 @@ export class PriorityResolutionStrategy implements ConflictResolutionStrategy {
     conflict: ResourceConflict | TaskConflict,
     context: { agentPriorities: Map<string, number> },
   ): Promise<ConflictResolution> {
-    const priorities = conflict.agents.map(agentId => ({
+    const priorities = conflict.agents.map((agentId) => ({
       agentId,
       priority: context.agentPriorities.get(agentId) || 0,
     }));
@@ -58,7 +57,7 @@ export class PriorityResolutionStrategy implements ConflictResolutionStrategy {
     priorities.sort((a, b) => b.priority - a.priority);
 
     const winner = priorities[0].agentId;
-    const losers = priorities.slice(1).map(p => p.agentId);
+    const losers = priorities.slice(1).map((p) => p.agentId);
 
     return {
       type: 'priority',
@@ -80,7 +79,7 @@ export class TimestampResolutionStrategy implements ConflictResolutionStrategy {
     conflict: ResourceConflict | TaskConflict,
     context: { requestTimestamps: Map<string, Date> },
   ): Promise<ConflictResolution> {
-    const timestamps = conflict.agents.map(agentId => ({
+    const timestamps = conflict.agents.map((agentId) => ({
       agentId,
       timestamp: context.requestTimestamps.get(agentId) || new Date(),
     }));
@@ -89,7 +88,7 @@ export class TimestampResolutionStrategy implements ConflictResolutionStrategy {
     timestamps.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
     const winner = timestamps[0].agentId;
-    const losers = timestamps.slice(1).map(t => t.agentId);
+    const losers = timestamps.slice(1).map((t) => t.agentId);
 
     return {
       type: 'timestamp',
@@ -112,7 +111,7 @@ export class VotingResolutionStrategy implements ConflictResolutionStrategy {
     context: { votes: Map<string, string[]> }, // agentId -> votes for that agent
   ): Promise<ConflictResolution> {
     const voteCounts = new Map<string, number>();
-    
+
     // Count votes
     for (const [agentId, voters] of context.votes) {
       voteCounts.set(agentId, voters.length);
@@ -174,10 +173,7 @@ export class ConflictResolver {
   /**
    * Report a resource conflict
    */
-  async reportResourceConflict(
-    resourceId: string,
-    agents: string[],
-  ): Promise<ResourceConflict> {
+  async reportResourceConflict(resourceId: string, agents: string[]): Promise<ResourceConflict> {
     const conflict: ResourceConflict = {
       id: `conflict-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       resourceId,
@@ -245,7 +241,7 @@ export class ConflictResolver {
 
     // Resolve the conflict
     const resolution = await strategy.resolve(conflict, context);
-    
+
     // Update conflict
     conflict.resolved = true;
     conflict.resolution = resolution;
@@ -286,12 +282,12 @@ export class ConflictResolver {
     if (preferredStrategy === 'priority') {
       // In a real implementation, fetch agent priorities from configuration
       context.agentPriorities = new Map(
-        conflict.agents.map((id, index) => [id, conflict.agents.length - index])
+        conflict.agents.map((id, index) => [id, conflict.agents.length - index]),
       );
     } else if (preferredStrategy === 'timestamp') {
       // In a real implementation, fetch request timestamps
       context.requestTimestamps = new Map(
-        conflict.agents.map((id, index) => [id, new Date(Date.now() - index * 1000)])
+        conflict.agents.map((id, index) => [id, new Date(Date.now() - index * 1000)]),
       );
     }
 
@@ -302,7 +298,7 @@ export class ConflictResolver {
    * Get active conflicts
    */
   getActiveConflicts(): Array<ResourceConflict | TaskConflict> {
-    return Array.from(this.conflicts.values()).filter(c => !c.resolved);
+    return Array.from(this.conflicts.values()).filter((c) => !c.resolved);
   }
 
   /**
@@ -332,7 +328,7 @@ export class ConflictResolver {
     // Also cleanup old history
     const cutoffTime = now - maxAgeMs;
     this.resolutionHistory = this.resolutionHistory.filter(
-      r => r.timestamp.getTime() > cutoffTime
+      (r) => r.timestamp.getTime() > cutoffTime,
     );
 
     return removed;
@@ -356,11 +352,10 @@ export class ConflictResolver {
     for (const conflict of this.conflicts.values()) {
       if (conflict.resolved) {
         stats.resolvedConflicts++;
-        
+
         if (conflict.resolution) {
           const strategy = conflict.resolution.type;
-          stats.resolutionsByStrategy[strategy] = 
-            (stats.resolutionsByStrategy[strategy] || 0) + 1;
+          stats.resolutionsByStrategy[strategy] = (stats.resolutionsByStrategy[strategy] || 0) + 1;
         }
       } else {
         stats.activeConflicts++;
@@ -391,7 +386,7 @@ export class OptimisticLockManager {
    */
   acquireLock(resourceId: string, agentId: string): number {
     const currentVersion = this.versions.get(resourceId) || 0;
-    
+
     this.locks.set(resourceId, {
       version: currentVersion,
       holder: agentId,
@@ -410,11 +405,7 @@ export class OptimisticLockManager {
   /**
    * Validate and update with optimistic lock
    */
-  validateAndUpdate(
-    resourceId: string,
-    agentId: string,
-    expectedVersion: number,
-  ): boolean {
+  validateAndUpdate(resourceId: string, agentId: string, expectedVersion: number): boolean {
     const currentVersion = this.versions.get(resourceId) || 0;
     const lock = this.locks.get(resourceId);
 
@@ -456,7 +447,7 @@ export class OptimisticLockManager {
    */
   releaseLock(resourceId: string, agentId: string): void {
     const lock = this.locks.get(resourceId);
-    
+
     if (lock && lock.holder === agentId) {
       this.locks.delete(resourceId);
       this.logger.debug('Optimistic lock released', {
@@ -477,7 +468,7 @@ export class OptimisticLockManager {
       if (now - lock.timestamp.getTime() > maxAgeMs) {
         this.locks.delete(resourceId);
         removed++;
-        
+
         this.logger.warn('Removed stale lock', {
           resourceId,
           holder: lock.holder,

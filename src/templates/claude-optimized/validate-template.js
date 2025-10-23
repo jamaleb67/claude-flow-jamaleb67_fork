@@ -17,7 +17,7 @@ const colors = {
   red: '\x1b[31m',
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
-  reset: '\x1b[0m'
+  reset: '\x1b[0m',
 };
 
 function log(message, color = 'reset') {
@@ -67,11 +67,7 @@ for (const file of manifest.files) {
 
 // Test 4: File content validation
 log('\n4. Validating file content...', 'blue');
-const sampleFiles = [
-  'commands/sparc.md',
-  'commands/sparc/architect.md',
-  'BATCHTOOLS_GUIDE.md'
-];
+const sampleFiles = ['commands/sparc.md', 'commands/sparc/architect.md', 'BATCHTOOLS_GUIDE.md'];
 
 for (const fileName of sampleFiles) {
   const filePath = path.join(TEMPLATE_DIR, fileName);
@@ -84,25 +80,31 @@ for (const fileName of sampleFiles) {
 
 // Test 5: Command structure validation
 log('\n5. Validating command structure...', 'blue');
-const sparcCommands = manifest.files.filter(f => f.category === 'sparc-mode');
-for (const cmd of sparcCommands.slice(0, 3)) { // Test first 3 commands
+const sparcCommands = manifest.files.filter((f) => f.category === 'sparc-mode');
+for (const cmd of sparcCommands.slice(0, 3)) {
+  // Test first 3 commands
   const filePath = path.join(TEMPLATE_DIR, cmd.destination);
   if (fs.existsSync(filePath)) {
     const content = fs.readFileSync(filePath, 'utf8');
-    test(`${cmd.destination} has proper structure`, 
-      content.includes('## Instructions') || content.includes('You are'));
+    test(
+      `${cmd.destination} has proper structure`,
+      content.includes('## Instructions') || content.includes('You are'),
+    );
   }
 }
 
 // Test 6: Test files validation
 log('\n6. Validating test files...', 'blue');
-const testFiles = manifest.files.filter(f => f.category === 'test');
-for (const testFile of testFiles.slice(0, 3)) { // Test first 3 test files
+const testFiles = manifest.files.filter((f) => f.category === 'test');
+for (const testFile of testFiles.slice(0, 3)) {
+  // Test first 3 test files
   const filePath = path.join(TEMPLATE_DIR, testFile.destination);
   if (fs.existsSync(filePath)) {
     const content = fs.readFileSync(filePath, 'utf8');
-    test(`${testFile.destination} has test structure`, 
-      content.includes('describe') || content.includes('test') || content.includes('it'));
+    test(
+      `${testFile.destination} has test structure`,
+      content.includes('describe') || content.includes('test') || content.includes('it'),
+    );
   }
 }
 
@@ -117,10 +119,13 @@ if (fs.existsSync(versionFile)) {
 // Test 8: File counts
 log('\n8. Validating file counts...', 'blue');
 for (const [category, info] of Object.entries(manifest.categories)) {
-  const actualCount = manifest.files.filter(f => f.category === category).length;
+  const actualCount = manifest.files.filter((f) => f.category === category).length;
   // Allow some flexibility in counts as they might have been updated
   const countMatches = Math.abs(actualCount - info.count) <= 2;
-  test(`${category} file count approximately correct (${actualCount} vs ${info.count})`, countMatches);
+  test(
+    `${category} file count approximately correct (${actualCount} vs ${info.count})`,
+    countMatches,
+  );
 }
 
 // Test 9: Installation timestamp
@@ -136,7 +141,10 @@ log(`  Passed: ${passedTests}`, passedTests === totalTests ? 'green' : 'yellow')
 log(`  Failed: ${totalTests - passedTests}`, totalTests - passedTests === 0 ? 'green' : 'red');
 
 const percentage = Math.round((passedTests / totalTests) * 100);
-log(`  Success rate: ${percentage}%`, percentage >= 90 ? 'green' : percentage >= 70 ? 'yellow' : 'red');
+log(
+  `  Success rate: ${percentage}%`,
+  percentage >= 90 ? 'green' : percentage >= 70 ? 'yellow' : 'red',
+);
 
 if (passedTests === totalTests) {
   log('\n🎉 Template validation passed! All files are properly installed.', 'green');
@@ -150,9 +158,11 @@ if (passedTests === totalTests) {
 log('\nTemplate Information:', 'blue');
 log(`  Version: ${manifest.version}`);
 log(`  Total files: ${manifest.files.length}`);
-log(`  Documentation files: ${manifest.files.filter(f => f.category === 'documentation').length}`);
-log(`  Command files: ${manifest.files.filter(f => f.category === 'command').length}`);
-log(`  SPARC mode files: ${manifest.files.filter(f => f.category === 'sparc-mode').length}`);
-log(`  Test files: ${manifest.files.filter(f => f.category === 'test').length}`);
+log(
+  `  Documentation files: ${manifest.files.filter((f) => f.category === 'documentation').length}`,
+);
+log(`  Command files: ${manifest.files.filter((f) => f.category === 'command').length}`);
+log(`  SPARC mode files: ${manifest.files.filter((f) => f.category === 'sparc-mode').length}`);
+log(`  Test files: ${manifest.files.filter((f) => f.category === 'test').length}`);
 
 process.exit(passedTests === totalTests ? 0 : 1);

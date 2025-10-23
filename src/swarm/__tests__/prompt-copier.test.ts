@@ -15,10 +15,10 @@ describe('PromptCopier', () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'prompt-test-'));
     sourceDir = path.join(tempDir, 'source');
     destDir = path.join(tempDir, 'dest');
-    
+
     await fs.mkdir(sourceDir, { recursive: true });
     await fs.mkdir(destDir, { recursive: true });
-    
+
     // Create test files
     await createTestFiles();
   });
@@ -34,13 +34,13 @@ describe('PromptCopier', () => {
       { path: 'subdir/test3.md', content: '## Nested Prompt\nNested content' },
       { path: 'large.md', content: 'Large content\n'.repeat(1000) },
       { path: 'empty.md', content: '' },
-      { path: 'rules.md', content: '# Rules\nYou are an AI assistant.' }
+      { path: 'rules.md', content: '# Rules\nYou are an AI assistant.' },
     ];
 
     for (const file of testFiles) {
       const filePath = path.join(sourceDir, file.path);
       const dir = path.dirname(filePath);
-      
+
       await fs.mkdir(dir, { recursive: true });
       await fs.writeFile(filePath, file.content);
     }
@@ -50,7 +50,7 @@ describe('PromptCopier', () => {
     test('should copy all matching files', async () => {
       const result = await copyPrompts({
         source: sourceDir,
-        destination: destDir
+        destination: destDir,
       });
 
       expect(result.success).toBe(true);
@@ -66,7 +66,7 @@ describe('PromptCopier', () => {
       const result = await copyPrompts({
         source: sourceDir,
         destination: destDir,
-        includePatterns: ['*.md']
+        includePatterns: ['*.md'],
       });
 
       expect(result.success).toBe(true);
@@ -77,7 +77,7 @@ describe('PromptCopier', () => {
       const result = await copyPrompts({
         source: sourceDir,
         destination: destDir,
-        excludePatterns: ['**/subdir/**']
+        excludePatterns: ['**/subdir/**'],
       });
 
       expect(result.success).toBe(true);
@@ -93,7 +93,7 @@ describe('PromptCopier', () => {
       const result = await copyPrompts({
         source: sourceDir,
         destination: destDir,
-        conflictResolution: 'skip'
+        conflictResolution: 'skip',
       });
 
       expect(result.success).toBe(true);
@@ -111,7 +111,7 @@ describe('PromptCopier', () => {
       const result = await copyPrompts({
         source: sourceDir,
         destination: destDir,
-        conflictResolution: 'backup'
+        conflictResolution: 'backup',
       });
 
       expect(result.success).toBe(true);
@@ -119,7 +119,10 @@ describe('PromptCopier', () => {
 
       // Verify backup directory exists
       const backupDir = path.join(destDir, '.prompt-backups');
-      const backupExists = await fs.access(backupDir).then(() => true).catch(() => false);
+      const backupExists = await fs
+        .access(backupDir)
+        .then(() => true)
+        .catch(() => false);
       expect(backupExists).toBe(true);
     });
 
@@ -130,7 +133,7 @@ describe('PromptCopier', () => {
       const result = await copyPrompts({
         source: sourceDir,
         destination: destDir,
-        conflictResolution: 'merge'
+        conflictResolution: 'merge',
       });
 
       expect(result.success).toBe(true);
@@ -148,7 +151,7 @@ describe('PromptCopier', () => {
       const result = await copyPrompts({
         source: sourceDir,
         destination: destDir,
-        verify: true
+        verify: true,
       });
 
       expect(result.success).toBe(true);
@@ -169,7 +172,7 @@ describe('PromptCopier', () => {
       const result = await copyPrompts({
         source: sourceDir,
         destination: destDir,
-        verify: true
+        verify: true,
       });
 
       expect(result.errors.length).toBeGreaterThan(0);
@@ -184,7 +187,7 @@ describe('PromptCopier', () => {
       const result = await copyPrompts({
         source: sourceDir,
         destination: destDir,
-        dryRun: true
+        dryRun: true,
       });
 
       expect(result.success).toBe(true);
@@ -205,7 +208,7 @@ describe('PromptCopier', () => {
         destination: destDir,
         progressCallback: (progress) => {
           progressUpdates.push(progress);
-        }
+        },
       });
 
       expect(progressUpdates.length).toBeGreaterThan(0);
@@ -223,16 +226,13 @@ describe('EnhancedPromptCopier', () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'enhanced-test-'));
     sourceDir = path.join(tempDir, 'source');
     destDir = path.join(tempDir, 'dest');
-    
+
     await fs.mkdir(sourceDir, { recursive: true });
     await fs.mkdir(destDir, { recursive: true });
-    
+
     // Create test files
     for (let i = 0; i < 20; i++) {
-      await fs.writeFile(
-        path.join(sourceDir, `test${i}.md`),
-        `# Test ${i}\nContent for test ${i}`
-      );
+      await fs.writeFile(path.join(sourceDir, `test${i}.md`), `# Test ${i}\nContent for test ${i}`);
     }
   });
 
@@ -245,7 +245,7 @@ describe('EnhancedPromptCopier', () => {
       source: sourceDir,
       destination: destDir,
       parallel: true,
-      maxWorkers: 4
+      maxWorkers: 4,
     });
 
     expect(result.success).toBe(true);
@@ -282,9 +282,9 @@ describe('PromptConfigManager', () => {
 
   test('should save and load custom config', async () => {
     const manager = new PromptConfigManager(configPath);
-    
+
     await manager.saveConfig({
-      destinationDirectory: './custom-prompts'
+      destinationDirectory: './custom-prompts',
     });
 
     const config = await manager.loadConfig();
@@ -352,7 +352,7 @@ version: 1.0
 
 # Test Prompt
 Content here`;
-    
+
     await fs.writeFile(filePath, content);
 
     const result = await PromptValidator.validatePromptFile(filePath);
@@ -365,7 +365,7 @@ Content here`;
   test('should warn about large files', async () => {
     const filePath = path.join(tempDir, 'large.md');
     const largeContent = '# Large Prompt\n' + 'x'.repeat(200 * 1024); // 200KB
-    
+
     await fs.writeFile(filePath, largeContent);
 
     const result = await PromptValidator.validatePromptFile(filePath);

@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 import { EventEmitter } from 'events';
 import { writeFile, readFile, mkdir, readdir } from 'fs/promises';
 import { join } from 'path';
@@ -311,7 +310,12 @@ export interface CostAlert {
 
 export interface CostOptimization {
   id: string;
-  type: 'rightsizing' | 'scheduling' | 'reserved-instances' | 'spot-instances' | 'storage-optimization';
+  type:
+    | 'rightsizing'
+    | 'scheduling'
+    | 'reserved-instances'
+    | 'spot-instances'
+    | 'storage-optimization';
   description: string;
   potentialSavings: number;
   implementation: string;
@@ -390,11 +394,7 @@ export class CloudManager extends EventEmitter {
   private logger: Logger;
   private config: ConfigManager;
 
-  constructor(
-    cloudPath: string = './cloud',
-    logger?: Logger,
-    config?: ConfigManager
-  ) {
+  constructor(cloudPath: string = './cloud', logger?: Logger, config?: ConfigManager) {
     super();
     this.cloudPath = cloudPath;
     this.logger = logger || new Logger({ level: 'info', format: 'text', destination: 'console' });
@@ -408,10 +408,10 @@ export class CloudManager extends EventEmitter {
       await mkdir(join(this.cloudPath, 'resources'), { recursive: true });
       await mkdir(join(this.cloudPath, 'infrastructures'), { recursive: true });
       await mkdir(join(this.cloudPath, 'templates'), { recursive: true });
-      
+
       await this.loadConfigurations();
       await this.initializeDefaultProviders();
-      
+
       this.logger.info('Cloud Manager initialized successfully');
     } catch (error) {
       this.logger.error('Failed to initialize Cloud Manager', { error });
@@ -431,7 +431,7 @@ export class CloudManager extends EventEmitter {
         services: [],
         endpoints: {},
         features: [],
-        ...providerData.configuration
+        ...providerData.configuration,
       },
       status: 'inactive',
       quotas: {
@@ -439,18 +439,18 @@ export class CloudManager extends EventEmitter {
         storage: 1000,
         bandwidth: 1000,
         requests: 1000000,
-        ...providerData.quotas
+        ...providerData.quotas,
       },
       pricing: {
         currency: 'USD',
-        computePerHour: 0.10,
+        computePerHour: 0.1,
         storagePerGB: 0.023,
         bandwidthPerGB: 0.09,
         requestsPer1000: 0.0004,
-        ...providerData.pricing
+        ...providerData.pricing,
       },
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     // Validate credentials
@@ -502,27 +502,31 @@ export class CloudManager extends EventEmitter {
         volumes: [],
         networks: [],
         tags: {},
-        ...resourceData.configuration
+        ...resourceData.configuration,
       },
       monitoring: {
         enabled: true,
         metrics: [],
         alerts: [],
-        healthChecks: []
+        healthChecks: [],
       },
       security: {
         encryption: true,
         backups: true,
         accessControl: [],
         vulnerabilityScanning: true,
-        complianceFrameworks: []
+        complianceFrameworks: [],
       },
       costs: {
-        hourlyRate: this.calculateResourceCost(provider, resourceData.type, resourceData.configuration.size || 'small'),
+        hourlyRate: this.calculateResourceCost(
+          provider,
+          resourceData.type,
+          resourceData.configuration.size || 'small',
+        ),
         monthlyEstimate: 0,
         actualSpend: 0,
         lastBillingDate: new Date(),
-        costBreakdown: {}
+        costBreakdown: {},
       },
       performance: {
         cpu: 0,
@@ -530,18 +534,18 @@ export class CloudManager extends EventEmitter {
         storage: 0,
         network: 0,
         uptime: 100,
-        availability: 100
+        availability: 100,
       },
       metadata: {
         environment: 'development',
         owner: 'system',
         purpose: 'general',
         lifecycle: 'permanent',
-        ...resourceData.metadata
+        ...resourceData.metadata,
       },
       createdAt: new Date(),
       updatedAt: new Date(),
-      auditLog: []
+      auditLog: [],
     };
 
     // Calculate monthly estimate
@@ -550,7 +554,7 @@ export class CloudManager extends EventEmitter {
     this.addAuditEntry(resource, resource.metadata.owner, 'resource_created', 'resource', {
       resourceId: resource.id,
       resourceName: resource.name,
-      providerId: resourceData.providerId
+      providerId: resourceData.providerId,
     });
 
     this.resources.set(resource.id, resource);
@@ -585,13 +589,13 @@ export class CloudManager extends EventEmitter {
         loadBalancers: [],
         databases: [],
         caches: [],
-        queues: []
+        queues: [],
       },
       deployment: {
         strategy: 'terraform',
         template: infrastructureData.template,
         parameters: infrastructureData.parameters,
-        deploymentHistory: []
+        deploymentHistory: [],
       },
       monitoring: {
         dashboard: '',
@@ -599,27 +603,27 @@ export class CloudManager extends EventEmitter {
         sla: {
           availability: 99.9,
           responseTime: 200,
-          errorRate: 0.1
-        }
+          errorRate: 0.1,
+        },
       },
       costs: {
         budgetLimit: 1000,
         currentSpend: 0,
         projectedSpend: 0,
         costAlerts: [],
-        optimization: []
+        optimization: [],
       },
       compliance: {
         frameworks: [],
         requirements: [],
         lastAudit: new Date(),
-        nextAudit: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) // 90 days
+        nextAudit: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days
       },
       backup: {
         enabled: true,
         schedule: '0 2 * * *', // Daily at 2 AM
         retention: '30d',
-        backupLocations: []
+        backupLocations: [],
       },
       disaster_recovery: {
         enabled: false,
@@ -629,7 +633,7 @@ export class CloudManager extends EventEmitter {
         testFrequency: 'quarterly',
       },
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     this.infrastructures.set(infrastructure.id, infrastructure);
@@ -667,7 +671,7 @@ export class CloudManager extends EventEmitter {
         changes: ['Initial deployment'],
         status: 'success',
         duration,
-        deployedBy: userId
+        deployedBy: userId,
       };
 
       infrastructure.deployment.deploymentHistory.push(deployment);
@@ -677,8 +681,9 @@ export class CloudManager extends EventEmitter {
       await this.saveInfrastructure(infrastructure);
 
       this.emit('infrastructure:deployment_completed', { infrastructure, deployment });
-      this.logger.info(`Infrastructure deployment completed: ${infrastructure.name} in ${duration}ms`);
-
+      this.logger.info(
+        `Infrastructure deployment completed: ${infrastructure.name} in ${duration}ms`,
+      );
     } catch (error) {
       const endTime = new Date();
       const duration = endTime.getTime() - startTime.getTime();
@@ -690,7 +695,7 @@ export class CloudManager extends EventEmitter {
         changes: ['Failed deployment'],
         status: 'failed',
         duration,
-        deployedBy: userId
+        deployedBy: userId,
       };
 
       infrastructure.deployment.deploymentHistory.push(deployment);
@@ -705,25 +710,23 @@ export class CloudManager extends EventEmitter {
     }
   }
 
-  async optimizeCosts(
-    filters?: {
-      providerId?: string;
-      environment?: string;
-      resourceType?: string;
-    }
-  ): Promise<CostOptimization[]> {
+  async optimizeCosts(filters?: {
+    providerId?: string;
+    environment?: string;
+    resourceType?: string;
+  }): Promise<CostOptimization[]> {
     let resources = Array.from(this.resources.values());
 
     // Apply filters
     if (filters) {
       if (filters.providerId) {
-        resources = resources.filter(r => r.providerId === filters.providerId);
+        resources = resources.filter((r) => r.providerId === filters.providerId);
       }
       if (filters.environment) {
-        resources = resources.filter(r => r.metadata.environment === filters.environment);
+        resources = resources.filter((r) => r.metadata.environment === filters.environment);
       }
       if (filters.resourceType) {
-        resources = resources.filter(r => r.type === filters.resourceType);
+        resources = resources.filter((r) => r.type === filters.resourceType);
       }
     }
 
@@ -740,7 +743,7 @@ export class CloudManager extends EventEmitter {
           implementation: 'Downsize instance to smaller type',
           effort: 'low',
           priority: 'medium',
-          status: 'identified'
+          status: 'identified',
         });
       }
 
@@ -754,7 +757,7 @@ export class CloudManager extends EventEmitter {
           implementation: 'Implement auto-scaling schedule (8 AM - 6 PM weekdays)',
           effort: 'medium',
           priority: 'high',
-          status: 'identified'
+          status: 'identified',
         });
       }
 
@@ -768,7 +771,7 @@ export class CloudManager extends EventEmitter {
           implementation: 'Reduce storage allocation and implement lifecycle policies',
           effort: 'low',
           priority: 'medium',
-          status: 'identified'
+          status: 'identified',
         });
       }
     }
@@ -776,35 +779,34 @@ export class CloudManager extends EventEmitter {
     // Sort by potential savings
     optimizations.sort((a, b) => b.potentialSavings - a.potentialSavings);
 
-    this.logger.info(`Cost optimization analysis completed: ${optimizations.length} opportunities identified`);
+    this.logger.info(
+      `Cost optimization analysis completed: ${optimizations.length} opportunities identified`,
+    );
     this.emit('cost_optimization:analyzed', { optimizations, resourceCount: resources.length });
 
     return optimizations;
   }
 
-  async getCloudMetrics(
-    filters?: {
-      providerId?: string;
-      environment?: string;
-      timeRange?: { start: Date; end: Date };
-    }
-  ): Promise<CloudMetrics> {
+  async getCloudMetrics(filters?: {
+    providerId?: string;
+    environment?: string;
+    timeRange?: { start: Date; end: Date };
+  }): Promise<CloudMetrics> {
     let resources = Array.from(this.resources.values());
     let providers = Array.from(this.providers.values());
 
     // Apply filters
     if (filters) {
       if (filters.providerId) {
-        resources = resources.filter(r => r.providerId === filters.providerId);
-        providers = providers.filter(p => p.id === filters.providerId);
+        resources = resources.filter((r) => r.providerId === filters.providerId);
+        providers = providers.filter((p) => p.id === filters.providerId);
       }
       if (filters.environment) {
-        resources = resources.filter(r => r.metadata.environment === filters.environment);
+        resources = resources.filter((r) => r.metadata.environment === filters.environment);
       }
       if (filters.timeRange) {
-        resources = resources.filter(r => 
-          r.createdAt >= filters.timeRange!.start && 
-          r.createdAt <= filters.timeRange!.end
+        resources = resources.filter(
+          (r) => r.createdAt >= filters.timeRange!.start && r.createdAt <= filters.timeRange!.end,
         );
       }
     }
@@ -812,9 +814,9 @@ export class CloudManager extends EventEmitter {
     // Provider metrics
     const providerMetrics = {
       total: providers.length,
-      active: providers.filter(p => p.status === 'active').length,
-      inactive: providers.filter(p => p.status === 'inactive').length,
-      errors: providers.filter(p => p.status === 'error').length
+      active: providers.filter((p) => p.status === 'active').length,
+      inactive: providers.filter((p) => p.status === 'inactive').length,
+      errors: providers.filter((p) => p.status === 'error').length,
     };
 
     // Resource metrics
@@ -824,18 +826,20 @@ export class CloudManager extends EventEmitter {
 
     for (const resource of resources) {
       resourcesByType[resource.type] = (resourcesByType[resource.type] || 0) + 1;
-      resourcesByProvider[resource.providerId] = (resourcesByProvider[resource.providerId] || 0) + 1;
-      resourcesByEnvironment[resource.metadata.environment] = (resourcesByEnvironment[resource.metadata.environment] || 0) + 1;
+      resourcesByProvider[resource.providerId] =
+        (resourcesByProvider[resource.providerId] || 0) + 1;
+      resourcesByEnvironment[resource.metadata.environment] =
+        (resourcesByEnvironment[resource.metadata.environment] || 0) + 1;
     }
 
     const resourceMetrics = {
       total: resources.length,
-      running: resources.filter(r => r.status === 'running').length,
-      stopped: resources.filter(r => r.status === 'stopped').length,
-      errors: resources.filter(r => r.status === 'error').length,
+      running: resources.filter((r) => r.status === 'running').length,
+      stopped: resources.filter((r) => r.status === 'stopped').length,
+      errors: resources.filter((r) => r.status === 'error').length,
       byType: resourcesByType,
       byProvider: resourcesByProvider,
-      byEnvironment: resourcesByEnvironment
+      byEnvironment: resourcesByEnvironment,
     };
 
     // Cost metrics
@@ -844,7 +848,7 @@ export class CloudManager extends EventEmitter {
     const projectedSpend = monthlySpend * 12;
 
     const topSpenders = resources
-      .map(r => ({ resourceId: r.id, cost: r.costs.actualSpend }))
+      .map((r) => ({ resourceId: r.id, cost: r.costs.actualSpend }))
       .sort((a, b) => b.cost - a.cost)
       .slice(0, 10);
 
@@ -852,8 +856,10 @@ export class CloudManager extends EventEmitter {
     const costByEnvironment: Record<string, number> = {};
 
     for (const resource of resources) {
-      costByProvider[resource.providerId] = (costByProvider[resource.providerId] || 0) + resource.costs.actualSpend;
-      costByEnvironment[resource.metadata.environment] = (costByEnvironment[resource.metadata.environment] || 0) + resource.costs.actualSpend;
+      costByProvider[resource.providerId] =
+        (costByProvider[resource.providerId] || 0) + resource.costs.actualSpend;
+      costByEnvironment[resource.metadata.environment] =
+        (costByEnvironment[resource.metadata.environment] || 0) + resource.costs.actualSpend;
     }
 
     const costMetrics = {
@@ -866,38 +872,42 @@ export class CloudManager extends EventEmitter {
       optimization: {
         potentialSavings: 0,
         implementedSavings: 0,
-        opportunities: 0
-      }
+        opportunities: 0,
+      },
     };
 
     // Performance metrics
     const performanceMetrics = {
-      averageUptime: resources.length > 0 ? 
-        resources.reduce((sum, r) => sum + r.performance.uptime, 0) / resources.length : 0,
+      averageUptime:
+        resources.length > 0
+          ? resources.reduce((sum, r) => sum + r.performance.uptime, 0) / resources.length
+          : 0,
       averageResponseTime: 0, // Would be calculated from actual metrics
       errorRate: 0, // Would be calculated from actual metrics
-      availability: resources.length > 0 ?
-        resources.reduce((sum, r) => sum + r.performance.availability, 0) / resources.length : 0
+      availability:
+        resources.length > 0
+          ? resources.reduce((sum, r) => sum + r.performance.availability, 0) / resources.length
+          : 0,
     };
 
     // Security metrics
-    const encryptedResources = resources.filter(r => r.security.encryption).length;
-    const backedUpResources = resources.filter(r => r.security.backups).length;
+    const encryptedResources = resources.filter((r) => r.security.encryption).length;
+    const backedUpResources = resources.filter((r) => r.security.backups).length;
 
     const securityMetrics = {
       vulnerabilities: {
         critical: 0,
         high: 0,
         medium: 0,
-        low: 0
+        low: 0,
       },
       compliance: {
         compliant: 0,
         nonCompliant: 0,
-        pending: 0
+        pending: 0,
       },
       encryptionCoverage: resources.length > 0 ? (encryptedResources / resources.length) * 100 : 0,
-      backupCoverage: resources.length > 0 ? (backedUpResources / resources.length) * 100 : 0
+      backupCoverage: resources.length > 0 ? (backedUpResources / resources.length) * 100 : 0,
     };
 
     return {
@@ -905,7 +915,7 @@ export class CloudManager extends EventEmitter {
       resources: resourceMetrics,
       costs: costMetrics,
       performance: performanceMetrics,
-      security: securityMetrics
+      security: securityMetrics,
     };
   }
 
@@ -922,7 +932,7 @@ export class CloudManager extends EventEmitter {
         targetMemory: number;
       };
     },
-    userId: string = 'system'
+    userId: string = 'system',
   ): Promise<void> {
     const resource = this.resources.get(resourceId);
     if (!resource) {
@@ -933,11 +943,15 @@ export class CloudManager extends EventEmitter {
 
     if (scalingConfig.size) {
       resource.configuration.size = scalingConfig.size;
-      
+
       // Update cost calculation
       const provider = this.providers.get(resource.providerId);
       if (provider) {
-        resource.costs.hourlyRate = this.calculateResourceCost(provider, resource.type, scalingConfig.size);
+        resource.costs.hourlyRate = this.calculateResourceCost(
+          provider,
+          resource.type,
+          scalingConfig.size,
+        );
         resource.costs.monthlyEstimate = resource.costs.hourlyRate * 24 * 30;
       }
     }
@@ -956,7 +970,7 @@ export class CloudManager extends EventEmitter {
       resourceId,
       oldConfiguration,
       newConfiguration: resource.configuration,
-      scalingConfig
+      scalingConfig,
     });
 
     await this.saveResource(resource);
@@ -977,7 +991,7 @@ export class CloudManager extends EventEmitter {
 
     this.addAuditEntry(resource, userId, 'resource_deleted', 'resource', {
       resourceId,
-      resourceName: resource.name
+      resourceName: resource.name,
     });
 
     // Perform cloud provider cleanup
@@ -994,7 +1008,7 @@ export class CloudManager extends EventEmitter {
     try {
       // Load providers
       const providerFiles = await readdir(join(this.cloudPath, 'providers'));
-      for (const file of providerFiles.filter(f => f.endsWith('.json'))) {
+      for (const file of providerFiles.filter((f) => f.endsWith('.json'))) {
         const content = await readFile(join(this.cloudPath, 'providers', file), 'utf-8');
         const provider: CloudProvider = JSON.parse(content);
         this.providers.set(provider.id, provider);
@@ -1002,7 +1016,7 @@ export class CloudManager extends EventEmitter {
 
       // Load resources
       const resourceFiles = await readdir(join(this.cloudPath, 'resources'));
-      for (const file of resourceFiles.filter(f => f.endsWith('.json'))) {
+      for (const file of resourceFiles.filter((f) => f.endsWith('.json'))) {
         const content = await readFile(join(this.cloudPath, 'resources', file), 'utf-8');
         const resource: CloudResource = JSON.parse(content);
         this.resources.set(resource.id, resource);
@@ -1010,13 +1024,15 @@ export class CloudManager extends EventEmitter {
 
       // Load infrastructures
       const infraFiles = await readdir(join(this.cloudPath, 'infrastructures'));
-      for (const file of infraFiles.filter(f => f.endsWith('.json'))) {
+      for (const file of infraFiles.filter((f) => f.endsWith('.json'))) {
         const content = await readFile(join(this.cloudPath, 'infrastructures', file), 'utf-8');
         const infrastructure: CloudInfrastructure = JSON.parse(content);
         this.infrastructures.set(infrastructure.id, infrastructure);
       }
 
-      this.logger.info(`Loaded ${this.providers.size} providers, ${this.resources.size} resources, ${this.infrastructures.size} infrastructures`);
+      this.logger.info(
+        `Loaded ${this.providers.size} providers, ${this.resources.size} resources, ${this.infrastructures.size} infrastructures`,
+      );
     } catch (error) {
       this.logger.warn('Failed to load some cloud configurations', { error });
     }
@@ -1034,17 +1050,17 @@ export class CloudManager extends EventEmitter {
           endpoints: {
             ec2: 'https://ec2.amazonaws.com',
             s3: 'https://s3.amazonaws.com',
-            rds: 'https://rds.amazonaws.com'
+            rds: 'https://rds.amazonaws.com',
           },
-          features: ['auto-scaling', 'load-balancing', 'monitoring', 'backup']
+          features: ['auto-scaling', 'load-balancing', 'monitoring', 'backup'],
         },
         pricing: {
           currency: 'USD',
-          computePerHour: 0.10,
+          computePerHour: 0.1,
           storagePerGB: 0.023,
           bandwidthPerGB: 0.09,
-          requestsPer1000: 0.0004
-        }
+          requestsPer1000: 0.0004,
+        },
       },
       {
         name: 'Google Cloud Platform',
@@ -1056,17 +1072,17 @@ export class CloudManager extends EventEmitter {
           endpoints: {
             compute: 'https://compute.googleapis.com',
             storage: 'https://storage.googleapis.com',
-            sql: 'https://sqladmin.googleapis.com'
+            sql: 'https://sqladmin.googleapis.com',
           },
-          features: ['auto-scaling', 'load-balancing', 'monitoring', 'backup']
+          features: ['auto-scaling', 'load-balancing', 'monitoring', 'backup'],
         },
         pricing: {
           currency: 'USD',
           computePerHour: 0.095,
-          storagePerGB: 0.020,
+          storagePerGB: 0.02,
           bandwidthPerGB: 0.08,
-          requestsPer1000: 0.0004
-        }
+          requestsPer1000: 0.0004,
+        },
       },
       {
         name: 'Microsoft Azure',
@@ -1078,22 +1094,22 @@ export class CloudManager extends EventEmitter {
           endpoints: {
             compute: 'https://management.azure.com',
             storage: 'https://management.azure.com',
-            sql: 'https://management.azure.com'
+            sql: 'https://management.azure.com',
           },
-          features: ['auto-scaling', 'load-balancing', 'monitoring', 'backup']
+          features: ['auto-scaling', 'load-balancing', 'monitoring', 'backup'],
         },
         pricing: {
           currency: 'USD',
           computePerHour: 0.096,
           storagePerGB: 0.024,
           bandwidthPerGB: 0.087,
-          requestsPer1000: 0.0004
-        }
-      }
+          requestsPer1000: 0.0004,
+        },
+      },
     ];
 
     for (const providerData of defaultProviders) {
-      if (!Array.from(this.providers.values()).some(p => p.name === providerData.name)) {
+      if (!Array.from(this.providers.values()).some((p) => p.name === providerData.name)) {
         const provider: CloudProvider = {
           id: `provider-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           name: providerData.name,
@@ -1105,11 +1121,11 @@ export class CloudManager extends EventEmitter {
             computeInstances: 20,
             storage: 1000,
             bandwidth: 1000,
-            requests: 1000000
+            requests: 1000000,
           },
           pricing: providerData.pricing,
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
 
         this.providers.set(provider.id, provider);
@@ -1152,25 +1168,25 @@ export class CloudManager extends EventEmitter {
 
   private calculateResourceCost(provider: CloudProvider, type: string, size: string): number {
     const baseHourlyRate = provider.pricing.computePerHour;
-    
+
     const sizeMultipliers: Record<string, number> = {
-      'nano': 0.5,
-      'micro': 0.75,
-      'small': 1.0,
-      'medium': 2.0,
-      'large': 4.0,
-      'xlarge': 8.0,
+      nano: 0.5,
+      micro: 0.75,
+      small: 1.0,
+      medium: 2.0,
+      large: 4.0,
+      xlarge: 8.0,
       '2xlarge': 16.0,
-      '4xlarge': 32.0
+      '4xlarge': 32.0,
     };
 
     const typeMultipliers: Record<string, number> = {
-      'compute': 1.0,
-      'storage': 0.1,
-      'database': 1.5,
-      'cache': 0.8,
-      'network': 0.3,
-      'function': 0.01
+      compute: 1.0,
+      storage: 0.1,
+      database: 1.5,
+      cache: 0.8,
+      network: 0.3,
+      function: 0.01,
     };
 
     const sizeMultiplier = sizeMultipliers[size] || 1.0;
@@ -1199,7 +1215,7 @@ export class CloudManager extends EventEmitter {
     userId: string,
     action: string,
     target: string,
-    details: Record<string, any>
+    details: Record<string, any>,
   ): void {
     const entry: CloudAuditEntry = {
       id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -1207,7 +1223,7 @@ export class CloudManager extends EventEmitter {
       userId,
       action,
       resource: target,
-      details
+      details,
     };
 
     resource.auditLog.push(entry);
@@ -1216,27 +1232,26 @@ export class CloudManager extends EventEmitter {
   private async provisionResource(resource: CloudResource): Promise<void> {
     try {
       this.logger.info(`Provisioning resource: ${resource.name}`);
-      
+
       // Simulate provisioning process
       resource.status = 'running';
       resource.updatedAt = new Date();
-      
+
       // Update performance metrics
       resource.performance.cpu = Math.random() * 50 + 20; // 20-70%
       resource.performance.memory = Math.random() * 60 + 30; // 30-90%
       resource.performance.storage = Math.random() * 80 + 10; // 10-90%
       resource.performance.network = Math.random() * 100; // 0-100 Mbps
-      
+
       await this.saveResource(resource);
-      
+
       this.emit('resource:provisioned', resource);
       this.logger.info(`Resource provisioned successfully: ${resource.name}`);
-      
     } catch (error) {
       resource.status = 'error';
       resource.updatedAt = new Date();
       await this.saveResource(resource);
-      
+
       this.emit('resource:provision_failed', { resource, error });
       this.logger.error(`Resource provisioning failed: ${resource.name}`, { error });
       throw error;
@@ -1246,13 +1261,12 @@ export class CloudManager extends EventEmitter {
   private async deprovisionResource(resource: CloudResource): Promise<void> {
     try {
       this.logger.info(`Deprovisioning resource: ${resource.name}`);
-      
+
       // Implement cloud provider-specific deprovisioning logic
       // This would typically involve API calls to delete the resource
-      
+
       this.emit('resource:deprovisioned', resource);
       this.logger.info(`Resource deprovisioned successfully: ${resource.name}`);
-      
     } catch (error) {
       this.emit('resource:deprovision_failed', { resource, error });
       this.logger.error(`Resource deprovisioning failed: ${resource.name}`, { error });
@@ -1260,7 +1274,9 @@ export class CloudManager extends EventEmitter {
     }
   }
 
-  private async executeInfrastructureDeployment(infrastructure: CloudInfrastructure): Promise<void> {
+  private async executeInfrastructureDeployment(
+    infrastructure: CloudInfrastructure,
+  ): Promise<void> {
     switch (infrastructure.deployment.strategy) {
       case 'terraform':
         await this.deployWithTerraform(infrastructure);
@@ -1279,51 +1295,51 @@ export class CloudManager extends EventEmitter {
   private async deployWithTerraform(infrastructure: CloudInfrastructure): Promise<void> {
     // Implement Terraform deployment logic
     this.logger.info(`Deploying infrastructure with Terraform: ${infrastructure.name}`);
-    
+
     // This would typically:
     // 1. Generate Terraform configuration from template
     // 2. Run terraform init
     // 3. Run terraform plan
     // 4. Run terraform apply
-    
+
     // Simulate deployment
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 
   private async deployWithCloudFormation(infrastructure: CloudInfrastructure): Promise<void> {
     // Implement CloudFormation deployment logic
     this.logger.info(`Deploying infrastructure with CloudFormation: ${infrastructure.name}`);
-    
+
     // This would typically:
     // 1. Upload template to S3
     // 2. Create or update CloudFormation stack
     // 3. Monitor stack events
     // 4. Wait for completion
-    
+
     // Simulate deployment
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 
   private async deployWithKubernetes(infrastructure: CloudInfrastructure): Promise<void> {
     // Implement Kubernetes deployment logic
     this.logger.info(`Deploying infrastructure with Kubernetes: ${infrastructure.name}`);
-    
+
     // This would typically:
     // 1. Generate Kubernetes manifests
     // 2. Apply manifests using kubectl or Kubernetes API
     // 3. Monitor deployment status
     // 4. Wait for all resources to be ready
-    
+
     // Simulate deployment
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 
   private async deployWithCustomStrategy(infrastructure: CloudInfrastructure): Promise<void> {
     // Implement custom deployment logic
     this.logger.info(`Deploying infrastructure with custom strategy: ${infrastructure.name}`);
-    
+
     // This would be defined by the user's custom deployment script
     // Simulate deployment
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 }

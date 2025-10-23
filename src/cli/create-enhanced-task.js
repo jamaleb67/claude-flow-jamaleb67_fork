@@ -107,18 +107,26 @@ Bash("npx claude-flow status")
 Bash("npx claude-flow monitor")  # Real-time monitoring
 Bash("npx claude-flow agent list")
 Bash("npx claude-flow task list --verbose")
-${flags.parallel ? `
+${
+  flags.parallel
+    ? `
 # Parallel Execution (enabled for this instance)
 Bash("npx claude-flow agent spawn researcher --name research-bot")
 Bash("npx claude-flow agent spawn coder --name code-bot")
 Bash("npx claude-flow task create research 'Analyze best practices'")
 Bash("npx claude-flow task create implementation 'Implement auth module'")
-Bash("npx claude-flow task assign task-123 agent-456")` : ''}
-${flags.research ? `
+Bash("npx claude-flow task assign task-123 agent-456")`
+    : ''
+}
+${
+  flags.research
+    ? `
 # Research Operations (research mode enabled)
 # Use WebFetchTool for web research, then store findings
 Bash("npx claude-flow memory store web_research_urls '[\\"url1\\", \\"url2\\"]'")
-Bash("npx claude-flow memory store research_summary 'Key findings from research...'")` : ''}
+Bash("npx claude-flow memory store research_summary 'Key findings from research...'")`
+    : ''
+}
 
 # Configuration Management
 Bash("npx claude-flow config show")
@@ -131,30 +139,46 @@ Bash("npx claude-flow workflow examples/research-workflow.json --async")
 \`\`\`
 
 ## Mode-Specific Guidelines
-${flags.mode === 'backend-only' ? `
+${
+  flags.mode === 'backend-only'
+    ? `
 ### Backend-Only Mode
 - Focus exclusively on server-side implementation
 - Prioritize API design, database schemas, and business logic
 - Ignore frontend/UI considerations
-- Test coverage should emphasize unit and integration tests` : ''}
-${flags.mode === 'frontend-only' ? `
+- Test coverage should emphasize unit and integration tests`
+    : ''
+}
+${
+  flags.mode === 'frontend-only'
+    ? `
 ### Frontend-Only Mode
 - Focus exclusively on client-side implementation
 - Prioritize UI/UX, component design, and user interactions
 - Assume backend APIs are already available
-- Test coverage should emphasize component and E2E tests` : ''}
-${flags.mode === 'api-only' ? `
+- Test coverage should emphasize component and E2E tests`
+    : ''
+}
+${
+  flags.mode === 'api-only'
+    ? `
 ### API-Only Mode
 - Focus exclusively on API design and implementation
 - Prioritize RESTful principles, documentation, and contracts
 - Include comprehensive API documentation
-- Test coverage should emphasize API endpoint testing` : ''}
-${flags.mode === 'full' || !flags.mode ? `
+- Test coverage should emphasize API endpoint testing`
+    : ''
+}
+${
+  flags.mode === 'full' || !flags.mode
+    ? `
 ### Full Stack Mode (Default)
 - Consider both frontend and backend requirements
 - Ensure proper integration between all layers
 - Balance test coverage across all components
-- Document both API contracts and user interfaces` : ''}
+- Document both API contracts and user interfaces`
+    : ''
+}
 
 ## Commit Strategy
 ${flags.commit === 'phase' ? `- **Phase Commits**: Commit after completing major phases (planning, implementation, testing)` : ''}
@@ -163,17 +187,25 @@ ${flags.commit === 'manual' ? `- **Manual Commits**: Only commit when explicitly
 ${!flags.commit ? `- **Default (Phase)**: Commit after completing major phases` : ''}
 
 ## Additional Guidelines
-${flags.noPermissions ? `
+${
+  flags.noPermissions
+    ? `
 ### No-Permissions Mode
 - All file operations will execute without confirmation prompts
 - Be extra careful with destructive operations
-- Ensure all changes are intentional and well-tested` : ''}
-${flags.verbose ? `
+- Ensure all changes are intentional and well-tested`
+    : ''
+}
+${
+  flags.verbose
+    ? `
 ### Verbose Mode
 - Provide detailed explanations for all actions
 - Include reasoning behind technical decisions
 - Show intermediate steps and thought processes
-- Log all command outputs comprehensively` : ''}
+- Log all command outputs comprehensively`
+    : ''
+}
 
 Now, please proceed with the task: ${task}`;
 

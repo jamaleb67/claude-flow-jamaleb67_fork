@@ -1,6 +1,6 @@
 /**
  * Hive Mind Module Export
- * 
+ *
  * Main entry point for the Hive Mind collective intelligence system
  */
 

@@ -9,6 +9,7 @@ This guide helps you migrate the existing swarm system to use the new optimizati
 ### 1. Replace Synchronous Execution
 
 **Before:**
+
 ```typescript
 // In SwarmExecutor
 async executeTask(task: Task) {
@@ -19,6 +20,7 @@ async executeTask(task: Task) {
 ```
 
 **After:**
+
 ```typescript
 // Import optimizations
 import { OptimizedExecutor } from './optimizations/index.ts';
@@ -40,6 +42,7 @@ async executeTask(task: TaskDefinition, agentId: AgentId) {
 ### 2. Fix Memory Leaks
 
 **Before:**
+
 ```typescript
 // In SwarmCoordinator
 private eventHistory: Event[] = [];  // Unbounded
@@ -51,12 +54,13 @@ handleEvent(event: Event) {
 ```
 
 **After:**
+
 ```typescript
 import { CircularBuffer, TTLMap } from './optimizations/index.ts';
 
 // In SwarmCoordinator
 private eventHistory = new CircularBuffer<SwarmEvent>(1000);  // Max 1000 events
-private taskStates = new TTLMap<string, TaskDefinition>({ 
+private taskStates = new TTLMap<string, TaskDefinition>({
   defaultTTL: 3600000,  // 1 hour TTL
   maxSize: 10000        // Max 10k tasks
 });
@@ -79,6 +83,7 @@ completeTask(taskId: string) {
 ### 3. Update File Operations
 
 **Before:**
+
 ```typescript
 import { promises as fs } from 'fs';
 
@@ -88,6 +93,7 @@ async saveResult(path: string, data: any) {
 ```
 
 **After:**
+
 ```typescript
 import { AsyncFileManager } from './optimizations/index.ts';
 
@@ -101,6 +107,7 @@ async saveResult(path: string, data: any) {
 ## Phase 2: Agent Selection Optimization
 
 ### Current O(n²) Selection
+
 ```typescript
 // In SwarmCoordinator
 private selectAgent(task: TaskDefinition): AgentState | null {
@@ -116,6 +123,7 @@ private selectAgent(task: TaskDefinition): AgentState | null {
 ```
 
 ### Optimized O(1) Selection
+
 ```typescript
 // Add to SwarmCoordinator
 private agentCapabilityIndex = new Map<string, Set<string>>();  // capability -> agent IDs
@@ -134,22 +142,22 @@ private indexAgent(agent: AgentState) {
 // Optimized selection
 private selectAgent(task: TaskDefinition): AgentState | null {
   const cacheKey = `${task.type}-${task.requirements?.join(',')}`;
-  
+
   // Check cache
   const cachedAgentId = this.agentSelectionCache.get(cacheKey);
   if (cachedAgentId) {
     const agent = this.agents.get(cachedAgentId);
     if (agent?.status === 'idle') return agent;
   }
-  
+
   // Find eligible agents using index
   if (!task.requirements?.length) return null;
-  
+
   const eligibleAgentIds = new Set<string>();
   for (const requirement of task.requirements) {
     const agentsWithCapability = this.agentCapabilityIndex.get(requirement);
     if (!agentsWithCapability) return null;
-    
+
     if (eligibleAgentIds.size === 0) {
       agentsWithCapability.forEach(id => eligibleAgentIds.add(id));
     } else {
@@ -161,7 +169,7 @@ private selectAgent(task: TaskDefinition): AgentState | null {
       }
     }
   }
-  
+
   // Select best available agent
   for (const agentId of eligibleAgentIds) {
     const agent = this.agents.get(agentId);
@@ -170,7 +178,7 @@ private selectAgent(task: TaskDefinition): AgentState | null {
       return agent;
     }
   }
-  
+
   return null;
 }
 ```
@@ -178,12 +186,13 @@ private selectAgent(task: TaskDefinition): AgentState | null {
 ## Integration Points
 
 ### 1. Update SwarmCoordinator Constructor
+
 ```typescript
 constructor(config: Partial<SwarmConfig> = {}) {
   super();
-  
+
   // ... existing initialization ...
-  
+
   // Initialize optimizations
   this.initializeOptimizations();
 }
@@ -191,7 +200,7 @@ constructor(config: Partial<SwarmConfig> = {}) {
 private initializeOptimizations() {
   // Create optimized executor
   this.optimizedExecutor = new OptimizedExecutor({
-    connectionPool: { 
+    connectionPool: {
       min: this.config.performance?.minConnections || 2,
       max: this.config.performance?.maxConnections || 10
     },
@@ -201,7 +210,7 @@ private initializeOptimizations() {
       ttl: this.config.performance?.cacheTTL || 3600000
     }
   });
-  
+
   // Set up memory management
   this.events = new CircularBuffer(1000);
   this.tasks = new TTLMap({ defaultTTL: 3600000, maxSize: 10000 });
@@ -209,22 +218,23 @@ private initializeOptimizations() {
 ```
 
 ### 2. Update Task Execution
+
 ```typescript
 async executeTask(taskId: string): Promise<void> {
   const task = this.tasks.get(taskId);
   if (!task || !task.assignedTo) return;
-  
+
   const agent = this.agents.get(task.assignedTo.id);
   if (!agent) return;
-  
+
   try {
     // Use optimized executor
     const result = await this.optimizedExecutor.executeTask(task, agent.id);
-    
+
     // Update task with result
     task.result = result;
     task.status = 'completed';
-    
+
     // Emit completion event
     this.emitSwarmEvent({
       type: 'task.completed',
@@ -281,6 +291,7 @@ if (USE_OPTIMIZATIONS) {
 ## Next Steps
 
 After Phase 1 implementation:
+
 1. Monitor metrics for 24-48 hours
 2. Verify 50% performance improvement
 3. Check memory usage is bounded

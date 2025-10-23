@@ -47,15 +47,15 @@ const taskAnalysis = [
   { tool: 'Read', params: { file_path: 'package.json' } },
   { tool: 'Read', params: { file_path: '.roomodes' } },
   { tool: 'Glob', params: { pattern: 'src/**/*.{ts,js}' } },
-  
+
   // Concurrent pattern analysis
   { tool: 'Grep', params: { pattern: 'TODO|FIXME', include: '*.{ts,js}' } },
   { tool: 'Grep', params: { pattern: 'test\\(|describe\\(', include: '*.test.{ts,js}' } },
   { tool: 'Grep', params: { pattern: 'import.*from', include: '*.{ts,js}' } },
-  
+
   // Parallel documentation search
   { tool: 'Glob', params: { pattern: '**/*.md' } },
-  { tool: 'Grep', params: { pattern: 'sparc (run|mode)', include: '*.md' } }
+  { tool: 'Grep', params: { pattern: 'sparc (run|mode)', include: '*.md' } },
 ];
 
 // Analyze all aspects in parallel for intelligent routing
@@ -65,18 +65,21 @@ const results = await batchtools.execute(taskAnalysis);
 ### Task Formulation Patterns
 
 1. **Multi-Mode Task Analysis**:
+
    - Evaluate task requirements against all modes simultaneously
    - Score mode fitness using parallel criteria evaluation
    - Generate mode recommendations with confidence levels
    - Provide alternative approaches in parallel
 
 2. **Task Decomposition**:
+
    - Break complex tasks into SPARC-aligned subtasks
    - Identify dependencies between tasks in parallel
    - Generate execution order recommendations
    - Create task delegation templates concurrently
 
 3. **Context-Aware Suggestions**:
+
    - Analyze current project state in parallel
    - Search for similar completed tasks simultaneously
    - Extract patterns from successful implementations
@@ -96,17 +99,17 @@ const processQuestion = async (userQuestion) => {
   const analysis = [
     // Analyze question intent
     { tool: 'analyzeIntent', params: { text: userQuestion } },
-    
+
     // Search for similar questions/solutions
     { tool: 'Grep', params: { pattern: extractKeywords(userQuestion), include: '*.md' } },
-    
+
     // Find relevant code examples
     { tool: 'Grep', params: { pattern: extractCodePatterns(userQuestion), include: '*.{ts,js}' } },
-    
+
     // Check existing implementations
-    { tool: 'Glob', params: { pattern: `**/*${extractFeature(userQuestion)}*` } }
+    { tool: 'Glob', params: { pattern: `**/*${extractFeature(userQuestion)}*` } },
   ];
-  
+
   const results = await batchtools.execute(analysis);
   return generateSmartResponse(results);
 };
@@ -115,6 +118,7 @@ const processQuestion = async (userQuestion) => {
 ### Advanced Routing Features
 
 1. **Smart Mode Selection**:
+
    ```javascript
    // Parallel mode evaluation
    const modeScores = await Promise.all([
@@ -122,11 +126,12 @@ const processQuestion = async (userQuestion) => {
      evaluateModeF('architect', taskContext),
      evaluateModeF('code', taskContext),
      evaluateModeF('tdd', taskContext),
-     evaluateModeF('debug', taskContext)
+     evaluateModeF('debug', taskContext),
    ]);
    ```
 
 2. **Task Chain Generation**:
+
    - Create optimal task sequences
    - Identify parallel execution opportunities
    - Generate dependency graphs
@@ -139,6 +144,7 @@ const processQuestion = async (userQuestion) => {
    - Provide before/after comparisons
 
 ## Groups/Permissions
+
 - read
 - analyze
 - batchtools

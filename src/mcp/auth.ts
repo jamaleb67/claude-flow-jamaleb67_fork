@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Authentication and authorization for MCP
  */
@@ -37,12 +36,15 @@ export interface TokenValidation {
  */
 export class AuthManager implements IAuthManager {
   private revokedTokens = new Set<string>();
-  private tokenStore = new Map<string, {
-    user: string;
-    permissions: string[];
-    createdAt: Date;
-    expiresAt: Date;
-  }>();
+  private tokenStore = new Map<
+    string,
+    {
+      user: string;
+      permissions: string[];
+      createdAt: Date;
+      expiresAt: Date;
+    }
+  >();
 
   constructor(
     private config: MCPAuthConfig,
@@ -88,7 +90,12 @@ export class AuthManager implements IAuthManager {
       this.logger.error('Authentication error', error);
       return {
         success: false,
-        error: error instanceof Error ? (error instanceof Error ? error.message : String(error)) : 'Authentication failed',
+        error:
+          error instanceof Error
+            ? error instanceof Error
+              ? error.message
+              : String(error)
+            : 'Authentication failed',
       };
     }
   }
@@ -99,7 +106,7 @@ export class AuthManager implements IAuthManager {
     }
 
     const permissions = session.authData?.permissions || [];
-    
+
     // Check for wildcard permission
     if (permissions.includes('*')) {
       return true;
@@ -278,7 +285,7 @@ export class AuthManager implements IAuthManager {
     // 1. Validating JWT tokens
     // 2. Checking token expiration
     // 3. Extracting user info and permissions from token claims
-    
+
     this.logger.warn('OAuth authentication not yet implemented');
     return {
       success: false,
@@ -293,11 +300,11 @@ export class AuthManager implements IAuthManager {
 
     if (typeof credentials === 'object' && credentials !== null) {
       const creds = credentials as Record<string, unknown>;
-      
+
       if (typeof creds.token === 'string') {
         return creds.token;
       }
-      
+
       if (typeof creds.authorization === 'string') {
         const match = creds.authorization.match(/^Bearer\s+(.+)$/i);
         return match ? match[1] : null;
@@ -310,7 +317,7 @@ export class AuthManager implements IAuthManager {
   private extractBasicAuth(credentials: unknown): { username?: string; password?: string } {
     if (typeof credentials === 'object' && credentials !== null) {
       const creds = credentials as Record<string, unknown>;
-      
+
       if (typeof creds.username === 'string' && typeof creds.password === 'string') {
         return {
           username: creds.username,
@@ -345,7 +352,7 @@ export class AuthManager implements IAuthManager {
     // In production, use proper password hashing like bcrypt
     const hashedProvided = this.hashPassword(providedPassword);
     const hashedStored = this.hashPassword(storedPassword);
-    
+
     return this.timingSafeEqual(hashedProvided, hashedStored);
   }
 
@@ -357,11 +364,11 @@ export class AuthManager implements IAuthManager {
     const encoder = new TextEncoder();
     const bufferA = encoder.encode(a);
     const bufferB = encoder.encode(b);
-    
+
     if (bufferA.length !== bufferB.length) {
       return false;
     }
-    
+
     return timingSafeEqual(bufferA, bufferB);
   }
 
@@ -374,7 +381,7 @@ export class AuthManager implements IAuthManager {
       .update(`${timestamp}${random1}${random2}`)
       .digest('hex')
       .substring(0, 32);
-    
+
     return `mcp_${timestamp}_${hash}`;
   }
 
@@ -436,4 +443,4 @@ export const Permissions = {
   ALL: '*',
 } as const;
 
-export type Permission = typeof Permissions[keyof typeof Permissions];
+export type Permission = (typeof Permissions)[keyof typeof Permissions];

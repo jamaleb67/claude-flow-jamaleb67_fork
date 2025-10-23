@@ -1,11 +1,10 @@
-import { getErrorMessage } from '../../utils/error-handler.js';
 // init/swarm-commands.ts - Swarm command documentation creation
 export async function createSwarmCommands(): Promise<void> {
   const fs = await import('fs/promises');
   const path = await import('path');
-  
+
   const swarmDir = '.claude/commands/swarm';
-  
+
   // Individual strategy documentation
   const swarmCommands = {
     'research.md': createResearchCommand(),
@@ -17,9 +16,9 @@ export async function createSwarmCommands(): Promise<void> {
     'examples.md': createSwarmExamples(),
     'coordination-modes.md': createCoordinationModes(),
     'best-practices.md': createBestPractices(),
-    'task-tracking.md': createTaskTracking()
+    'task-tracking.md': createTaskTracking(),
   };
-  
+
   // Write swarm command documentation
   for (const [filename, content] of Object.entries(swarmCommands)) {
     await fs.writeFile(path.join(swarmDir, filename), content);

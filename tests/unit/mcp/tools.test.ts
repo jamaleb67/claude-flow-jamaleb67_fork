@@ -2,8 +2,8 @@
  * Unit tests for Tool Registry
  */
 
-import { describe, it, beforeEach  } from "../test.utils.ts";
-import { assertEquals, assertExists  } from "../test.utils.ts";
+import { describe, it, beforeEach  } from "../../../test.utils";
+import { assertEquals, assertExists  } from "../../../test.utils";
 
 import { ToolRegistry } from '../../../src/mcp/tools.ts';
 import { MCPTool } from '../../../src/utils/types.ts';

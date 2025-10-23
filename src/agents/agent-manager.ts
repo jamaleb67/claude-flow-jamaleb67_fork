@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Comprehensive agent management system
  */
@@ -7,18 +6,16 @@ import { EventEmitter } from 'node:events';
 import { spawn, ChildProcess } from 'node:child_process';
 import type { ILogger } from '../core/logger.js';
 import type { IEventBus } from '../core/event-bus.js';
-import type { 
-  AgentId, 
-  AgentType, 
-  AgentStatus, 
-  AgentState, 
-  AgentCapabilities, 
-  AgentConfig, 
-  AgentEnvironment, 
+import type {
+  AgentId,
+  AgentType,
+  AgentStatus,
+  AgentState,
+  AgentCapabilities,
+  AgentConfig,
+  AgentEnvironment,
   AgentMetrics,
   AgentError,
-  TaskId,
-  TaskDefinition
 } from '../swarm/types.js';
 import type { DistributedMemorySystem } from '../memory/distributed-memory.js';
 import { generateId } from '../utils/helpers.js';
@@ -155,7 +152,7 @@ export class AgentManager extends EventEmitter {
     config: Partial<AgentManagerConfig>,
     logger: ILogger,
     eventBus: IEventBus,
-    memory: DistributedMemorySystem
+    memory: DistributedMemorySystem,
   ) {
     super();
     this.logger = logger;
@@ -171,20 +168,20 @@ export class AgentManager extends EventEmitter {
       resourceLimits: {
         memory: 512 * 1024 * 1024, // 512MB
         cpu: 1.0,
-        disk: 1024 * 1024 * 1024 // 1GB
+        disk: 1024 * 1024 * 1024, // 1GB
       },
       agentDefaults: {
         autonomyLevel: 0.7,
         learningEnabled: true,
-        adaptationEnabled: true
+        adaptationEnabled: true,
       },
       environmentDefaults: {
         runtime: 'deno',
         workingDirectory: './agents',
         tempDirectory: './tmp',
-        logDirectory: './logs'
+        logDirectory: './logs',
       },
-      ...config
+      ...config,
     };
 
     this.setupEventHandlers();
@@ -216,7 +213,10 @@ export class AgentManager extends EventEmitter {
     });
 
     this.eventBus.on('resource:usage', (data: unknown) => {
-      const resourceData = data as { agentId: string; usage: { cpu: number; memory: number; disk: number } };
+      const resourceData = data as {
+        agentId: string;
+        usage: { cpu: number; memory: number; disk: number };
+      };
       this.updateResourceUsage(resourceData.agentId, resourceData.usage);
     });
   }
@@ -246,7 +246,7 @@ export class AgentManager extends EventEmitter {
         maxExecutionTime: 600000,
         reliability: 0.9,
         speed: 0.8,
-        quality: 0.9
+        quality: 0.9,
       },
       config: {
         autonomyLevel: 0.8,
@@ -260,7 +260,7 @@ export class AgentManager extends EventEmitter {
         permissions: ['web-access', 'file-read'],
         trustedAgents: [],
         expertise: { research: 0.9, analysis: 0.8, documentation: 0.7 },
-        preferences: { verbose: true, detailed: true }
+        preferences: { verbose: true, detailed: true },
       },
       environment: {
         runtime: 'deno',
@@ -271,9 +271,9 @@ export class AgentManager extends EventEmitter {
         apiEndpoints: {},
         credentials: {},
         availableTools: ['web-search', 'document-reader', 'data-extractor'],
-        toolConfigs: {}
+        toolConfigs: {},
       },
-      startupScript: './scripts/start-researcher.ts'
+      startupScript: './scripts/start-researcher.ts',
     });
 
     // Developer agent template
@@ -300,7 +300,7 @@ export class AgentManager extends EventEmitter {
         maxExecutionTime: 1200000,
         reliability: 0.95,
         speed: 0.7,
-        quality: 0.95
+        quality: 0.95,
       },
       config: {
         autonomyLevel: 0.6,
@@ -314,7 +314,7 @@ export class AgentManager extends EventEmitter {
         permissions: ['file-read', 'file-write', 'terminal-access', 'git-access'],
         trustedAgents: [],
         expertise: { coding: 0.95, testing: 0.8, debugging: 0.9 },
-        preferences: { codeStyle: 'functional', testFramework: 'deno-test' }
+        preferences: { codeStyle: 'functional', testFramework: 'deno-test' },
       },
       environment: {
         runtime: 'deno',
@@ -325,9 +325,9 @@ export class AgentManager extends EventEmitter {
         apiEndpoints: {},
         credentials: {},
         availableTools: ['git', 'deno', 'editor', 'debugger'],
-        toolConfigs: {}
+        toolConfigs: {},
       },
-      startupScript: './scripts/start-developer.ts'
+      startupScript: './scripts/start-developer.ts',
     });
 
     // Add more templates...
@@ -359,7 +359,7 @@ export class AgentManager extends EventEmitter {
         maxExecutionTime: 900000,
         reliability: 0.9,
         speed: 0.75,
-        quality: 0.9
+        quality: 0.9,
       },
       config: {
         autonomyLevel: 0.7,
@@ -373,7 +373,7 @@ export class AgentManager extends EventEmitter {
         permissions: ['file-read', 'data-access'],
         trustedAgents: [],
         expertise: { analysis: 0.95, visualization: 0.8, statistics: 0.85 },
-        preferences: { outputFormat: 'detailed', includeCharts: true }
+        preferences: { outputFormat: 'detailed', includeCharts: true },
       },
       environment: {
         runtime: 'deno',
@@ -384,16 +384,448 @@ export class AgentManager extends EventEmitter {
         apiEndpoints: {},
         credentials: {},
         availableTools: ['data-processor', 'chart-gen', 'stats-calc'],
-        toolConfigs: {}
+        toolConfigs: {},
       },
-      startupScript: './scripts/start-analyzer.ts'
+      startupScript: './scripts/start-analyzer.ts',
+    });
+
+    // Requirements Engineer Agent Template
+    this.templates.set('requirements-engineer', {
+      name: 'Requirements Engineer Agent',
+      type: 'requirements-engineer',
+      capabilities: {
+        codeGeneration: false,
+        codeReview: false,
+        testing: false,
+        documentation: true,
+        research: true,
+        analysis: true,
+        webSearch: true,
+        apiIntegration: false,
+        fileSystem: true,
+        terminalAccess: false,
+        languages: [],
+        frameworks: [],
+        domains: ['requirements-engineering', 'user-stories', 'ears-notation'],
+        tools: ['document-writer', 'nlp-processor', 'web-search'],
+        maxConcurrentTasks: 2,
+        maxMemoryUsage: 256 * 1024 * 1024,
+        maxExecutionTime: 300000,
+        reliability: 0.95,
+        speed: 0.8,
+        quality: 0.95,
+      },
+      config: {
+        autonomyLevel: 0.8,
+        learningEnabled: true,
+        adaptationEnabled: true,
+        maxTasksPerHour: 10,
+        maxConcurrentTasks: 2,
+        timeoutThreshold: 300000,
+        reportingInterval: 30000,
+        heartbeatInterval: 10000,
+        permissions: ['file-read', 'file-write'],
+        trustedAgents: [],
+        expertise: { requirements: 0.95, documentation: 0.9, analysis: 0.8 },
+        preferences: { format: 'markdown', style: 'formal' },
+      },
+      environment: {
+        runtime: 'deno',
+        version: '1.40.0',
+        workingDirectory: './agents/requirements-engineer',
+        tempDirectory: './tmp/requirements-engineer',
+        logDirectory: './logs/requirements-engineer',
+        apiEndpoints: {},
+        credentials: {},
+        availableTools: ['document-writer', 'nlp-processor'],
+        toolConfigs: {},
+      },
+      startupScript: './scripts/start-requirements-engineer.ts',
+    });
+
+    // Design Architect Agent Template
+    this.templates.set('design-architect', {
+      name: 'Design Architect Agent',
+      type: 'design-architect',
+      capabilities: {
+        codeGeneration: false,
+        codeReview: true,
+        testing: false,
+        documentation: true,
+        research: true,
+        analysis: true,
+        webSearch: false,
+        apiIntegration: true,
+        fileSystem: true,
+        terminalAccess: false,
+        languages: ['typescript', 'javascript', 'python'],
+        frameworks: [],
+        domains: ['software-architecture', 'system-design', 'data-modeling'],
+        tools: ['diagram-generator', 'code-analyzer', 'api-designer'],
+        maxConcurrentTasks: 1,
+        maxMemoryUsage: 512 * 1024 * 1024,
+        maxExecutionTime: 600000,
+        reliability: 0.9,
+        speed: 0.7,
+        quality: 0.95,
+      },
+      config: {
+        autonomyLevel: 0.7,
+        learningEnabled: true,
+        adaptationEnabled: true,
+        maxTasksPerHour: 5,
+        maxConcurrentTasks: 1,
+        timeoutThreshold: 600000,
+        reportingInterval: 60000,
+        heartbeatInterval: 15000,
+        permissions: ['file-read', 'file-write'],
+        trustedAgents: [],
+        expertise: { architecture: 0.95, design: 0.9, modeling: 0.85 },
+        preferences: { diagramFormat: 'mermaid', detailLevel: 'high' },
+      },
+      environment: {
+        runtime: 'deno',
+        version: '1.40.0',
+        workingDirectory: './agents/design-architect',
+        tempDirectory: './tmp/design-architect',
+        logDirectory: './logs/design-architect',
+        apiEndpoints: {},
+        credentials: {},
+        availableTools: ['diagram-gen', 'code-analyzer'],
+        toolConfigs: {},
+      },
+      startupScript: './scripts/start-design-architect.ts',
+    });
+
+    // Task Planner Agent Template
+    this.templates.set('task-planner', {
+      name: 'Task Planner Agent',
+      type: 'task-planner',
+      capabilities: {
+        codeGeneration: false,
+        codeReview: false,
+        testing: false,
+        documentation: true,
+        research: false,
+        analysis: true,
+        webSearch: false,
+        apiIntegration: false,
+        fileSystem: true,
+        terminalAccess: false,
+        languages: [],
+        frameworks: [],
+        domains: ['project-management', 'task-breakdown', 'agile-planning'],
+        tools: ['task-scheduler', 'dependency-analyzer'],
+        maxConcurrentTasks: 3,
+        maxMemoryUsage: 256 * 1024 * 1024,
+        maxExecutionTime: 300000,
+        reliability: 0.95,
+        speed: 0.85,
+        quality: 0.9,
+      },
+      config: {
+        autonomyLevel: 0.8,
+        learningEnabled: true,
+        adaptationEnabled: true,
+        maxTasksPerHour: 20,
+        maxConcurrentTasks: 3,
+        timeoutThreshold: 300000,
+        reportingInterval: 30000,
+        heartbeatInterval: 10000,
+        permissions: ['file-read', 'file-write'],
+        trustedAgents: [],
+        expertise: { planning: 0.95, 'task-management': 0.9, optimization: 0.8 },
+        preferences: { outputFormat: 'markdown-checkbox', granularity: 'fine' },
+      },
+      environment: {
+        runtime: 'deno',
+        version: '1.40.0',
+        workingDirectory: './agents/task-planner',
+        tempDirectory: './tmp/task-planner',
+        logDirectory: './logs/task-planner',
+        apiEndpoints: {},
+        credentials: {},
+        availableTools: ['task-scheduler', 'dependency-analyzer'],
+        toolConfigs: {},
+      },
+      startupScript: './scripts/start-task-planner.ts',
+    });
+
+    // Developer Agent Template (already exists, but ensure it's aligned)
+    this.templates.set('developer', {
+      name: 'Developer Agent',
+      type: 'developer',
+      capabilities: {
+        codeGeneration: true,
+        codeReview: true,
+        testing: true,
+        documentation: true,
+        research: false,
+        analysis: true,
+        webSearch: false,
+        apiIntegration: true,
+        fileSystem: true,
+        terminalAccess: true,
+        languages: ['typescript', 'javascript', 'python', 'rust'],
+        frameworks: ['deno', 'node', 'react', 'svelte'],
+        domains: ['web-development', 'backend', 'api-design'],
+        tools: ['git', 'editor', 'debugger', 'linter', 'formatter'],
+        maxConcurrentTasks: 3,
+        maxMemoryUsage: 512 * 1024 * 1024,
+        maxExecutionTime: 1200000,
+        reliability: 0.95,
+        speed: 0.7,
+        quality: 0.95,
+      },
+      config: {
+        autonomyLevel: 0.6,
+        learningEnabled: true,
+        adaptationEnabled: true,
+        maxTasksPerHour: 10,
+        maxConcurrentTasks: 3,
+        timeoutThreshold: 1200000,
+        reportingInterval: 60000,
+        heartbeatInterval: 15000,
+        permissions: ['file-read', 'file-write', 'terminal-access', 'git-access'],
+        trustedAgents: [],
+        expertise: { coding: 0.95, testing: 0.8, debugging: 0.9 },
+        preferences: { codeStyle: 'functional', testFramework: 'deno-test' },
+      },
+      environment: {
+        runtime: 'deno',
+        version: '1.40.0',
+        workingDirectory: './agents/developer',
+        tempDirectory: './tmp/developer',
+        logDirectory: './logs/developer',
+        apiEndpoints: {},
+        credentials: {},
+        availableTools: ['git', 'deno', 'editor', 'debugger'],
+        toolConfigs: {},
+      },
+      startupScript: './scripts/start-developer.ts',
+    });
+
+    // System Architect Agent Template  
+    this.templates.set('system-architect', {
+      name: 'System Architect Agent',
+      type: 'system-architect',
+      capabilities: {
+        codeGeneration: false,
+        codeReview: true,
+        testing: false,
+        documentation: true,
+        research: true,
+        analysis: true,
+        webSearch: false,
+        apiIntegration: true,
+        fileSystem: true,
+        terminalAccess: false,
+        languages: ['typescript', 'javascript', 'python'],
+        frameworks: ['microservices', 'distributed-systems'],
+        domains: ['system-architecture', 'scalability', 'performance', 'distributed-systems'],
+        tools: ['architecture-analyzer', 'system-modeler', 'performance-analyzer'],
+        maxConcurrentTasks: 1,
+        maxMemoryUsage: 512 * 1024 * 1024,
+        maxExecutionTime: 900000,
+        reliability: 0.95,
+        speed: 0.7,
+        quality: 0.95,
+      },
+      config: {
+        autonomyLevel: 0.8,
+        learningEnabled: true,
+        adaptationEnabled: true,
+        maxTasksPerHour: 5,
+        maxConcurrentTasks: 1,
+        timeoutThreshold: 900000,
+        reportingInterval: 60000,
+        heartbeatInterval: 15000,
+        permissions: ['file-read', 'file-write'],
+        trustedAgents: [],
+        expertise: { 'system-architecture': 0.95, scalability: 0.9, performance: 0.85 },
+        preferences: { scope: 'system-wide', focusArea: 'architecture' },
+      },
+      environment: {
+        runtime: 'deno',
+        version: '1.40.0',
+        workingDirectory: './agents/system-architect',
+        tempDirectory: './tmp/system-architect',
+        logDirectory: './logs/system-architect',
+        apiEndpoints: {},
+        credentials: {},
+        availableTools: ['architecture-analyzer', 'system-modeler'],
+        toolConfigs: {},
+      },
+      startupScript: './scripts/start-system-architect.ts',
+    });
+
+    // Tester Agent Template
+    this.templates.set('tester', {
+      name: 'Testing Agent',
+      type: 'tester',
+      capabilities: {
+        codeGeneration: false,
+        codeReview: true,
+        testing: true,
+        documentation: true,
+        research: false,
+        analysis: true,
+        webSearch: false,
+        apiIntegration: true,
+        fileSystem: true,
+        terminalAccess: true,
+        languages: ['typescript', 'javascript', 'python'],
+        frameworks: ['deno-test', 'jest', 'vitest', 'cypress'],
+        domains: ['testing', 'quality-assurance', 'test-automation'],
+        tools: ['test-runner', 'coverage-analyzer', 'test-generator'],
+        maxConcurrentTasks: 3,
+        maxMemoryUsage: 256 * 1024 * 1024,
+        maxExecutionTime: 600000,
+        reliability: 0.9,
+        speed: 0.8,
+        quality: 0.9,
+      },
+      config: {
+        autonomyLevel: 0.7,
+        learningEnabled: true,
+        adaptationEnabled: true,
+        maxTasksPerHour: 15,
+        maxConcurrentTasks: 3,
+        timeoutThreshold: 600000,
+        reportingInterval: 45000,
+        heartbeatInterval: 12000,
+        permissions: ['file-read', 'file-write', 'terminal-access'],
+        trustedAgents: [],
+        expertise: { testing: 0.9, 'quality-assurance': 0.85, automation: 0.8 },
+        preferences: { testFramework: 'deno-test', coverage: 'comprehensive' },
+      },
+      environment: {
+        runtime: 'deno',
+        version: '1.40.0',
+        workingDirectory: './agents/tester',
+        tempDirectory: './tmp/tester',
+        logDirectory: './logs/tester',
+        apiEndpoints: {},
+        credentials: {},
+        availableTools: ['test-runner', 'coverage-tool', 'test-gen'],
+        toolConfigs: {},
+      },
+      startupScript: './scripts/start-tester.ts',
+    });
+
+    // Code Reviewer Agent Template
+    this.templates.set('reviewer', {
+      name: 'Code Review Agent',
+      type: 'reviewer',
+      capabilities: {
+        codeGeneration: false,
+        codeReview: true,
+        testing: false,
+        documentation: true,
+        research: false,
+        analysis: true,
+        webSearch: false,
+        apiIntegration: false,
+        fileSystem: true,
+        terminalAccess: false,
+        languages: ['typescript', 'javascript', 'python', 'rust'],
+        frameworks: ['static-analysis', 'code-quality'],
+        domains: ['code-review', 'quality-assurance', 'best-practices'],
+        tools: ['static-analyzer', 'code-quality-checker', 'security-scanner'],
+        maxConcurrentTasks: 2,
+        maxMemoryUsage: 256 * 1024 * 1024,
+        maxExecutionTime: 450000,
+        reliability: 0.95,
+        speed: 0.8,
+        quality: 0.95,
+      },
+      config: {
+        autonomyLevel: 0.8,
+        learningEnabled: true,
+        adaptationEnabled: true,
+        maxTasksPerHour: 12,
+        maxConcurrentTasks: 2,
+        timeoutThreshold: 450000,
+        reportingInterval: 30000,
+        heartbeatInterval: 10000,
+        permissions: ['file-read'],
+        trustedAgents: [],
+        expertise: { 'code-review': 0.95, 'quality-assurance': 0.9, security: 0.8 },
+        preferences: { style: 'thorough', focus: 'quality-and-security' },
+      },
+      environment: {
+        runtime: 'deno',
+        version: '1.40.0',
+        workingDirectory: './agents/reviewer',
+        tempDirectory: './tmp/reviewer',
+        logDirectory: './logs/reviewer',
+        apiEndpoints: {},
+        credentials: {},
+        availableTools: ['static-analyzer', 'quality-checker'],
+        toolConfigs: {},
+      },
+      startupScript: './scripts/start-reviewer.ts',
+    });
+
+    // Steering Author Agent Template
+    this.templates.set('steering-author', {
+      name: 'Steering Author Agent',
+      type: 'steering-author',
+      capabilities: {
+        codeGeneration: false,
+        codeReview: true,
+        testing: false,
+        documentation: true,
+        research: true,
+        analysis: true,
+        webSearch: false,
+        apiIntegration: false,
+        fileSystem: true,
+        terminalAccess: false,
+        languages: [],
+        frameworks: [],
+        domains: ['documentation', 'knowledge-management', 'governance'],
+        tools: ['document-writer', 'content-analyzer'],
+        maxConcurrentTasks: 1,
+        maxMemoryUsage: 256 * 1024 * 1024,
+        maxExecutionTime: 300000,
+        reliability: 0.95,
+        speed: 0.7,
+        quality: 0.98,
+      },
+      config: {
+        autonomyLevel: 0.7,
+        learningEnabled: true,
+        adaptationEnabled: true,
+        maxTasksPerHour: 5,
+        maxConcurrentTasks: 1,
+        timeoutThreshold: 300000,
+        reportingInterval: 30000,
+        heartbeatInterval: 10000,
+        permissions: ['file-read', 'file-write'],
+        trustedAgents: [],
+        expertise: { documentation: 0.98, governance: 0.9, 'content-creation': 0.85 },
+        preferences: { style: 'concise', tone: 'formal' },
+      },
+      environment: {
+        runtime: 'deno',
+        version: '1.40.0',
+        workingDirectory: './agents/steering-author',
+        tempDirectory: './tmp/steering-author',
+        logDirectory: './logs/steering-author',
+        apiEndpoints: {},
+        credentials: {},
+        availableTools: ['document-writer', 'content-analyzer'],
+        toolConfigs: {},
+      },
+      startupScript: './scripts/start-steering-author.ts',
     });
   }
 
   async initialize(): Promise<void> {
     this.logger.info('Initializing agent manager', {
       maxAgents: this.config.maxAgents,
-      templates: this.templates.size
+      templates: this.templates.size,
     });
 
     // Start health monitoring
@@ -416,8 +848,8 @@ export class AgentManager extends EventEmitter {
     if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
 
     // Gracefully shutdown all agents
-    const shutdownPromises = Array.from(this.agents.keys()).map(agentId =>
-      this.stopAgent(agentId, 'shutdown')
+    const shutdownPromises = Array.from(this.agents.keys()).map((agentId) =>
+      this.stopAgent(agentId, 'shutdown'),
     );
 
     await Promise.all(shutdownPromises);
@@ -433,7 +865,7 @@ export class AgentManager extends EventEmitter {
       name?: string;
       config?: Partial<AgentConfig>;
       environment?: Partial<AgentEnvironment>;
-    } = {}
+    } = {},
   ): Promise<string> {
     if (this.agents.size >= this.config.maxAgents) {
       throw new Error('Maximum agent limit reached');
@@ -458,8 +890,10 @@ export class AgentManager extends EventEmitter {
       health: 1.0,
       config: {
         autonomyLevel: template.config.autonomyLevel ?? this.config.agentDefaults.autonomyLevel,
-        learningEnabled: template.config.learningEnabled ?? this.config.agentDefaults.learningEnabled,
-        adaptationEnabled: template.config.adaptationEnabled ?? this.config.agentDefaults.adaptationEnabled,
+        learningEnabled:
+          template.config.learningEnabled ?? this.config.agentDefaults.learningEnabled,
+        adaptationEnabled:
+          template.config.adaptationEnabled ?? this.config.agentDefaults.adaptationEnabled,
         maxTasksPerHour: template.config.maxTasksPerHour ?? 10,
         maxConcurrentTasks: template.config.maxConcurrentTasks ?? 3,
         timeoutThreshold: template.config.timeoutThreshold ?? 300000,
@@ -469,26 +903,29 @@ export class AgentManager extends EventEmitter {
         trustedAgents: template.config.trustedAgents ?? [],
         expertise: template.config.expertise ?? {},
         preferences: template.config.preferences ?? {},
-        ...overrides.config
+        ...overrides.config,
       },
       environment: {
         runtime: template.environment.runtime ?? this.config.environmentDefaults.runtime,
         version: template.environment.version ?? '1.40.0',
-        workingDirectory: template.environment.workingDirectory ?? this.config.environmentDefaults.workingDirectory,
-        tempDirectory: template.environment.tempDirectory ?? this.config.environmentDefaults.tempDirectory,
-        logDirectory: template.environment.logDirectory ?? this.config.environmentDefaults.logDirectory,
+        workingDirectory:
+          template.environment.workingDirectory ?? this.config.environmentDefaults.workingDirectory,
+        tempDirectory:
+          template.environment.tempDirectory ?? this.config.environmentDefaults.tempDirectory,
+        logDirectory:
+          template.environment.logDirectory ?? this.config.environmentDefaults.logDirectory,
         apiEndpoints: template.environment.apiEndpoints ?? {},
         credentials: template.environment.credentials ?? {},
         availableTools: template.environment.availableTools ?? [],
         toolConfigs: template.environment.toolConfigs ?? {},
-        ...overrides.environment
+        ...overrides.environment,
       },
       endpoints: [],
       lastHeartbeat: new Date(),
       taskHistory: [],
       errorHistory: [],
       childAgents: [],
-      collaborators: []
+      collaborators: [],
     };
 
     this.agents.set(agentId, agent);
@@ -498,7 +935,7 @@ export class AgentManager extends EventEmitter {
       agentId,
       name: agent.name,
       type: agent.type,
-      template: templateName
+      template: templateName,
     });
 
     this.emit('agent:created', { agent });
@@ -507,7 +944,7 @@ export class AgentManager extends EventEmitter {
     await this.memory.store(`agent:${agentId}`, agent, {
       type: 'agent-state',
       tags: [agent.type, 'active'],
-      partition: 'state'
+      partition: 'state',
     });
 
     return agentId;
@@ -539,7 +976,6 @@ export class AgentManager extends EventEmitter {
 
       this.logger.info('Started agent', { agentId, name: agent.name });
       this.emit('agent:started', { agent });
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       agent.status = 'error';
@@ -549,7 +985,7 @@ export class AgentManager extends EventEmitter {
         message: errorMessage,
         context: { agentId },
         severity: 'critical',
-        resolved: false
+        resolved: false,
       });
 
       this.logger.error('Failed to start agent', { agentId, error });
@@ -595,7 +1031,6 @@ export class AgentManager extends EventEmitter {
 
       this.logger.info('Stopped agent', { agentId, reason });
       this.emit('agent:stopped', { agent, reason });
-
     } catch (error) {
       this.logger.error('Failed to stop agent gracefully', { agentId, error });
       // Force cleanup
@@ -651,7 +1086,7 @@ export class AgentManager extends EventEmitter {
       autoScale?: boolean;
       scaleUpThreshold?: number;
       scaleDownThreshold?: number;
-    }
+    },
   ): Promise<string> {
     const template = this.templates.get(templateName);
     if (!template) {
@@ -671,7 +1106,7 @@ export class AgentManager extends EventEmitter {
       template,
       autoScale: config.autoScale || false,
       scaleUpThreshold: config.scaleUpThreshold || 0.8,
-      scaleDownThreshold: config.scaleDownThreshold || 0.3
+      scaleDownThreshold: config.scaleDownThreshold || 0.3,
     };
 
     this.pools.set(poolId, pool);
@@ -679,10 +1114,15 @@ export class AgentManager extends EventEmitter {
     // Create minimum agents
     for (let i = 0; i < config.minSize; i++) {
       const agentId = await this.createAgent(templateName, {
-        name: `${name}-${i + 1}`
+        name: `${name}-${i + 1}`,
       });
       await this.startAgent(agentId);
-      pool.availableAgents.push({ id: agentId, swarmId: 'default', type: template.type, instance: i + 1 });
+      pool.availableAgents.push({
+        id: agentId,
+        swarmId: 'default',
+        type: template.type,
+        instance: i + 1,
+      });
       pool.currentSize++;
     }
 
@@ -699,7 +1139,9 @@ export class AgentManager extends EventEmitter {
     }
 
     if (targetSize < pool.minSize || targetSize > pool.maxSize) {
-      throw new Error(`Target size ${targetSize} outside pool limits [${pool.minSize}, ${pool.maxSize}]`);
+      throw new Error(
+        `Target size ${targetSize} outside pool limits [${pool.minSize}, ${pool.maxSize}]`,
+      );
     }
 
     const currentSize = pool.currentSize;
@@ -709,14 +1151,14 @@ export class AgentManager extends EventEmitter {
       // Scale up
       for (let i = 0; i < delta; i++) {
         const agentId = await this.createAgent(pool.template.name, {
-          name: `${pool.name}-${currentSize + i + 1}`
+          name: `${pool.name}-${currentSize + i + 1}`,
         });
         await this.startAgent(agentId);
-        pool.availableAgents.push({ 
-          id: agentId, 
-          swarmId: 'default', 
-          type: pool.type, 
-          instance: currentSize + i + 1 
+        pool.availableAgents.push({
+          id: agentId,
+          swarmId: 'default',
+          type: pool.type,
+          instance: currentSize + i + 1,
         });
       }
     } else if (delta < 0) {
@@ -724,7 +1166,7 @@ export class AgentManager extends EventEmitter {
       const agentsToRemove = pool.availableAgents.slice(0, Math.abs(delta));
       for (const agentId of agentsToRemove) {
         await this.removeAgent(agentId.id);
-        pool.availableAgents = pool.availableAgents.filter(a => a.id !== agentId.id);
+        pool.availableAgents = pool.availableAgents.filter((a) => a.id !== agentId.id);
       }
     }
 
@@ -741,8 +1183,8 @@ export class AgentManager extends EventEmitter {
       this.performHealthChecks();
     }, this.config.healthCheckInterval);
 
-    this.logger.info('Started health monitoring', { 
-      interval: this.config.healthCheckInterval 
+    this.logger.info('Started health monitoring', {
+      interval: this.config.healthCheckInterval,
     });
   }
 
@@ -751,14 +1193,14 @@ export class AgentManager extends EventEmitter {
       this.checkHeartbeats();
     }, this.config.heartbeatInterval);
 
-    this.logger.info('Started heartbeat monitoring', { 
-      interval: this.config.heartbeatInterval 
+    this.logger.info('Started heartbeat monitoring', {
+      interval: this.config.heartbeatInterval,
     });
   }
 
   private async performHealthChecks(): Promise<void> {
-    const healthPromises = Array.from(this.agents.keys()).map(agentId =>
-      this.checkAgentHealth(agentId)
+    const healthPromises = Array.from(this.agents.keys()).map((agentId) =>
+      this.checkAgentHealth(agentId),
     );
 
     await Promise.allSettled(healthPromises);
@@ -768,7 +1210,8 @@ export class AgentManager extends EventEmitter {
     const agent = this.agents.get(agentId);
     if (!agent) return;
 
-    const health = this.healthChecks.get(agentId)!;
+    const health = this.healthChecks.get(agentId);
+    if (!health) return;
     const now = new Date();
 
     try {
@@ -804,7 +1247,6 @@ export class AgentManager extends EventEmitter {
         this.logger.warn('Agent critically unhealthy, restarting', { agentId, health: overall });
         await this.restartAgent(agentId, 'health_critical');
       }
-
     } catch (error) {
       this.logger.error('Health check failed', { agentId, error });
       health.overall = 0;
@@ -814,14 +1256,14 @@ export class AgentManager extends EventEmitter {
 
   private async checkResponsiveness(agentId: string): Promise<number> {
     // Send ping and measure response time
-    const startTime = Date.now();
-    
+
     try {
       // This would send an actual ping to the agent
       // For now, simulate based on last heartbeat
-      const agent = this.agents.get(agentId)!;
+      const agent = this.agents.get(agentId);
+      if (!agent) return 0;
       const timeSinceHeartbeat = Date.now() - agent.lastHeartbeat.getTime();
-      
+
       if (timeSinceHeartbeat > this.config.heartbeatInterval * 3) {
         return 0; // Unresponsive
       } else if (timeSinceHeartbeat > this.config.heartbeatInterval * 2) {
@@ -829,7 +1271,6 @@ export class AgentManager extends EventEmitter {
       } else {
         return 1.0; // Responsive
       }
-      
     } catch (error) {
       return 0; // Failed to respond
     }
@@ -841,19 +1282,21 @@ export class AgentManager extends EventEmitter {
 
     // Calculate average task completion time vs expected
     const recent = history.slice(-10); // Last 10 entries
-    const avgTime = recent.reduce((sum, entry) => sum + entry.metrics.averageExecutionTime, 0) / recent.length;
-    
+    const avgTime =
+      recent.reduce((sum, entry) => sum + entry.metrics.averageExecutionTime, 0) / recent.length;
+
     // Normalize based on expected performance (simplified)
     const expectedTime = 60000; // 1 minute baseline
     return Math.max(0, Math.min(1, expectedTime / avgTime));
   }
 
   private calculateReliabilityScore(agentId: string): number {
-    const agent = this.agents.get(agentId)!;
+    const agent = this.agents.get(agentId);
+    if (!agent) return 0;
     const totalTasks = agent.metrics.tasksCompleted + agent.metrics.tasksFailed;
-    
+
     if (totalTasks === 0) return 1.0;
-    
+
     return agent.metrics.tasksCompleted / totalTasks;
   }
 
@@ -862,9 +1305,9 @@ export class AgentManager extends EventEmitter {
     if (!usage) return 1.0;
 
     const limits = this.config.resourceLimits;
-    const memoryScore = 1 - (usage.memory / limits.memory);
-    const cpuScore = 1 - (usage.cpu / limits.cpu);
-    const diskScore = 1 - (usage.disk / limits.disk);
+    const memoryScore = 1 - usage.memory / limits.memory;
+    const cpuScore = 1 - usage.cpu / limits.cpu;
+    const diskScore = 1 - usage.disk / limits.disk;
 
     return Math.max(0, (memoryScore + cpuScore + diskScore) / 3);
   }
@@ -879,7 +1322,7 @@ export class AgentManager extends EventEmitter {
         message: 'Agent is not responding to heartbeats',
         timestamp: new Date(),
         resolved: false,
-        recommendedAction: 'Restart agent or check network connectivity'
+        recommendedAction: 'Restart agent or check network connectivity',
       });
     }
 
@@ -890,7 +1333,7 @@ export class AgentManager extends EventEmitter {
         message: 'Agent performance is below expected levels',
         timestamp: new Date(),
         resolved: false,
-        recommendedAction: 'Check resource allocation or agent configuration'
+        recommendedAction: 'Check resource allocation or agent configuration',
       });
     }
 
@@ -901,7 +1344,7 @@ export class AgentManager extends EventEmitter {
         message: 'Agent resource usage is critically high',
         timestamp: new Date(),
         resolved: false,
-        recommendedAction: 'Increase resource limits or reduce workload'
+        recommendedAction: 'Increase resource limits or reduce workload',
       });
     }
 
@@ -914,10 +1357,14 @@ export class AgentManager extends EventEmitter {
 
     for (const [agentId, agent] of Array.from(this.agents.entries())) {
       const timeSinceHeartbeat = now - agent.lastHeartbeat.getTime();
-      
-      if (timeSinceHeartbeat > timeout && agent.status !== 'offline' && agent.status !== 'terminated') {
+
+      if (
+        timeSinceHeartbeat > timeout &&
+        agent.status !== 'offline' &&
+        agent.status !== 'terminated'
+      ) {
         this.logger.warn('Agent heartbeat timeout', { agentId, timeSinceHeartbeat });
-        
+
         agent.status = 'error';
         this.addAgentError(agentId, {
           timestamp: new Date(),
@@ -925,14 +1372,14 @@ export class AgentManager extends EventEmitter {
           message: 'Agent failed to send heartbeat within timeout period',
           context: { timeout, timeSinceHeartbeat },
           severity: 'high',
-          resolved: false
+          resolved: false,
         });
 
         this.emit('agent:heartbeat-timeout', { agentId, timeSinceHeartbeat });
 
         // Auto-restart if enabled
         if (this.config.autoRestart) {
-          this.restartAgent(agentId, 'heartbeat_timeout').catch(error => {
+          this.restartAgent(agentId, 'heartbeat_timeout').catch((error) => {
             this.logger.error('Failed to auto-restart agent', { agentId, error });
           });
         }
@@ -949,7 +1396,7 @@ export class AgentManager extends EventEmitter {
       AGENT_TYPE: agent.type,
       AGENT_NAME: agent.name,
       WORKING_DIR: agent.environment.workingDirectory,
-      LOG_DIR: agent.environment.logDirectory
+      LOG_DIR: agent.environment.logDirectory,
     };
 
     const args = [
@@ -957,13 +1404,13 @@ export class AgentManager extends EventEmitter {
       '--allow-all',
       agent.environment.availableTools[0] || './agents/generic-agent.ts',
       '--config',
-      JSON.stringify(agent.config)
+      JSON.stringify(agent.config),
     ];
 
     const childProcess = spawn(agent.environment.runtime, args, {
       env,
       stdio: ['pipe', 'pipe', 'pipe'],
-      cwd: agent.environment.workingDirectory
+      cwd: agent.environment.workingDirectory,
     });
 
     // Handle process events
@@ -1029,7 +1476,7 @@ export class AgentManager extends EventEmitter {
         message: `Agent process exited with code ${code}`,
         context: { exitCode: code },
         severity: 'high',
-        resolved: false
+        resolved: false,
       });
     }
 
@@ -1039,25 +1486,29 @@ export class AgentManager extends EventEmitter {
 
   private handleProcessError(agentId: string, error: Error): void {
     this.logger.error('Agent process error', { agentId, error });
-    
+
     this.addAgentError(agentId, {
       timestamp: new Date(),
       type: 'process_error',
-      message: (error instanceof Error ? error.message : String(error)),
+      message: error instanceof Error ? error.message : String(error),
       context: { error: error.toString() },
       severity: 'critical',
-      resolved: false
+      resolved: false,
     });
 
     this.emit('agent:process-error', { agentId, error });
   }
 
-  private handleHeartbeat(data: { agentId: string; timestamp: Date; metrics?: AgentMetrics }): void {
+  private handleHeartbeat(data: {
+    agentId: string;
+    timestamp: Date;
+    metrics?: AgentMetrics;
+  }): void {
     const agent = this.agents.get(data.agentId);
     if (!agent) return;
 
     agent.lastHeartbeat = data.timestamp;
-    
+
     if (data.metrics) {
       this.updateAgentMetrics(data.agentId, data.metrics);
     }
@@ -1071,7 +1522,7 @@ export class AgentManager extends EventEmitter {
 
   private handleAgentError(data: { agentId: string; error: AgentError }): void {
     this.addAgentError(data.agentId, data.error);
-    
+
     const agent = this.agents.get(data.agentId);
     if (agent && data.error.severity === 'critical') {
       agent.status = 'error';
@@ -1105,16 +1556,19 @@ export class AgentManager extends EventEmitter {
     // Store performance history
     const history = this.performanceHistory.get(agentId) || [];
     history.push({ timestamp: new Date(), metrics: { ...metrics } });
-    
+
     // Keep only last 100 entries
     if (history.length > 100) {
       history.shift();
     }
-    
+
     this.performanceHistory.set(agentId, history);
   }
 
-  private updateResourceUsage(agentId: string, usage: { cpu: number; memory: number; disk: number }): void {
+  private updateResourceUsage(
+    agentId: string,
+    usage: { cpu: number; memory: number; disk: number },
+  ): void {
     this.resourceUsage.set(agentId, usage);
   }
 
@@ -1146,7 +1600,7 @@ export class AgentManager extends EventEmitter {
       userSatisfaction: 0.8,
       totalUptime: 0,
       lastActivity: new Date(),
-      responseTime: 0
+      responseTime: 0,
     };
   }
 
@@ -1158,25 +1612,25 @@ export class AgentManager extends EventEmitter {
         responsiveness: 1.0,
         performance: 1.0,
         reliability: 1.0,
-        resourceUsage: 1.0
+        resourceUsage: 1.0,
       },
       issues: [],
       lastCheck: new Date(),
-      trend: 'stable'
+      trend: 'stable',
     };
   }
 
   private removeAgentFromPoolsAndClusters(agentId: string): void {
     // Remove from pools
     for (const pool of Array.from(this.pools.values())) {
-      pool.availableAgents = pool.availableAgents.filter(a => a.id !== agentId);
-      pool.busyAgents = pool.busyAgents.filter(a => a.id !== agentId);
+      pool.availableAgents = pool.availableAgents.filter((a) => a.id !== agentId);
+      pool.busyAgents = pool.busyAgents.filter((a) => a.id !== agentId);
       pool.currentSize = pool.availableAgents.length + pool.busyAgents.length;
     }
 
     // Remove from clusters
     for (const cluster of Array.from(this.clusters.values())) {
-      cluster.agents = cluster.agents.filter(a => a.id !== agentId);
+      cluster.agents = cluster.agents.filter((a) => a.id !== agentId);
     }
   }
 
@@ -1193,16 +1647,16 @@ export class AgentManager extends EventEmitter {
           threshold: 0.8,
           comparison: 'gt',
           action: 'scale-up',
-          amount: 1
+          amount: 1,
         },
         {
           metric: 'pool-utilization',
           threshold: 0.3,
           comparison: 'lt',
           action: 'scale-down',
-          amount: 1
-        }
-      ]
+          amount: 1,
+        },
+      ],
     };
 
     this.scalingPolicies.set('default', defaultPolicy);
@@ -1219,11 +1673,11 @@ export class AgentManager extends EventEmitter {
   }
 
   getAgentsByType(type: AgentType): AgentState[] {
-    return Array.from(this.agents.values()).filter(agent => agent.type === type);
+    return Array.from(this.agents.values()).filter((agent) => agent.type === type);
   }
 
   getAgentsByStatus(status: AgentStatus): AgentState[] {
-    return Array.from(this.agents.values()).filter(agent => agent.status === status);
+    return Array.from(this.agents.values()).filter((agent) => agent.status === status);
   }
 
   getAgentHealth(agentId: string): AgentHealth | undefined {
@@ -1253,18 +1707,20 @@ export class AgentManager extends EventEmitter {
   } {
     const agents = Array.from(this.agents.values());
     const healthChecks = Array.from(this.healthChecks.values());
-    
-    const healthyAgents = healthChecks.filter(h => h.overall > 0.7).length;
-    const averageHealth = healthChecks.reduce((sum, h) => sum + h.overall, 0) / healthChecks.length || 1;
-    
+
+    const healthyAgents = healthChecks.filter((h) => h.overall > 0.7).length;
+    const averageHealth =
+      healthChecks.reduce((sum, h) => sum + h.overall, 0) / healthChecks.length || 1;
+
     const resourceUsages = Array.from(this.resourceUsage.values());
     const avgCpu = resourceUsages.reduce((sum, r) => sum + r.cpu, 0) / resourceUsages.length || 0;
-    const avgMemory = resourceUsages.reduce((sum, r) => sum + r.memory, 0) / resourceUsages.length || 0;
+    const avgMemory =
+      resourceUsages.reduce((sum, r) => sum + r.memory, 0) / resourceUsages.length || 0;
     const avgDisk = resourceUsages.reduce((sum, r) => sum + r.disk, 0) / resourceUsages.length || 0;
 
     return {
       totalAgents: agents.length,
-      activeAgents: agents.filter(a => a.status === 'idle' || a.status === 'busy').length,
+      activeAgents: agents.filter((a) => a.status === 'idle' || a.status === 'busy').length,
       healthyAgents,
       pools: this.pools.size,
       clusters: this.clusters.size,
@@ -1272,8 +1728,8 @@ export class AgentManager extends EventEmitter {
       resourceUtilization: {
         cpu: avgCpu,
         memory: avgMemory,
-        disk: avgDisk
-      }
+        disk: avgDisk,
+      },
     };
   }
 }

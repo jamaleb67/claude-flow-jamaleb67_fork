@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Session manager for MCP connections
  */
@@ -61,7 +60,7 @@ export class SessionManager implements ISessionManager {
     if (this.sessions.size >= this.maxSessions) {
       // Try to clean up expired sessions first
       this.cleanupExpiredSessions();
-      
+
       if (this.sessions.size >= this.maxSessions) {
         throw new MCPError('Maximum number of sessions reached');
       }
@@ -205,7 +204,7 @@ export class SessionManager implements ISessionManager {
 
   cleanupExpiredSessions(): void {
     const expiredSessions: string[] = [];
-    
+
     for (const [sessionId, session] of this.sessions) {
       if (this.isSessionExpired(session)) {
         expiredSessions.push(sessionId);
@@ -274,9 +273,7 @@ export class SessionManager implements ISessionManager {
 
   private validateProtocolVersion(version: MCPProtocolVersion): void {
     // Currently supporting MCP version 2024-11-05
-    const supportedVersions = [
-      { major: 2024, minor: 11, patch: 5 },
-    ];
+    const supportedVersions = [{ major: 2024, minor: 11, patch: 5 }];
 
     const isSupported = supportedVersions.some(
       (supported) =>
@@ -288,7 +285,7 @@ export class SessionManager implements ISessionManager {
     if (!isSupported) {
       throw new MCPError(
         `Unsupported protocol version: ${version.major}.${version.minor}.${version.patch}`,
-        { supportedVersions }
+        { supportedVersions },
       );
     }
   }
@@ -308,11 +305,11 @@ export class SessionManager implements ISessionManager {
       const encoder = new TextEncoder();
       const validTokenBytes = encoder.encode(validToken);
       const providedTokenBytes = encoder.encode(token);
-      
+
       if (validTokenBytes.length !== providedTokenBytes.length) {
         return false;
       }
-      
+
       return timingSafeEqual(validTokenBytes, providedTokenBytes);
     });
   }
@@ -376,7 +373,7 @@ export class SessionManager implements ISessionManager {
   private extractBasicAuth(credentials: unknown): { username?: string; password?: string } {
     if (typeof credentials === 'object' && credentials !== null) {
       const creds = credentials as Record<string, unknown>;
-      
+
       if (typeof creds.username === 'string' && typeof creds.password === 'string') {
         return {
           username: creds.username,

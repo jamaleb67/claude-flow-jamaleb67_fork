@@ -5,11 +5,11 @@
 import { EventBus } from '../core/event-bus.js';
 import { Logger } from '../core/logger.js';
 import { SystemIntegration } from '../integration/system-integration.js';
-import type { 
-  HealthCheckResult, 
-  ComponentStatus, 
-  SystemHealth, 
-  SystemMetrics 
+import type {
+  HealthCheckResult,
+  ComponentStatus,
+  SystemHealth,
+  SystemMetrics,
 } from '../integration/types.js';
 import { getErrorMessage } from '../utils/error-handler.js';
 
@@ -38,21 +38,17 @@ export class HealthCheckManager {
   private isRunning = false;
   private lastMetrics: SystemMetrics | null = null;
 
-  constructor(
-    eventBus: EventBus,
-    logger: Logger,
-    config: HealthCheckConfig = {}
-  ) {
+  constructor(eventBus: EventBus, logger: Logger, config: HealthCheckConfig = {}) {
     this.eventBus = eventBus;
     this.logger = logger;
     this.systemIntegration = SystemIntegration.getInstance();
-    
+
     this.config = {
       interval: config.interval || 30000, // 30 seconds
       timeout: config.timeout || 5000, // 5 seconds
       retries: config.retries || 3,
       enableMetrics: config.enableMetrics !== false,
-      enableAlerts: config.enableAlerts !== false
+      enableAlerts: config.enableAlerts !== false,
     };
 
     this.setupEventHandlers();
@@ -80,7 +76,7 @@ export class HealthCheckManager {
 
     this.eventBus.emit('health:monitor:started', {
       interval: this.config.interval,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -101,7 +97,7 @@ export class HealthCheckManager {
     }
 
     this.eventBus.emit('health:monitor:stopped', {
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -110,7 +106,7 @@ export class HealthCheckManager {
    */
   async performHealthCheck(): Promise<SystemHealth> {
     const startTime = Date.now();
-    
+
     try {
       this.logger.debug('Performing system health check');
 
@@ -119,7 +115,7 @@ export class HealthCheckManager {
 
       // Perform individual component checks
       const componentChecks = await this.checkAllComponents();
-      
+
       // Collect system metrics if enabled
       if (this.config.enableMetrics) {
         this.lastMetrics = await this.collectSystemMetrics();
@@ -141,19 +137,18 @@ export class HealthCheckManager {
         health: systemHealth,
         metrics: this.lastMetrics,
         duration,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
 
       return systemHealth;
-
     } catch (error) {
       const duration = Date.now() - startTime;
       this.logger.error('Health check failed:', getErrorMessage(error));
-      
+
       this.eventBus.emit('health:check:failed', {
         error: getErrorMessage(error),
         duration,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
 
       throw error;
@@ -172,11 +167,11 @@ export class HealthCheckManager {
       'swarmCoordinator',
       'taskEngine',
       'monitor',
-      'mcpServer'
+      'mcpServer',
     ];
 
     const checks = await Promise.allSettled(
-      components.map(component => this.checkComponent(component))
+      components.map((component) => this.checkComponent(component)),
     );
 
     return checks.map((result, index) => {
@@ -187,7 +182,7 @@ export class HealthCheckManager {
           component: components[index],
           healthy: false,
           message: getErrorMessage(result.reason),
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
       }
     });
@@ -198,16 +193,16 @@ export class HealthCheckManager {
    */
   private async checkComponent(componentName: string): Promise<HealthCheckResult> {
     const startTime = Date.now();
-    
+
     try {
       const component = this.systemIntegration.getComponent(componentName);
-      
+
       if (!component) {
         return {
           component: componentName,
           healthy: false,
           message: 'Component not found',
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
       }
 
@@ -215,9 +210,9 @@ export class HealthCheckManager {
       if (typeof component.healthCheck === 'function') {
         const result = await Promise.race([
           component.healthCheck(),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Health check timeout')), this.config.timeout)
-          )
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Health check timeout')), this.config.timeout),
+          ),
         ]);
         return result as HealthCheckResult;
       }
@@ -229,15 +224,14 @@ export class HealthCheckManager {
         healthy: true,
         message: 'Component available',
         metrics: { responseTime: duration },
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-
     } catch (error) {
       return {
         component: componentName,
         healthy: false,
         message: getErrorMessage(error),
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
     }
   }
@@ -247,16 +241,16 @@ export class HealthCheckManager {
    */
   private async collectSystemMetrics(): Promise<SystemMetrics> {
     const startTime = Date.now();
-    
+
     try {
       // Get system resource usage
       const memoryUsage = process.memoryUsage();
       const cpuUsage = process.cpuUsage();
-      
+
       // Get component-specific metrics
       const agentManager = this.systemIntegration.getComponent('agentManager');
       const taskEngine = this.systemIntegration.getComponent('taskEngine');
-      
+
       let activeAgents = 0;
       let activeTasks = 0;
       let queuedTasks = 0;
@@ -285,9 +279,8 @@ export class HealthCheckManager {
         completedTasks,
         errorCount: this.getErrorCount(),
         uptime: process.uptime() * 1000,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-
     } catch (error) {
       this.logger.error('Failed to collect system metrics:', getErrorMessage(error));
       return {
@@ -301,7 +294,7 @@ export class HealthCheckManager {
         completedTasks: 0,
         errorCount: 0,
         uptime: process.uptime() * 1000,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
     }
   }
@@ -312,7 +305,7 @@ export class HealthCheckManager {
   private storeHealthHistory(results: HealthCheckResult[]): void {
     const maxHistorySize = 100; // Keep last 100 health checks per component
 
-    results.forEach(result => {
+    results.forEach((result) => {
       if (!this.healthHistory.has(result.component)) {
         this.healthHistory.set(result.component, []);
       }
@@ -331,16 +324,17 @@ export class HealthCheckManager {
    * Check for alerts and send notifications
    */
   private async checkForAlerts(health: SystemHealth): Promise<void> {
-    const unhealthyComponents = Object.values(health.components)
-      .filter(component => component.status === 'unhealthy');
+    const unhealthyComponents = Object.values(health.components).filter(
+      (component) => component.status === 'unhealthy',
+    );
 
     if (unhealthyComponents.length > 0) {
       const alert = {
         type: 'component_failure',
         severity: 'high',
         message: `${unhealthyComponents.length} component(s) are unhealthy`,
-        components: unhealthyComponents.map(c => c.component),
-        timestamp: Date.now()
+        components: unhealthyComponents.map((c) => c.component),
+        timestamp: Date.now(),
       };
 
       this.eventBus.emit('health:alert', alert);
@@ -356,7 +350,7 @@ export class HealthCheckManager {
           type: 'high_cpu',
           severity: 'medium',
           message: `High CPU usage: ${this.lastMetrics.cpu.toFixed(1)}%`,
-          value: this.lastMetrics.cpu
+          value: this.lastMetrics.cpu,
         });
       }
 
@@ -365,7 +359,7 @@ export class HealthCheckManager {
           type: 'high_memory',
           severity: 'medium',
           message: `High memory usage: ${this.lastMetrics.memory.toFixed(1)}%`,
-          value: this.lastMetrics.memory
+          value: this.lastMetrics.memory,
         });
       }
 
@@ -374,14 +368,14 @@ export class HealthCheckManager {
           type: 'high_errors',
           severity: 'high',
           message: `High error count: ${this.lastMetrics.errorCount}`,
-          value: this.lastMetrics.errorCount
+          value: this.lastMetrics.errorCount,
         });
       }
 
-      alerts.forEach(alert => {
+      alerts.forEach((alert) => {
         this.eventBus.emit('health:alert', {
           ...alert,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       });
     }
@@ -426,8 +420,8 @@ export class HealthCheckManager {
     let errorCount = 0;
 
     for (const history of this.healthHistory.values()) {
-      errorCount += history.filter(check => 
-        check.timestamp > recentTime && !check.healthy
+      errorCount += history.filter(
+        (check) => check.timestamp > recentTime && !check.healthy,
       ).length;
     }
 

@@ -19,7 +19,8 @@ Reduce token consumption while maintaining quality through intelligent coordinat
 
 ```bash
 # Check token savings after session
-npx ruv-swarm hook session-end --export-metrics
+Tool: mcp__claude-flow__token_usage
+Parameters: {"operation": "session", "timeframe": "24h"}
 
 # Result shows:
 {

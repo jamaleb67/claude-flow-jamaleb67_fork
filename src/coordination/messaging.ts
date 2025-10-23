@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Inter-agent messaging system
  */
@@ -36,20 +35,20 @@ export class MessageRouter {
 
   async initialize(): Promise<void> {
     this.logger.info('Initializing message router');
-    
+
     // Set up periodic cleanup
     setInterval(() => this.cleanup(), 60000); // Every minute
   }
 
   async shutdown(): Promise<void> {
     this.logger.info('Shutting down message router');
-    
+
     // Reject all pending responses
     for (const [id, pending] of this.pendingResponses) {
       pending.reject(new Error('Message router shutdown'));
       clearTimeout(pending.timeout);
     }
-    
+
     this.queues.clear();
     this.pendingResponses.clear();
   }
@@ -111,11 +110,9 @@ export class MessageRouter {
     };
 
     // Send to all agents
-    const agents = Array.from(this.queues.keys()).filter(id => id !== from);
-    
-    await Promise.all(
-      agents.map(to => this.sendMessage(from, to, message)),
-    );
+    const agents = Array.from(this.queues.keys()).filter((id) => id !== from);
+
+    await Promise.all(agents.map((to) => this.sendMessage(from, to, message)));
   }
 
   subscribe(agentId: string, handler: (message: Message) => void): void {
@@ -130,10 +127,7 @@ export class MessageRouter {
     }
   }
 
-  async sendResponse(
-    originalMessageId: string,
-    response: unknown,
-  ): Promise<void> {
+  async sendResponse(originalMessageId: string, response: unknown): Promise<void> {
     const pending = this.pendingResponses.get(originalMessageId);
     if (!pending) {
       this.logger.warn('No pending response found', { messageId: originalMessageId });
@@ -145,9 +139,9 @@ export class MessageRouter {
     pending.resolve(response);
   }
 
-  async getHealthStatus(): Promise<{ 
-    healthy: boolean; 
-    error?: string; 
+  async getHealthStatus(): Promise<{
+    healthy: boolean;
+    error?: string;
     metrics?: Record<string, number>;
   }> {
     const totalQueues = this.queues.size;
@@ -171,12 +165,8 @@ export class MessageRouter {
     };
   }
 
-  private async sendMessage(
-    from: string,
-    to: string,
-    message: Message,
-  ): Promise<void> {
-    this.logger.debug('Sending message', { 
+  private async sendMessage(from: string, to: string, message: Message): Promise<void> {
+    this.logger.debug('Sending message', {
       from,
       to,
       messageId: message.id,
@@ -214,11 +204,11 @@ export class MessageRouter {
     // Call all handlers
     const handlers = Array.from(queue.handlers.values());
     await Promise.all(
-      handlers.map(handler => {
+      handlers.map((handler) => {
         try {
           handler(message);
         } catch (error) {
-          this.logger.error('Message handler error', { 
+          this.logger.error('Message handler error', {
             agentId,
             messageId: message.id,
             error,
@@ -228,7 +218,7 @@ export class MessageRouter {
     );
 
     // Emit received event
-    this.eventBus.emit(SystemEvents.MESSAGE_RECEIVED, { 
+    this.eventBus.emit(SystemEvents.MESSAGE_RECEIVED, {
       from: '', // Would need to track this
       to: agentId,
       message,
@@ -255,14 +245,14 @@ export class MessageRouter {
 
     // Clean up old messages
     for (const [agentId, queue] of this.queues) {
-      const filtered = queue.messages.filter(msg => {
+      const filtered = queue.messages.filter((msg) => {
         const age = now - msg.timestamp.getTime();
-        const maxAge = msg.expiry 
+        const maxAge = msg.expiry
           ? msg.expiry.getTime() - msg.timestamp.getTime()
           : this.config.messageTimeout;
 
         if (age > maxAge) {
-          this.logger.warn('Dropping expired message', { 
+          this.logger.warn('Dropping expired message', {
             agentId,
             messageId: msg.id,
             age,

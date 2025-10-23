@@ -3,14 +3,14 @@
  */
 
 import { jest } from '@jest/globals';
-import { 
-  commandRegistry, 
-  registerCoreCommands, 
-  executeCommand, 
-  hasCommand, 
-  showCommandHelp, 
-  showAllCommands, 
-  listCommands 
+import {
+  commandRegistry,
+  registerCoreCommands,
+  executeCommand,
+  hasCommand,
+  showCommandHelp,
+  showAllCommands,
+  listCommands,
 } from '../command-registry.js';
 
 // Mock all command modules
@@ -89,22 +89,34 @@ describe('Command Registry', () => {
   describe('registerCoreCommands', () => {
     test('should register all core commands', () => {
       registerCoreCommands();
-      
+
       const expectedCommands = [
-        'init', 'start', 'memory', 'sparc', 'agent', 
-        'task', 'config', 'status', 'mcp', 'monitor',
-        'swarm', 'batch-manager', 'github', 'docker',
-        'ruv-swarm', 'config-integration'
+        'init',
+        'start',
+        'memory',
+        'sparc',
+        'agent',
+        'task',
+        'config',
+        'status',
+        'mcp',
+        'monitor',
+        'swarm',
+        'batch-manager',
+        'github',
+        'docker',
+        'ruv-swarm',
+        'config-integration',
       ];
-      
-      expectedCommands.forEach(cmd => {
+
+      expectedCommands.forEach((cmd) => {
         expect(commandRegistry.has(cmd)).toBe(true);
       });
     });
 
     test('should register commands with correct metadata', () => {
       registerCoreCommands();
-      
+
       const initCmd = commandRegistry.get('init');
       expect(initCmd).toHaveProperty('handler');
       expect(initCmd).toHaveProperty('description');
@@ -139,23 +151,21 @@ describe('Command Registry', () => {
 
     test('should execute command handler with arguments', async () => {
       const { initCommand } = await import('../simple-commands/init.js');
-      
+
       await executeCommand('init', ['--sparc'], { force: true });
-      
+
       expect(initCommand).toHaveBeenCalledWith(['--sparc'], { force: true });
     });
 
     test('should throw error for unknown command', async () => {
-      await expect(executeCommand('unknown', [], {}))
-        .rejects.toThrow('Unknown command: unknown');
+      await expect(executeCommand('unknown', [], {})).rejects.toThrow('Unknown command: unknown');
     });
 
     test('should handle command execution errors', async () => {
       const { swarmCommand } = await import('../simple-commands/swarm.js');
       swarmCommand.mockRejectedValue(new Error('Command failed'));
-      
-      await expect(executeCommand('swarm', ['test'], {}))
-        .rejects.toThrow('Command failed');
+
+      await expect(executeCommand('swarm', ['test'], {})).rejects.toThrow('Command failed');
     });
   });
 
@@ -166,7 +176,7 @@ describe('Command Registry', () => {
 
     test('should display help for existing command', () => {
       showCommandHelp('init');
-      
+
       const output = consoleLogSpy.mock.calls.flat().join('\n');
       expect(output).toContain('init');
       expect(output).toContain('Initialize Claude Code integration');
@@ -176,9 +186,9 @@ describe('Command Registry', () => {
 
     test('should show error for unknown command', () => {
       showCommandHelp('unknown');
-      
+
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Unknown command: unknown')
+        expect.stringContaining('Unknown command: unknown'),
       );
     });
   });
@@ -187,15 +197,15 @@ describe('Command Registry', () => {
     test('should display all registered commands grouped by category', () => {
       registerCoreCommands();
       showAllCommands();
-      
+
       const output = consoleLogSpy.mock.calls.flat().join('\n');
-      
+
       // Check for categories
       expect(output).toContain('SWARM INTELLIGENCE COMMANDS');
       expect(output).toContain('WORKFLOW AUTOMATION');
       expect(output).toContain('DEVELOPMENT & TESTING');
       expect(output).toContain('INFRASTRUCTURE');
-      
+
       // Check for specific commands
       expect(output).toContain('swarm');
       expect(output).toContain('agent');
@@ -209,7 +219,7 @@ describe('Command Registry', () => {
     test('should return array of all command names', () => {
       registerCoreCommands();
       const commands = listCommands();
-      
+
       expect(Array.isArray(commands)).toBe(true);
       expect(commands).toContain('init');
       expect(commands).toContain('swarm');
@@ -220,7 +230,7 @@ describe('Command Registry', () => {
     test('should return empty array when no commands registered', () => {
       commandRegistry.clear();
       const commands = listCommands();
-      
+
       expect(commands).toEqual([]);
     });
   });

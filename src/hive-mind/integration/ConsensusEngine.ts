@@ -1,6 +1,6 @@
 /**
  * ConsensusEngine Class
- * 
+ *
  * Manages consensus mechanisms, voting, and collective decision-making
  * within the Hive Mind swarm.
  */
@@ -13,7 +13,7 @@ import {
   ConsensusVote,
   ConsensusResult,
   VotingStrategy,
-  ConsensusMetrics
+  ConsensusMetrics,
 } from '../types.js';
 
 export class ConsensusEngine extends EventEmitter {
@@ -35,9 +35,9 @@ export class ConsensusEngine extends EventEmitter {
       achievedConsensus: 0,
       failedConsensus: 0,
       avgVotingTime: 0,
-      avgParticipation: 0
+      avgParticipation: 0,
     };
-    
+
     this.initializeVotingStrategies();
   }
 
@@ -47,12 +47,12 @@ export class ConsensusEngine extends EventEmitter {
   async initialize(): Promise<void> {
     this.db = await DatabaseManager.getInstance();
     this.mcpWrapper = new MCPToolWrapper();
-    
+
     // Start consensus monitoring
     this.startProposalMonitor();
     this.startTimeoutChecker();
     this.startMetricsCollector();
-    
+
     this.isActive = true;
     this.emit('initialized');
   }
@@ -63,18 +63,18 @@ export class ConsensusEngine extends EventEmitter {
   async createProposal(proposal: ConsensusProposal): Promise<string> {
     // Store in database
     await this.db.createConsensusProposal(proposal);
-    
+
     // Add to active proposals
     this.activeProposals.set(proposal.id, proposal);
-    
+
     // Update metrics
     this.metrics.totalProposals++;
-    
+
     // Initiate voting
     await this.initiateVoting(proposal);
-    
+
     this.emit('proposalCreated', proposal);
-    
+
     return proposal.id;
   }
 
@@ -86,23 +86,18 @@ export class ConsensusEngine extends EventEmitter {
     if (!proposal) {
       throw new Error('Proposal not found or no longer active');
     }
-    
+
     // Validate vote
     if (!this.validateVote(vote, proposal)) {
       throw new Error('Invalid vote');
     }
-    
+
     // Store vote
-    await this.db.submitConsensusVote(
-      vote.proposalId,
-      vote.agentId,
-      vote.vote,
-      vote.reason
-    );
-    
+    await this.db.submitConsensusVote(vote.proposalId, vote.agentId, vote.vote, vote.reason);
+
     // Check if consensus achieved
     await this.checkConsensus(proposal);
-    
+
     this.emit('voteSubmitted', vote);
   }
 
@@ -114,11 +109,11 @@ export class ConsensusEngine extends EventEmitter {
     if (!dbProposal) {
       throw new Error('Proposal not found');
     }
-    
+
     const votes = JSON.parse(dbProposal.votes || '{}');
     const voteCount = Object.keys(votes).length;
     const positiveVotes = Object.values(votes).filter((v: any) => v.vote).length;
-    
+
     return {
       id: proposalId,
       status: dbProposal.status,
@@ -129,7 +124,7 @@ export class ConsensusEngine extends EventEmitter {
       currentRatio: voteCount > 0 ? positiveVotes / voteCount : 0,
       votes: votes,
       deadline: dbProposal.deadline_at,
-      timeRemaining: new Date(dbProposal.deadline_at).getTime() - Date.now()
+      timeRemaining: new Date(dbProposal.deadline_at).getTime() - Date.now(),
     };
   }
 
@@ -139,13 +134,13 @@ export class ConsensusEngine extends EventEmitter {
   async getVotingRecommendation(
     proposalId: string,
     agentId: string,
-    agentType: string
+    agentType: string,
   ): Promise<any> {
     const proposal = this.activeProposals.get(proposalId);
     if (!proposal) {
       throw new Error('Proposal not found');
     }
-    
+
     // Analyze proposal using neural patterns
     const analysis = await this.mcpWrapper.analyzePattern({
       action: 'analyze',
@@ -153,20 +148,20 @@ export class ConsensusEngine extends EventEmitter {
       metadata: {
         proposal: proposal.proposal,
         agentType,
-        requiredThreshold: proposal.requiredThreshold
-      }
+        requiredThreshold: proposal.requiredThreshold,
+      },
     });
-    
+
     // Get strategy recommendation
     const strategy = this.selectVotingStrategy(proposal, agentType);
     const recommendation = strategy.recommend(proposal, analysis);
-    
+
     return {
       proposalId,
       recommendation: recommendation.vote,
       confidence: recommendation.confidence,
       reasoning: recommendation.reasoning,
-      factors: recommendation.factors
+      factors: recommendation.factors,
     };
   }
 
@@ -178,7 +173,7 @@ export class ConsensusEngine extends EventEmitter {
     if (!proposal) {
       throw new Error('Proposal not found');
     }
-    
+
     return this.checkConsensus(proposal);
   }
 
@@ -202,10 +197,10 @@ export class ConsensusEngine extends EventEmitter {
         vote: analysis.data?.recommendation || true,
         confidence: 0.7,
         reasoning: 'Based on simple majority principle',
-        factors: ['proposal_quality', 'impact_assessment']
-      })
+        factors: ['proposal_quality', 'impact_assessment'],
+      }),
     });
-    
+
     // Supermajority strategy
     this.votingStrategies.set('supermajority', {
       name: 'Supermajority',
@@ -215,10 +210,10 @@ export class ConsensusEngine extends EventEmitter {
         vote: analysis.data?.strongRecommendation || false,
         confidence: 0.8,
         reasoning: 'Requires strong consensus for critical decisions',
-        factors: ['criticality', 'risk_assessment', 'broad_support']
-      })
+        factors: ['criticality', 'risk_assessment', 'broad_support'],
+      }),
     });
-    
+
     // Unanimous strategy
     this.votingStrategies.set('unanimous', {
       name: 'Unanimous',
@@ -228,10 +223,10 @@ export class ConsensusEngine extends EventEmitter {
         vote: analysis.data?.perfectAlignment || false,
         confidence: 0.9,
         reasoning: 'All agents must agree for this decision',
-        factors: ['absolute_necessity', 'zero_dissent']
-      })
+        factors: ['absolute_necessity', 'zero_dissent'],
+      }),
     });
-    
+
     // Qualified majority strategy
     this.votingStrategies.set('qualified_majority', {
       name: 'Qualified Majority',
@@ -243,9 +238,9 @@ export class ConsensusEngine extends EventEmitter {
           vote: expertise > 0.6,
           confidence: expertise,
           reasoning: 'Based on agent expertise and proposal alignment',
-          factors: ['expertise_level', 'domain_knowledge', 'past_performance']
+          factors: ['expertise_level', 'domain_knowledge', 'past_performance'],
         };
-      }
+      },
     });
   }
 
@@ -261,16 +256,16 @@ export class ConsensusEngine extends EventEmitter {
       message_type: 'consensus',
       content: JSON.stringify({
         type: 'voting_request',
-        proposal
+        proposal,
       }),
       priority: 'high',
-      requires_response: true
+      requires_response: true,
     });
-    
+
     // Set up voting deadline monitoring
     if (proposal.deadline) {
       const timeUntilDeadline = proposal.deadline.getTime() - Date.now();
-      
+
       setTimeout(async () => {
         await this.handleVotingDeadline(proposal.id);
       }, timeUntilDeadline);
@@ -285,15 +280,15 @@ export class ConsensusEngine extends EventEmitter {
     if (proposal.deadline && new Date() > proposal.deadline) {
       return false;
     }
-    
+
     // Check if agent already voted
     // This would be checked in the database layer
-    
+
     // Validate vote structure
     if (typeof vote.vote !== 'boolean') {
       return false;
     }
-    
+
     return true;
   }
 
@@ -302,7 +297,7 @@ export class ConsensusEngine extends EventEmitter {
    */
   private async checkConsensus(proposal: ConsensusProposal): Promise<ConsensusResult> {
     const status = await this.getProposalStatus(proposal.id);
-    
+
     const result: ConsensusResult = {
       proposalId: proposal.id,
       achieved: false,
@@ -310,9 +305,9 @@ export class ConsensusEngine extends EventEmitter {
       totalVotes: status.currentVotes,
       positiveVotes: Math.round(status.currentVotes * status.currentRatio),
       negativeVotes: status.currentVotes - Math.round(status.currentVotes * status.currentRatio),
-      participationRate: status.totalVoters > 0 ? status.currentVotes / status.totalVoters : 0
+      participationRate: status.totalVoters > 0 ? status.currentVotes / status.totalVoters : 0,
     };
-    
+
     // Check if threshold met
     if (status.currentRatio >= proposal.requiredThreshold) {
       result.achieved = true;
@@ -321,7 +316,7 @@ export class ConsensusEngine extends EventEmitter {
       // All votes are in but consensus not achieved
       await this.handleConsensusFailed(proposal, result);
     }
-    
+
     return result;
   }
 
@@ -330,26 +325,26 @@ export class ConsensusEngine extends EventEmitter {
    */
   private async handleConsensusAchieved(
     proposal: ConsensusProposal,
-    result: ConsensusResult
+    result: ConsensusResult,
   ): Promise<void> {
     // Update proposal status
     await this.db.updateConsensusStatus(proposal.id, 'achieved');
-    
+
     // Remove from active proposals
     this.activeProposals.delete(proposal.id);
-    
+
     // Update metrics
     this.metrics.achievedConsensus++;
     this.updateAverageMetrics(result);
-    
+
     // Notify all agents
     await this.broadcastConsensusResult(proposal, result, true);
-    
+
     // Execute consensus decision if applicable
     if (proposal.taskId) {
       await this.executeConsensusDecision(proposal, result);
     }
-    
+
     this.emit('consensusAchieved', { proposal, result });
   }
 
@@ -358,21 +353,21 @@ export class ConsensusEngine extends EventEmitter {
    */
   private async handleConsensusFailed(
     proposal: ConsensusProposal,
-    result: ConsensusResult
+    result: ConsensusResult,
   ): Promise<void> {
     // Update proposal status
     await this.db.updateConsensusStatus(proposal.id, 'failed');
-    
+
     // Remove from active proposals
     this.activeProposals.delete(proposal.id);
-    
+
     // Update metrics
     this.metrics.failedConsensus++;
     this.updateAverageMetrics(result);
-    
+
     // Notify all agents
     await this.broadcastConsensusResult(proposal, result, false);
-    
+
     this.emit('consensusFailed', { proposal, result });
   }
 
@@ -382,9 +377,9 @@ export class ConsensusEngine extends EventEmitter {
   private async handleVotingDeadline(proposalId: string): Promise<void> {
     const proposal = this.activeProposals.get(proposalId);
     if (!proposal) return;
-    
+
     const result = await this.checkConsensus(proposal);
-    
+
     if (!result.achieved) {
       await this.handleConsensusFailed(proposal, result);
     }
@@ -410,8 +405,9 @@ export class ConsensusEngine extends EventEmitter {
   private updateAverageMetrics(result: ConsensusResult): void {
     // Update average participation rate
     const totalDecisions = this.metrics.achievedConsensus + this.metrics.failedConsensus;
-    this.metrics.avgParticipation = 
-      (this.metrics.avgParticipation * (totalDecisions - 1) + result.participationRate) / totalDecisions;
+    this.metrics.avgParticipation =
+      (this.metrics.avgParticipation * (totalDecisions - 1) + result.participationRate) /
+      totalDecisions;
   }
 
   /**
@@ -420,7 +416,7 @@ export class ConsensusEngine extends EventEmitter {
   private async broadcastConsensusResult(
     proposal: ConsensusProposal,
     result: ConsensusResult,
-    achieved: boolean
+    achieved: boolean,
   ): Promise<void> {
     await this.db.createCommunication({
       from_agent_id: 'consensus-engine',
@@ -431,9 +427,9 @@ export class ConsensusEngine extends EventEmitter {
         type: 'consensus_result',
         proposal,
         result,
-        achieved
+        achieved,
       }),
-      priority: 'high'
+      priority: 'high',
     });
   }
 
@@ -442,13 +438,13 @@ export class ConsensusEngine extends EventEmitter {
    */
   private async executeConsensusDecision(
     proposal: ConsensusProposal,
-    result: ConsensusResult
+    result: ConsensusResult,
   ): Promise<void> {
     if (!proposal.taskId) return;
-    
+
     // Update task based on consensus decision
     const decision = proposal.proposal;
-    
+
     if (decision.action === 'approve_task') {
       await this.db.updateTaskStatus(proposal.taskId, 'approved');
     } else if (decision.action === 'modify_task') {
@@ -456,7 +452,7 @@ export class ConsensusEngine extends EventEmitter {
     } else if (decision.action === 'cancel_task') {
       await this.db.updateTaskStatus(proposal.taskId, 'cancelled');
     }
-    
+
     this.emit('consensusExecuted', { proposal, result, taskId: proposal.taskId });
   }
 
@@ -466,7 +462,7 @@ export class ConsensusEngine extends EventEmitter {
   private startProposalMonitor(): void {
     setInterval(async () => {
       if (!this.isActive) return;
-      
+
       try {
         // Check active proposals for updates
         for (const proposal of this.activeProposals.values()) {
@@ -484,10 +480,10 @@ export class ConsensusEngine extends EventEmitter {
   private startTimeoutChecker(): void {
     setInterval(async () => {
       if (!this.isActive) return;
-      
+
       try {
         const now = Date.now();
-        
+
         for (const proposal of this.activeProposals.values()) {
           if (proposal.deadline && proposal.deadline.getTime() < now) {
             await this.handleVotingDeadline(proposal.id);
@@ -505,25 +501,24 @@ export class ConsensusEngine extends EventEmitter {
   private startMetricsCollector(): void {
     setInterval(async () => {
       if (!this.isActive) return;
-      
+
       try {
         // Calculate average voting time
         const recentProposals = await this.db.getRecentConsensusProposals(10);
-        
+
         if (recentProposals.length > 0) {
           const votingTimes = recentProposals
-            .filter(p => p.completed_at)
-            .map(p => new Date(p.completed_at).getTime() - new Date(p.created_at).getTime());
-          
+            .filter((p) => p.completed_at)
+            .map((p) => new Date(p.completed_at).getTime() - new Date(p.created_at).getTime());
+
           if (votingTimes.length > 0) {
-            this.metrics.avgVotingTime = 
+            this.metrics.avgVotingTime =
               votingTimes.reduce((a, b) => a + b, 0) / votingTimes.length;
           }
         }
-        
+
         // Store metrics
         await this.storeMetrics();
-        
       } catch (error) {
         this.emit('error', error);
       }
@@ -539,7 +534,7 @@ export class ConsensusEngine extends EventEmitter {
       key: 'consensus-metrics',
       value: JSON.stringify(this.metrics),
       namespace: 'performance-metrics',
-      ttl: 86400 * 30 // 30 days
+      ttl: 86400 * 30, // 30 days
     });
   }
 
@@ -551,7 +546,8 @@ export class ConsensusEngine extends EventEmitter {
   }
 
   private async updateConsensusStatus(id: string, status: string): Promise<void> {
-    this.db.prepare('UPDATE consensus SET status = ?, completed_at = CURRENT_TIMESTAMP WHERE id = ?')
+    this.db
+      .prepare('UPDATE consensus SET status = ?, completed_at = CURRENT_TIMESTAMP WHERE id = ?')
       .run(status, id);
   }
 
@@ -564,10 +560,10 @@ export class ConsensusEngine extends EventEmitter {
    */
   async shutdown(): Promise<void> {
     this.isActive = false;
-    
+
     // Clear active proposals
     this.activeProposals.clear();
-    
+
     this.emit('shutdown');
   }
 }

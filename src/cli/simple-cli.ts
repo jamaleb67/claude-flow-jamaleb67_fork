@@ -1,25 +1,28 @@
 #!/usr/bin/env -S deno run --allow-all
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Simple CLI wrapper for Claude-Flow (JavaScript version)
  * This version avoids TypeScript issues in node_modules
  */
 
 import { promises as fs } from 'node:fs';
-import { 
-  executeCommand, 
-  hasCommand, 
-  showCommandHelp, 
+import {
+  executeCommand,
+  hasCommand,
+  showCommandHelp,
   showAllCommands,
-  listCommands 
+  listCommands,
 } from './command-registry.js';
 import { parseFlags } from './utils.js';
-
-const VERSION = '2.0.0';
+import { VERSION } from '../core/version.js';
 
 function printHelp() {
   console.log(`
 🌊 Claude-Flow v${VERSION} - Enterprise-Grade AI Agent Orchestration Platform
+
+🎯 NEW IN v2.6.0: Multi-Provider Execution Engine with Agentic-Flow Integration
+   • 66+ specialized agents with multi-provider support (Anthropic, OpenRouter, ONNX, Gemini)
+   • 99% cost savings with OpenRouter, 352x faster local edits with Agent Booster
+   • Complete backwards compatibility with existing features
 
 🎯 ENTERPRISE FEATURES: Complete ruv-swarm integration with 27 MCP tools, neural networking, and production-ready infrastructure
 
@@ -57,9 +60,10 @@ USAGE:
   init [--sparc]              # Initialize with enterprise environment + ruv-swarm
   start [--ui] [--swarm]      # Start orchestration with swarm intelligence
   spawn <type> [--name]       # Create AI agent with swarm coordination
-  agent <subcommand>          # Advanced agent management with neural patterns
+  agent <subcommand>          # 🆕 Multi-provider agent execution + management
   sparc <subcommand>          # 17 SPARC modes with neural enhancement
   memory <subcommand>         # Cross-session persistent memory with neural learning
+  config <subcommand>         # 🆕 Provider configuration management
   status                      # Comprehensive system status with performance metrics
 
 🤖 NEURAL AGENT TYPES (ruv-swarm Integration):
@@ -74,20 +78,25 @@ USAGE:
 
 🎮 ENTERPRISE QUICK START:
   # Initialize enterprise environment
-  npx claude-flow@2.0.0 init --sparc
-  
+  npx claude-flow@2.6.0-alpha.1 init --sparc
+
+  # 🆕 Execute agents with multi-provider support
+  ./claude-flow agent run coder "Build REST API with auth" --provider anthropic
+  ./claude-flow agent run researcher "Research React 19" --provider openrouter  # 99% cost savings
+  ./claude-flow agent agents  # List all 66+ available agents
+
   # Start enterprise orchestration with swarm intelligence
   ./claude-flow start --ui --swarm
-  
+
   # Deploy intelligent multi-agent development workflow
   ./claude-flow swarm "build enterprise API" --strategy development --parallel --monitor
-  
+
   # GitHub workflow automation
   ./claude-flow github pr-manager "coordinate release with automated testing"
-  
+
   # Neural memory management
   ./claude-flow memory store "architecture" "microservices with API gateway pattern"
-  
+
   # Real-time system monitoring
   ./claude-flow status --verbose
 
@@ -172,7 +181,7 @@ function showHelpWithCommands() {
 
 async function main() {
   const args = Deno.args;
-  
+
   if (args.length === 0) {
     printHelp();
     return;
@@ -188,7 +197,7 @@ async function main() {
     case '-v':
       printVersion();
       return;
-      
+
     case 'help':
     case '--help':
     case '-h':
@@ -213,7 +222,7 @@ async function main() {
 
   // Legacy command handling (to be refactored)
   const subArgs = parsedArgs; // Use parsed args for legacy commands
-  
+
   switch (command) {
     case 'status':
       printSuccess('Claude-Flow System Status:');
@@ -224,18 +233,17 @@ async function main() {
       console.log('🖥️  Terminal Pool: Ready');
       console.log('🌐 MCP Server: Stopped');
       break;
-      
-      
+
     case 'monitor':
       printSuccess('Starting system monitor...');
       console.log('📊 Real-time monitoring would display here');
       break;
-      
+
     case 'spawn':
       // Convenience alias for agent spawn
       const spawnType = subArgs[0] || 'general';
-      const spawnName = flags.name || `agent-${Date.now()}`;
-      
+      const spawnName = (flags as any).name || `agent-${Date.now()}`;
+
       printSuccess(`Spawning ${spawnType} agent: ${spawnName}`);
       console.log('🤖 Agent would be created with the following configuration:');
       console.log(`   Type: ${spawnType}`);
@@ -244,14 +252,14 @@ async function main() {
       console.log('   Status: Ready');
       console.log('\n📋 Note: Full agent spawning requires orchestrator to be running');
       break;
-      
+
     case 'terminal':
       const terminalCmd = subArgs[0];
       switch (terminalCmd) {
         case 'pool':
           const poolCmd = subArgs[1];
           const detailed = subArgs.includes('--detailed') || subArgs.includes('-d');
-          
+
           if (poolCmd === 'status') {
             printSuccess('Terminal Pool Status:');
             console.log('🖥️  Status: Ready');
@@ -259,7 +267,7 @@ async function main() {
             console.log('🟢 Active Terminals: 0');
             console.log('⏸️  Idle Terminals: 0');
             console.log('📈 Total Created: 0');
-            
+
             if (detailed) {
               console.log('\n📋 Detailed Information:');
               console.log('   Configuration:');
@@ -307,7 +315,7 @@ async function main() {
             console.log('Options: --detailed, -d');
           }
           break;
-          
+
         case 'create':
           // Advanced terminal creation
           const nameIndex = subArgs.indexOf('--name');
@@ -315,15 +323,15 @@ async function main() {
           const wdIndex = subArgs.indexOf('--working-directory');
           const envIndex = subArgs.indexOf('--env');
           const persistentIndex = subArgs.indexOf('--persistent');
-          
+
           const terminalConfig = {
             name: nameIndex >= 0 ? subArgs[nameIndex + 1] : 'terminal-' + Date.now(),
             shell: shellIndex >= 0 ? subArgs[shellIndex + 1] : 'bash',
             workingDirectory: wdIndex >= 0 ? subArgs[wdIndex + 1] : process.cwd(),
             env: envIndex >= 0 ? subArgs[envIndex + 1] : '',
-            persistent: persistentIndex >= 0
+            persistent: persistentIndex >= 0,
           };
-          
+
           printSuccess('Creating terminal session...');
           console.log(`🆔 Terminal ID: ${terminalConfig.name}`);
           console.log(`🐚 Shell: ${terminalConfig.shell}`);
@@ -335,14 +343,14 @@ async function main() {
             console.log('💾 Persistent: Yes');
           }
           break;
-          
+
         case 'execute':
         case 'exec':
           const execCmd = subArgs.slice(1).join(' ');
           const sessionFlag = subArgs.indexOf('--session');
           const timeoutFlag = subArgs.indexOf('--timeout');
           const backgroundFlag = subArgs.includes('--background');
-          
+
           if (execCmd && sessionFlag < 0) {
             printSuccess(`Executing command: ${execCmd}`);
             console.log('🖥️  Command would execute in terminal pool');
@@ -354,10 +362,14 @@ async function main() {
             const sessionId = subArgs[sessionFlag + 1];
             const cmdStart = subArgs.indexOf('"');
             const cmdEnd = subArgs.lastIndexOf('"');
-            const command = cmdStart >= 0 && cmdEnd > cmdStart ? 
-              subArgs.slice(cmdStart, cmdEnd + 1).join(' ').slice(1, -1) : 
-              'echo "No command"';
-            
+            const command =
+              cmdStart >= 0 && cmdEnd > cmdStart
+                ? subArgs
+                    .slice(cmdStart, cmdEnd + 1)
+                    .join(' ')
+                    .slice(1, -1)
+                : 'echo "No command"';
+
             printSuccess(`Executing in session ${sessionId}: ${command}`);
             if (timeoutFlag >= 0) {
               console.log(`⏱️  Timeout: ${subArgs[timeoutFlag + 1]}`);
@@ -366,13 +378,13 @@ async function main() {
             printError('Usage: terminal execute <command> [--session <id>] [--timeout <duration>]');
           }
           break;
-          
+
         case 'batch-exec':
           // Batch command execution
-          const batchSession = subArgs.find(arg => !arg.startsWith('--'));
+          const batchSession = subArgs.find((arg) => !arg.startsWith('--'));
           const commandsFlag = subArgs.indexOf('--commands');
           const fileFlag = subArgs.indexOf('--file');
-          
+
           if (commandsFlag >= 0) {
             const commands = subArgs[commandsFlag + 1].split(',');
             printSuccess(`Executing ${commands.length} commands in sequence`);
@@ -385,7 +397,7 @@ async function main() {
             console.log('Usage: terminal batch-exec --commands "cmd1,cmd2,cmd3" [--session <id>]');
           }
           break;
-          
+
         case 'list':
           // List all terminal sessions
           const listDetailed = subArgs.includes('--detailed');
@@ -398,7 +410,7 @@ async function main() {
             console.log('  • Average Session Lifetime: N/A');
           }
           break;
-          
+
         case 'info':
           // Get terminal info
           const infoSessionId = subArgs[1];
@@ -414,7 +426,7 @@ async function main() {
             printError('Usage: terminal info <session-id>');
           }
           break;
-          
+
         case 'attach':
           // Attach to terminal
           const attachId = subArgs[1];
@@ -426,7 +438,7 @@ async function main() {
             printError('Usage: terminal attach <session-id>');
           }
           break;
-          
+
         case 'detach':
           // Detach from terminal
           const detachId = subArgs[1];
@@ -437,7 +449,7 @@ async function main() {
             printError('Usage: terminal detach <session-id>');
           }
           break;
-          
+
         case 'terminate':
           // Terminate terminal
           const terminateId = subArgs[1];
@@ -452,10 +464,10 @@ async function main() {
             printError('Usage: terminal terminate <session-id> [--graceful]');
           }
           break;
-          
+
         case 'cleanup':
           // Cleanup idle terminals
-          const idleTime = subArgs.find(arg => arg.includes('--idle-longer-than'));
+          const idleTime = subArgs.find((arg) => arg.includes('--idle-longer-than'));
           printSuccess('Cleaning up idle terminals...');
           console.log('🧹 Scanning for idle sessions');
           if (idleTime) {
@@ -463,7 +475,7 @@ async function main() {
           }
           console.log('✅ Cleanup complete: 0 terminals removed');
           break;
-          
+
         case 'monitor':
           // Monitor terminal
           const monitorId = subArgs[1];
@@ -477,7 +489,7 @@ async function main() {
             printError('Usage: terminal monitor <session-id>');
           }
           break;
-          
+
         case 'record':
           // Record terminal session
           const recordId = subArgs[1];
@@ -490,7 +502,7 @@ async function main() {
             printError('Usage: terminal record <session-id> --output <file>');
           }
           break;
-          
+
         case 'replay':
           // Replay terminal session
           const replayFile = subArgs[1];
@@ -502,11 +514,11 @@ async function main() {
             printError('Usage: terminal replay <recording-file>');
           }
           break;
-          
+
         case 'share':
           // Share terminal session
           const shareId = subArgs[1];
-          const accessLevel = subArgs.find(arg => arg.includes('--access-level'));
+          const accessLevel = subArgs.find((arg) => arg.includes('--access-level'));
           if (shareId) {
             printSuccess(`Sharing terminal session: ${shareId}`);
             console.log(`🔗 Share URL: https://claude-flow.local/terminal/${shareId}/view`);
@@ -516,19 +528,19 @@ async function main() {
             printError('Usage: terminal share <session-id> [--access-level read|write]');
           }
           break;
-          
+
         case 'multi-config':
           // Multi-terminal configuration
           const multiCmd = subArgs[1];
           if (multiCmd === 'create') {
-            const configName = subArgs.find(arg => !arg.startsWith('--'));
+            const configName = subArgs.find((arg) => !arg.startsWith('--'));
             printSuccess(`Creating multi-terminal configuration: ${configName || 'default'}`);
             console.log('📋 Configuration template created');
           } else {
             console.log('Usage: terminal multi-config create --name <name> --config <file>');
           }
           break;
-          
+
         case 'multi-launch':
           // Launch multi-terminal environment
           const envName = subArgs[1];
@@ -543,17 +555,17 @@ async function main() {
             printError('Usage: terminal multi-launch <environment-name>');
           }
           break;
-          
+
         case 'batch-create':
           // Batch create terminals
-          const configFile = subArgs.find(arg => arg.includes('--config'));
+          const configFile = subArgs.find((arg) => arg.includes('--config'));
           printSuccess('Creating multiple terminal sessions...');
           if (configFile) {
             console.log(`📄 Loading config from: ${configFile.split('=')[1]}`);
           }
           console.log('✅ Created 3 terminal sessions');
           break;
-          
+
         case 'session':
           // Legacy session command handling
           const sessionCmd = subArgs[1];
@@ -573,7 +585,7 @@ async function main() {
             console.log('Terminal session commands: list, info');
           }
           break;
-          
+
         default:
           console.log('Terminal commands:');
           console.log('  Basic:');
@@ -605,12 +617,12 @@ async function main() {
           console.log('  terminal monitor dev --metrics cpu,memory');
       }
       break;
-      
+
     case 'session':
       printSuccess('Terminal session manager ready');
       console.log('🖥️  Session operations would be handled here');
       break;
-      
+
     case 'workflow':
       const workflowFile = subArgs[0];
       if (workflowFile) {
@@ -620,12 +632,12 @@ async function main() {
         printError('Please specify a workflow file');
       }
       break;
-      
+
     case 'repl':
       printSuccess('Starting interactive REPL mode...');
       await startRepl();
       break;
-      
+
     case 'project':
       const projectCmd = subArgs[0];
       switch (projectCmd) {
@@ -635,24 +647,28 @@ async function main() {
             printError('Usage: project create <name> [options]');
             break;
           }
-          
+
           const isolationFlag = subArgs.indexOf('--isolation');
           const resourceQuotaFlag = subArgs.indexOf('--resource-quota');
           const securityProfileFlag = subArgs.indexOf('--security-profile');
           const templateFlag = subArgs.indexOf('--template');
-          
+
           printSuccess(`Creating project: ${projectName}`);
           console.log('🏗️  Project Configuration:');
           console.log(`   Name: ${projectName}`);
-          console.log(`   Isolation: ${isolationFlag >= 0 ? subArgs[isolationFlag + 1] : 'standard'}`);
+          console.log(
+            `   Isolation: ${isolationFlag >= 0 ? subArgs[isolationFlag + 1] : 'standard'}`,
+          );
           if (resourceQuotaFlag >= 0) {
             console.log(`   Resource Quota: ${subArgs[resourceQuotaFlag + 1]}`);
           }
-          console.log(`   Security Profile: ${securityProfileFlag >= 0 ? subArgs[securityProfileFlag + 1] : 'default'}`);
+          console.log(
+            `   Security Profile: ${securityProfileFlag >= 0 ? subArgs[securityProfileFlag + 1] : 'default'}`,
+          );
           if (templateFlag >= 0) {
             console.log(`   Template: ${subArgs[templateFlag + 1]}`);
           }
-          
+
           // Create project directory structure
           console.log('\n📁 Creating project structure:');
           console.log(`   ✓ Created /projects/${projectName}/`);
@@ -663,7 +679,7 @@ async function main() {
           console.log(`   ✓ Created project-config.json`);
           console.log('\n✅ Project created successfully!');
           break;
-          
+
         case 'switch':
           const switchProject = subArgs[1];
           if (!switchProject) {
@@ -677,21 +693,21 @@ async function main() {
           console.log('   ✓ Workflow history loaded');
           console.log(`\n📍 Active project: ${switchProject}`);
           break;
-          
+
         case 'list':
           const showActive = subArgs.includes('--active');
           const withStats = subArgs.includes('--with-stats');
-          
+
           printSuccess('Available projects:');
           const projects = [
             { name: 'microservices-platform', status: 'active', agents: 12, tasks: 45 },
             { name: 'ai-research', status: 'idle', agents: 3, tasks: 8 },
-            { name: 'frontend-apps', status: 'archived', agents: 0, tasks: 0 }
+            { name: 'frontend-apps', status: 'archived', agents: 0, tasks: 0 },
           ];
-          
-          projects.forEach(project => {
+
+          projects.forEach((project) => {
             if (showActive && project.status !== 'active') return;
-            
+
             console.log(`\n📦 ${project.name}`);
             console.log(`   Status: ${project.status}`);
             if (withStats) {
@@ -700,15 +716,15 @@ async function main() {
             }
           });
           break;
-          
+
         case 'config':
           const configAction = subArgs[1];
           const configProject = subArgs[2];
-          
+
           if (configAction === 'set' && configProject) {
             const configKey = subArgs[3];
             const configValue = subArgs.slice(4).join(' ');
-            
+
             printSuccess(`Updating project configuration: ${configProject}`);
             console.log(`   Setting: ${configKey} = ${configValue}`);
             console.log('✅ Configuration updated');
@@ -721,14 +737,14 @@ async function main() {
             console.log('       project config get <project> <key>');
           }
           break;
-          
+
         case 'monitor':
           const monitorProject = subArgs[1];
           if (!monitorProject) {
             printError('Usage: project monitor <name> [options]');
             break;
           }
-          
+
           printSuccess(`Monitoring project: ${monitorProject}`);
           console.log('\n📊 Real-time Metrics:');
           console.log('   Resource Usage:');
@@ -744,49 +760,52 @@ async function main() {
           console.log('     • Today: $124.50');
           console.log('     • This Month: $2,845.00');
           break;
-          
+
         case 'backup':
           const backupProject = subArgs[1];
           if (!backupProject) {
             printError('Usage: project backup <name> [options]');
             break;
           }
-          
+
           const includeData = subArgs.includes('--include-data');
           const includeConfig = subArgs.includes('--include-config');
           const includeHistory = subArgs.includes('--include-history');
           const outputFlag = subArgs.indexOf('--output');
-          
+
           printSuccess(`Creating backup for project: ${backupProject}`);
           console.log('🗄️  Backup Configuration:');
           console.log(`   Include Data: ${includeData ? 'Yes' : 'No'}`);
           console.log(`   Include Config: ${includeConfig ? 'Yes' : 'No'}`);
           console.log(`   Include History: ${includeHistory ? 'Yes' : 'No'}`);
-          
+
           console.log('\n📦 Creating backup...');
           console.log('   ✓ Collecting project data');
           console.log('   ✓ Compressing files');
           console.log('   ✓ Encrypting backup');
-          
-          const outputFile = outputFlag >= 0 ? subArgs[outputFlag + 1] : `${backupProject}-backup-${Date.now()}.tar.gz`;
+
+          const outputFile =
+            outputFlag >= 0
+              ? subArgs[outputFlag + 1]
+              : `${backupProject}-backup-${Date.now()}.tar.gz`;
           console.log(`\n✅ Backup created: ${outputFile}`);
           console.log('   Size: 145MB');
           console.log('   Checksum: sha256:abcd1234...');
           break;
-          
+
         case 'share':
           const shareFrom = subArgs[1];
           const shareTo = subArgs[2];
-          
+
           if (!shareFrom || !shareTo) {
             printError('Usage: project share <from-project> <to-project> [options]');
             break;
           }
-          
+
           const agentsFlag = subArgs.indexOf('--agents');
           const permissionsFlag = subArgs.indexOf('--permissions');
           const durationFlag = subArgs.indexOf('--duration');
-          
+
           printSuccess(`Sharing resources from ${shareFrom} to ${shareTo}`);
           if (agentsFlag >= 0) {
             console.log(`   Agents: ${subArgs[agentsFlag + 1]}`);
@@ -799,19 +818,19 @@ async function main() {
           }
           console.log('\n✅ Resource sharing configured');
           break;
-          
+
         case 'federation':
           const fedCmd = subArgs[1];
-          
+
           if (fedCmd === 'create') {
             const fedName = subArgs[2];
             const projectsFlag = subArgs.indexOf('--projects');
-            
+
             if (!fedName) {
               printError('Usage: project federation create <name> --projects <project-list>');
               break;
             }
-            
+
             printSuccess(`Creating federation: ${fedName}`);
             if (projectsFlag >= 0) {
               console.log(`   Projects: ${subArgs[projectsFlag + 1]}`);
@@ -829,7 +848,7 @@ async function main() {
             console.log('Federation commands: create, list, workflow');
           }
           break;
-          
+
         default:
           console.log('Project commands:');
           console.log('  create    - Create new project with isolation');
@@ -841,16 +860,18 @@ async function main() {
           console.log('  share     - Share resources between projects');
           console.log('  federation - Manage project federations');
           console.log('\nExamples:');
-          console.log('  project create "microservices" --isolation strict --resource-quota "agents:15,memory:4GB"');
+          console.log(
+            '  project create "microservices" --isolation strict --resource-quota "agents:15,memory:4GB"',
+          );
           console.log('  project switch "microservices"');
           console.log('  project monitor "microservices" --real-time');
       }
       break;
-      
+
     case 'cloud':
       const cloudCmd = subArgs[0];
       const cloudProvider = subArgs[1];
-      
+
       switch (cloudCmd) {
         case 'aws':
           switch (cloudProvider) {
@@ -859,7 +880,7 @@ async function main() {
               const awsRegions = subArgs.indexOf('--regions');
               const awsHA = subArgs.includes('--ha-configuration');
               const awsCostOpt = subArgs.includes('--cost-optimization');
-              
+
               printSuccess('Deploying Claude-Flow to AWS');
               console.log('☁️  AWS Deployment Configuration:');
               if (awsServices >= 0) {
@@ -870,7 +891,7 @@ async function main() {
               }
               console.log(`   High Availability: ${awsHA ? 'Enabled' : 'Disabled'}`);
               console.log(`   Cost Optimization: ${awsCostOpt ? 'Enabled' : 'Disabled'}`);
-              
+
               console.log('\n🚀 Deployment Progress:');
               console.log('   ✓ Creating ECS cluster');
               console.log('   ✓ Setting up Lambda functions');
@@ -878,13 +899,13 @@ async function main() {
               console.log('   ✓ Setting up S3 buckets');
               console.log('   ✓ Configuring CloudWatch monitoring');
               console.log('   ✓ Setting up load balancers');
-              
+
               console.log('\n✅ AWS deployment completed successfully');
               console.log('   Cluster ARN: arn:aws:ecs:us-east-1:123456789012:cluster/claude-flow');
               console.log('   API Gateway: https://api.aws.claude-flow.com');
               console.log('   Monitoring: https://console.aws.amazon.com/cloudwatch');
               break;
-              
+
             case 'configure':
               printSuccess('Configuring AWS integration');
               console.log('🔧 AWS Configuration:');
@@ -894,7 +915,7 @@ async function main() {
               console.log('   ✓ Backup and disaster recovery');
               console.log('   ✓ Cost monitoring and alerts');
               break;
-              
+
             case 'status':
               printSuccess('AWS Infrastructure Status');
               console.log('\n🏗️  Infrastructure Health:');
@@ -903,26 +924,26 @@ async function main() {
               console.log('   RDS Database: Available (Multi-AZ)');
               console.log('   S3 Buckets: 5 buckets, 2.3TB stored');
               console.log('   CloudWatch: 47 metrics, 0 alarms');
-              
+
               console.log('\n💰 Cost Summary (This Month):');
               console.log('   Compute (ECS/Lambda): $1,245.50');
               console.log('   Storage (S3/EBS): $342.25');
               console.log('   Network: $87.30');
               console.log('   Total: $1,675.05');
               break;
-              
+
             default:
               console.log('AWS commands: deploy, configure, status');
           }
           break;
-          
+
         case 'azure':
           switch (cloudProvider) {
             case 'deploy':
               const azureServices = subArgs.indexOf('--services');
               const azureRegions = subArgs.indexOf('--regions');
               const azureIntegration = subArgs.includes('--integration-with-aws');
-              
+
               printSuccess('Deploying Claude-Flow to Azure');
               console.log('☁️  Azure Deployment Configuration:');
               if (azureServices >= 0) {
@@ -932,7 +953,7 @@ async function main() {
                 console.log(`   Regions: ${subArgs[azureRegions + 1]}`);
               }
               console.log(`   AWS Integration: ${azureIntegration ? 'Enabled' : 'Disabled'}`);
-              
+
               console.log('\n🚀 Deployment Progress:');
               console.log('   ✓ Creating AKS cluster');
               console.log('   ✓ Setting up Azure Functions');
@@ -940,13 +961,13 @@ async function main() {
               console.log('   ✓ Setting up Blob Storage');
               console.log('   ✓ Configuring Azure Monitor');
               console.log('   ✓ Setting up Application Gateway');
-              
+
               console.log('\n✅ Azure deployment completed successfully');
               console.log('   Resource Group: claude-flow-production');
               console.log('   API Gateway: https://api.azure.claude-flow.com');
               console.log('   Monitoring: https://portal.azure.com');
               break;
-              
+
             case 'configure':
               printSuccess('Configuring Azure integration');
               console.log('🔧 Azure Configuration:');
@@ -956,7 +977,7 @@ async function main() {
               console.log('   ✓ Backup and site recovery');
               console.log('   ✓ Cost management and budgets');
               break;
-              
+
             case 'status':
               printSuccess('Azure Infrastructure Status');
               console.log('\n🏗️  Infrastructure Health:');
@@ -965,26 +986,26 @@ async function main() {
               console.log('   Cosmos DB: Available (Global)');
               console.log('   Blob Storage: 3 containers, 1.8TB stored');
               console.log('   Azure Monitor: 35 metrics, 0 alerts');
-              
+
               console.log('\n💰 Cost Summary (This Month):');
               console.log('   Compute (AKS/Functions): $985.40');
               console.log('   Storage (Blob/Cosmos): $267.85');
               console.log('   Network: $63.20');
               console.log('   Total: $1,316.45');
               break;
-              
+
             default:
               console.log('Azure commands: deploy, configure, status');
           }
           break;
-          
+
         case 'gcp':
           switch (cloudProvider) {
             case 'deploy':
               const gcpServices = subArgs.indexOf('--services');
               const gcpRegions = subArgs.indexOf('--regions');
               const multiCloud = subArgs.includes('--multi-cloud-networking');
-              
+
               printSuccess('Deploying Claude-Flow to Google Cloud');
               console.log('☁️  GCP Deployment Configuration:');
               if (gcpServices >= 0) {
@@ -994,7 +1015,7 @@ async function main() {
                 console.log(`   Regions: ${subArgs[gcpRegions + 1]}`);
               }
               console.log(`   Multi-Cloud Networking: ${multiCloud ? 'Enabled' : 'Disabled'}`);
-              
+
               console.log('\n🚀 Deployment Progress:');
               console.log('   ✓ Creating GKE cluster');
               console.log('   ✓ Setting up Cloud Functions');
@@ -1002,13 +1023,13 @@ async function main() {
               console.log('   ✓ Setting up Cloud Storage');
               console.log('   ✓ Configuring Cloud Monitoring');
               console.log('   ✓ Setting up Cloud Load Balancing');
-              
+
               console.log('\n✅ GCP deployment completed successfully');
               console.log('   Project ID: claude-flow-production');
               console.log('   API Gateway: https://api.gcp.claude-flow.com');
               console.log('   Monitoring: https://console.cloud.google.com');
               break;
-              
+
             case 'configure':
               printSuccess('Configuring GCP integration');
               console.log('🔧 GCP Configuration:');
@@ -1018,7 +1039,7 @@ async function main() {
               console.log('   ✓ Backup and disaster recovery');
               console.log('   ✓ Budget alerts and cost optimization');
               break;
-              
+
             case 'status':
               printSuccess('GCP Infrastructure Status');
               console.log('\n🏗️  Infrastructure Health:');
@@ -1027,22 +1048,22 @@ async function main() {
               console.log('   Cloud SQL: Available (HA)');
               console.log('   Cloud Storage: 4 buckets, 2.1TB stored');
               console.log('   Cloud Monitoring: 42 metrics, 0 incidents');
-              
+
               console.log('\n💰 Cost Summary (This Month):');
               console.log('   Compute (GKE/Functions): $1,125.30');
               console.log('   Storage (Cloud Storage/SQL): $298.75');
               console.log('   Network: $71.45');
               console.log('   Total: $1,495.50');
               break;
-              
+
             default:
               console.log('GCP commands: deploy, configure, status');
           }
           break;
-          
+
         case 'multi-cloud':
           const multiCloudCmd = subArgs[1];
-          
+
           switch (multiCloudCmd) {
             case 'deploy':
               printSuccess('Deploying multi-cloud Claude-Flow architecture');
@@ -1050,59 +1071,59 @@ async function main() {
               console.log('   Primary: AWS (us-east-1)');
               console.log('   Secondary: Azure (eastus)');
               console.log('   Tertiary: GCP (us-central1)');
-              
+
               console.log('\n🔗 Cross-Cloud Networking:');
               console.log('   ✓ VPN connections established');
               console.log('   ✓ DNS and load balancing configured');
               console.log('   ✓ Data replication setup');
               console.log('   ✓ Unified monitoring deployed');
-              
+
               console.log('\n✅ Multi-cloud deployment completed');
               console.log('   Global endpoint: https://global.claude-flow.com');
               console.log('   Failover time: < 30 seconds');
               console.log('   Data consistency: Eventually consistent');
               break;
-              
+
             case 'status':
               printSuccess('Multi-Cloud Infrastructure Status');
               console.log('\n🌐 Global Infrastructure:');
               console.log('   AWS (Primary): 🟢 Healthy');
               console.log('   Azure (Secondary): 🟢 Healthy');
               console.log('   GCP (Tertiary): 🟢 Healthy');
-              
+
               console.log('\n📊 Traffic Distribution:');
               console.log('   AWS: 45% (2,341 req/min)');
               console.log('   Azure: 35% (1,823 req/min)');
               console.log('   GCP: 20% (1,042 req/min)');
-              
+
               console.log('\n💰 Total Cost (This Month): $4,487.00');
               break;
-              
+
             case 'failover':
               const failoverTarget = subArgs[2];
               if (!failoverTarget) {
                 printError('Usage: cloud multi-cloud failover <target-cloud>');
                 break;
               }
-              
+
               printWarning(`Initiating failover to ${failoverTarget}`);
               console.log('🔄 Failover Process:');
               console.log('   ✓ Health check failed on primary');
               console.log('   ✓ Traffic routing to secondary');
               console.log('   ✓ Database replication verified');
               console.log('   ✓ DNS updates propagated');
-              
+
               console.log(`\n✅ Failover to ${failoverTarget} completed in 23 seconds`);
               break;
-              
+
             default:
               console.log('Multi-cloud commands: deploy, status, failover');
           }
           break;
-          
+
         case 'kubernetes':
           const k8sCmd = subArgs[1];
-          
+
           switch (k8sCmd) {
             case 'deploy':
               printSuccess('Deploying Claude-Flow to Kubernetes');
@@ -1110,7 +1131,7 @@ async function main() {
               console.log('   Namespace: claude-flow');
               console.log('   Replicas: 3');
               console.log('   Resources: 1Gi memory, 500m CPU per pod');
-              
+
               console.log('\n📦 Deploying Components:');
               console.log('   ✓ Orchestrator deployment');
               console.log('   ✓ MCP server deployment');
@@ -1118,13 +1139,13 @@ async function main() {
               console.log('   ✓ Load balancer service');
               console.log('   ✓ Ingress controller');
               console.log('   ✓ ConfigMaps and Secrets');
-              
+
               console.log('\n✅ Kubernetes deployment completed');
               console.log('   Pods: 3/3 running');
               console.log('   Service: claude-flow-orchestrator-service');
               console.log('   Ingress: https://k8s.claude-flow.com');
               break;
-              
+
             case 'scale':
               const replicas = subArgs[2] || '5';
               printSuccess(`Scaling Claude-Flow to ${replicas} replicas`);
@@ -1135,7 +1156,7 @@ async function main() {
               console.log('   ✓ Rolling update in progress');
               console.log(`   ✓ Scaled to ${replicas} replicas successfully`);
               break;
-              
+
             case 'status':
               printSuccess('Kubernetes Cluster Status');
               console.log('\n⚙️  Cluster Information:');
@@ -1145,18 +1166,18 @@ async function main() {
               console.log('   Services: 2 active');
               console.log('   ConfigMaps: 2');
               console.log('   Secrets: 1');
-              
+
               console.log('\n📊 Resource Usage:');
               console.log('   CPU: 1.2/3.0 cores (40%)');
               console.log('   Memory: 2.1/3.0 GB (70%)');
               console.log('   Storage: 8.5/50 GB (17%)');
               break;
-              
+
             default:
               console.log('Kubernetes commands: deploy, scale, status');
           }
           break;
-          
+
         default:
           console.log('Cloud commands:');
           console.log('  aws           - Amazon Web Services integration');
@@ -1165,14 +1186,16 @@ async function main() {
           console.log('  multi-cloud   - Multi-cloud deployment and management');
           console.log('  kubernetes    - Kubernetes deployment and management');
           console.log('\nExamples:');
-          console.log('  cloud aws deploy --services "ecs,lambda,rds" --regions "us-east-1,us-west-2"');
+          console.log(
+            '  cloud aws deploy --services "ecs,lambda,rds" --regions "us-east-1,us-west-2"',
+          );
           console.log('  cloud azure deploy --services "aks,functions,cosmos-db"');
           console.log('  cloud gcp deploy --services "gke,cloud-functions,cloud-sql"');
           console.log('  cloud multi-cloud deploy');
           console.log('  cloud kubernetes deploy');
       }
       break;
-      
+
     case 'claude':
       const claudeCmd = subArgs[0];
       switch (claudeCmd) {
@@ -1185,13 +1208,13 @@ async function main() {
               break;
             }
           }
-          
+
           const task = subArgs.slice(1, taskEndIndex).join(' ');
           if (!task) {
             printError('Usage: claude spawn <task description> [options]');
             break;
           }
-          
+
           // Parse flags
           const flags: Record<string, any> = {};
           for (let i = taskEndIndex; i < subArgs.length; i++) {
@@ -1218,7 +1241,7 @@ async function main() {
               flags.dryRun = true;
             }
           }
-          
+
           // Build tools list
           let tools = flags.tools || 'View,Edit,Replace,GlobTool,GrepTool,LS,Bash';
           if (flags.parallel) {
@@ -1227,9 +1250,9 @@ async function main() {
           if (flags.research) {
             tools += ',WebFetchTool';
           }
-          
+
           const instanceId = `claude-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-          
+
           if (flags.dryRun) {
             printWarning('DRY RUN - Would execute:');
             console.log(`Command: claude "<enhanced task with guidance>" --allowedTools ${tools}`);
@@ -1257,7 +1280,7 @@ async function main() {
             console.log('  - Coordination capabilities (swarm management)');
             console.log('  - Best practices for multi-agent workflows');
             console.log('');
-            
+
             // Build the actual claude command with enhanced guidance
             let enhancedTask = `# Task Assignment
 
@@ -1368,36 +1391,38 @@ ${flags.mode === 'api-only' ? `Focus on API design, documentation, and endpoint 
 ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all aspects of the application.` : ''}
 
 `;
-            
+
             const claudeArgs = [enhancedTask];
             claudeArgs.push('--allowedTools', tools);
-            
+
             // DEBUG: Log what we're about to pass
             console.log('\n🔍 DEBUG - Command Construction:');
             console.log(`First arg length: ${claudeArgs[0].length} chars`);
             console.log(`First 100 chars: ${claudeArgs[0].substring(0, 100)}...`);
             console.log(`Args count: ${claudeArgs.length}`);
-            
+
             if (flags.noPermissions) {
               claudeArgs.push('--dangerously-skip-permissions');
             }
-            
+
             if (flags.config) {
               claudeArgs.push('--mcp-config', flags.config);
             }
-            
+
             if (flags.verbose) {
               claudeArgs.push('--verbose');
             }
-            
+
             // Execute the actual claude command
             try {
               // Debug: Log the actual command being executed
               if (flags.verbose) {
                 console.log('Debug - Executing command:');
-                console.log(`claude ${claudeArgs.map(arg => arg.includes(' ') || arg.includes('\n') ? `"${arg}"` : arg).join(' ')}`);
+                console.log(
+                  `claude ${claudeArgs.map((arg) => (arg.includes(' ') || arg.includes('\n') ? `"${arg}"` : arg)).join(' ')}`,
+                );
               }
-              
+
               const command = new Deno.Command('claude', {
                 args: claudeArgs,
                 env: {
@@ -1416,10 +1441,10 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
                 stdout: 'inherit',
                 stderr: 'inherit',
               });
-              
+
               const child = command.spawn();
               const status = await child.status;
-              
+
               if (status.success) {
                 printSuccess(`Claude instance ${instanceId} completed successfully`);
               } else {
@@ -1431,7 +1456,7 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
             }
           }
           break;
-          
+
         case 'batch':
           const workflowFile = subArgs[1];
           if (!workflowFile) {
@@ -1441,33 +1466,38 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
           printSuccess(`Loading workflow: ${workflowFile}`);
           console.log('📋 Batch execution would process workflow file');
           break;
-          
+
         default:
           console.log('Claude commands: spawn, batch');
           console.log('\nExamples:');
-          console.log('  claude-flow claude spawn "implement user authentication" --research --parallel');
+          console.log(
+            '  claude-flow claude spawn "implement user authentication" --research --parallel',
+          );
           console.log('  claude-flow claude spawn "fix bug in payment system" --no-permissions');
           console.log('  claude-flow claude batch workflow.json --dry-run');
       }
       break;
-      
-      
+
     case 'deploy':
       const deployCmd = subArgs[0];
       switch (deployCmd) {
         case 'ha-cluster':
-          const nodes = subArgs.find(arg => arg.includes('--nodes'));
-          const regions = subArgs.find(arg => arg.includes('--regions'));
-          const replicationFactor = subArgs.find(arg => arg.includes('--replication-factor'));
-          
+          const nodes = subArgs.find((arg) => arg.includes('--nodes'));
+          const regions = subArgs.find((arg) => arg.includes('--regions'));
+          const replicationFactor = subArgs.find((arg) => arg.includes('--replication-factor'));
+
           printSuccess('Deploying High Availability Cluster...');
           console.log('🏗️  HA Configuration:');
           console.log(`   Nodes: ${nodes ? nodes.split('=')[1] : '3'}`);
-          console.log(`   Regions: ${regions ? regions.split('=')[1] : 'us-east-1,us-west-2,eu-west-1'}`);
-          console.log(`   Replication Factor: ${replicationFactor ? replicationFactor.split('=')[1] : '2'}`);
+          console.log(
+            `   Regions: ${regions ? regions.split('=')[1] : 'us-east-1,us-west-2,eu-west-1'}`,
+          );
+          console.log(
+            `   Replication Factor: ${replicationFactor ? replicationFactor.split('=')[1] : '2'}`,
+          );
           console.log('   Load Balancer: nginx');
           console.log('   Health Checks: comprehensive');
-          
+
           console.log('\n🚀 Deployment Progress:');
           console.log('   ✓ Provisioning nodes in us-east-1');
           console.log('   ✓ Provisioning nodes in us-west-2');
@@ -1478,10 +1508,10 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
           console.log('\n✅ HA cluster deployed successfully!');
           console.log('   Cluster endpoint: https://claude-flow-ha.example.com');
           break;
-          
+
         case 'scaling':
           const scalingAction = subArgs[1];
-          
+
           if (scalingAction === 'configure') {
             printSuccess('Configuring Auto-Scaling...');
             console.log('📈 Scaling Configuration:');
@@ -1503,10 +1533,10 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
             console.log('Scaling commands: configure, predictive, status');
           }
           break;
-          
+
         case 'security':
           const securityAction = subArgs[1];
-          
+
           if (securityAction === 'harden') {
             printSuccess('Applying Security Hardening...');
             console.log('🔒 Security Configuration:');
@@ -1516,7 +1546,7 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
             console.log('   Authorization: RBAC');
             console.log('   Audit Logging: comprehensive');
             console.log('   Compliance: SOC2, GDPR, HIPAA');
-            
+
             console.log('\n🛡️  Applying security measures:');
             console.log('   ✓ Enabling encryption at rest');
             console.log('   ✓ Configuring TLS 1.3 minimum');
@@ -1537,7 +1567,7 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
             console.log('Security commands: harden, policy, rbac, monitor');
           }
           break;
-          
+
         case 'kubernetes':
         case 'k8s':
           printSuccess('Deploying to Kubernetes...');
@@ -1546,7 +1576,7 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
           console.log('   Replicas: 3');
           console.log('   Image: claude-flow/orchestrator:latest');
           console.log('   Service Type: LoadBalancer');
-          
+
           console.log('\n📦 Creating resources:');
           console.log('   ✓ Created namespace/claude-flow');
           console.log('   ✓ Created deployment/claude-flow-orchestrator');
@@ -1556,7 +1586,7 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
           console.log('\n✅ Kubernetes deployment complete');
           console.log('   Service endpoint: http://a1b2c3d4.elb.amazonaws.com');
           break;
-          
+
         default:
           console.log('Deploy commands:');
           console.log('  ha-cluster  - Deploy high availability cluster');
@@ -1569,7 +1599,7 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
           console.log('  deploy security harden --profile enterprise');
       }
       break;
-      
+
     case 'analytics':
       const analyticsCmd = subArgs[0];
       switch (analyticsCmd) {
@@ -1589,7 +1619,7 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
           console.log('     • Efficiency: ↑ 8% improvement');
           console.log('     • Costs: ↓ 15% reduction');
           break;
-          
+
         case 'business-impact':
           printSuccess('Business Impact Analysis');
           console.log('\n💼 Business Metrics:');
@@ -1605,7 +1635,7 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
           console.log('     • Code Coverage: 92%');
           console.log('     • Customer Satisfaction: +18%');
           break;
-          
+
         case 'cost':
           const costCmd = subArgs[1];
           if (costCmd === 'analyze') {
@@ -1629,7 +1659,7 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
             console.log('Cost commands: analyze, optimize, budget');
           }
           break;
-          
+
         default:
           console.log('Analytics commands:');
           console.log('  performance    - System performance analytics');
@@ -1641,7 +1671,7 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
           console.log('  analytics cost analyze --granularity project');
       }
       break;
-      
+
     case 'security':
       const securityCmd = subArgs[0];
       switch (securityCmd) {
@@ -1652,24 +1682,24 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
           console.log('   MFA: Enabled (TOTP, SMS, Hardware Keys)');
           console.log('   Sessions: 42 active');
           console.log('   Session Timeout: 4 hours');
-          
+
           console.log('\n🛡️  Authorization:');
           console.log('   Model: Role-Based Access Control (RBAC)');
           console.log('   Roles: 5 defined (admin, developer, operator, auditor, viewer)');
           console.log('   Permissions: 47 granular permissions');
           console.log('   Policy Engine: Active');
-          
+
           console.log('\n🚦 Rate Limiting:');
           console.log('   Global Limit: 1000 req/min');
           console.log('   Per-User Limit: 100 req/min');
           console.log('   Burst Capacity: 200 requests');
           console.log('   Current Usage: 245 req/min (24.5%)');
-          
+
           console.log('\n⚡ Circuit Breakers:');
           console.log('   Total Breakers: 12');
           console.log('   Status: 10 closed, 1 half-open, 1 open');
           console.log('   Last Triggered: api-gateway (2 minutes ago)');
-          
+
           console.log('\n📝 Audit Logging:');
           console.log('   Status: Active');
           console.log('   Storage: Encrypted S3 bucket');
@@ -1677,10 +1707,10 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
           console.log('   Events Today: 48,234');
           console.log('   Compliance: SOC2, GDPR, HIPAA compliant');
           break;
-          
+
         case 'auth':
           const authAction = subArgs[1];
-          
+
           if (authAction === 'configure') {
             printSuccess('Configuring Authentication...');
             console.log('🔐 Authentication Configuration:');
@@ -1717,36 +1747,36 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
             console.log('Auth commands: configure, sessions, mfa, tokens');
           }
           break;
-          
+
         case 'rbac':
           const rbacAction = subArgs[1];
-          
+
           if (rbacAction === 'roles') {
             printSuccess('RBAC Roles:');
             console.log('\n👥 Defined Roles:');
             console.log('\n📛 admin (3 users)');
             console.log('   Permissions: * (all permissions)');
             console.log('   Conditions: MFA required, IP restriction');
-            
+
             console.log('\n📛 developer (45 users)');
             console.log('   Permissions:');
             console.log('     • projects:read,write');
             console.log('     • agents:spawn,monitor');
             console.log('     • tasks:create,monitor');
             console.log('   Conditions: Time window 06:00-22:00');
-            
+
             console.log('\n📛 operator (12 users)');
             console.log('   Permissions:');
             console.log('     • system:monitor');
             console.log('     • agents:list,info');
             console.log('     • tasks:list,status');
-            
+
             console.log('\n📛 auditor (5 users)');
             console.log('   Permissions:');
             console.log('     • audit:read');
             console.log('     • system:logs');
             console.log('     • reports:generate');
-            
+
             console.log('\n📛 viewer (85 users)');
             console.log('   Permissions:');
             console.log('     • *:read (read-only access)');
@@ -1765,10 +1795,10 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
             console.log('RBAC commands: roles, permissions, assign, revoke');
           }
           break;
-          
+
         case 'rate-limit':
           const rateLimitAction = subArgs[1];
-          
+
           if (rateLimitAction === 'status') {
             printSuccess('Rate Limiting Status:');
             console.log('\n📊 Current Limits:');
@@ -1783,7 +1813,7 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
             console.log('     • /api/agents/spawn: 10/minute');
             console.log('     • /api/tasks/create: 50/minute');
             console.log('     • /api/memory/query: 200/minute');
-            
+
             console.log('\n🚨 Recent Violations:');
             console.log('   • user123: 2 violations (15 min ago)');
             console.log('   • api-client-7: 1 violation (1 hour ago)');
@@ -1798,10 +1828,10 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
             console.log('Rate limit commands: status, configure, reset');
           }
           break;
-          
+
         case 'circuit-breaker':
           const cbAction = subArgs[1];
-          
+
           if (cbAction === 'status') {
             printSuccess('Circuit Breaker Status:');
             console.log('\n⚡ Active Circuit Breakers:');
@@ -1813,7 +1843,7 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
             console.log('│ memory-service   │ CLOSED  │ 1        │ 5,678     │ 3h ago      │');
             console.log('│ agent-manager    │ HALF    │ 3        │ 45        │ 5m ago      │');
             console.log('└──────────────────┴─────────┴──────────┴───────────┴─────────────┘');
-            
+
             console.log('\n📈 Configuration:');
             console.log('   Failure Threshold: 10 failures');
             console.log('   Success Threshold: 5 successes');
@@ -1831,10 +1861,10 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
             console.log('Circuit breaker commands: status, reset, configure');
           }
           break;
-          
+
         case 'audit':
           const auditAction = subArgs[1];
-          
+
           if (auditAction === 'status') {
             printSuccess('Audit Logging Status:');
             console.log('   Status: Active');
@@ -1852,11 +1882,17 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
             const query = subArgs.slice(2).join(' ');
             printSuccess(`Searching audit logs: "${query || 'recent'}"`);
             console.log('\n📋 Recent Audit Events:');
-            console.log('2024-01-10 14:23:45 | AUTH_SUCCESS | alice@corp.com | Login from 10.0.1.45');
+            console.log(
+              '2024-01-10 14:23:45 | AUTH_SUCCESS | alice@corp.com | Login from 10.0.1.45',
+            );
             console.log('2024-01-10 14:24:12 | PERMISSION_GRANTED | alice@corp.com | agents.spawn');
             console.log('2024-01-10 14:24:13 | AGENT_CREATED | alice@corp.com | agent-12345');
-            console.log('2024-01-10 14:25:01 | CONFIG_CHANGED | bob@corp.com | terminal.poolSize: 10->20');
-            console.log('2024-01-10 14:26:30 | PERMISSION_DENIED | charlie@corp.com | admin.users.delete');
+            console.log(
+              '2024-01-10 14:25:01 | CONFIG_CHANGED | bob@corp.com | terminal.poolSize: 10->20',
+            );
+            console.log(
+              '2024-01-10 14:26:30 | PERMISSION_DENIED | charlie@corp.com | admin.users.delete',
+            );
           } else if (auditAction === 'export') {
             printSuccess('Exporting audit logs...');
             console.log('   Time range: Last 30 days');
@@ -1867,7 +1903,7 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
             console.log('Audit commands: status, search, export, configure');
           }
           break;
-          
+
         case 'compliance':
           printSuccess('Compliance Status:');
           console.log('\n🏛️  Active Compliance Frameworks:');
@@ -1876,24 +1912,24 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
           console.log('   Next Audit: 2024-04-15');
           console.log('   Status: Compliant');
           console.log('   Controls: 89/89 passing');
-          
+
           console.log('\n✅ GDPR (General Data Protection Regulation)');
           console.log('   Data Protection Officer: Jane Smith');
           console.log('   Privacy Impact Assessments: 12 completed');
           console.log('   Data Subject Requests: 3 pending, 45 completed');
           console.log('   Status: Compliant');
-          
+
           console.log('\n✅ HIPAA (Health Insurance Portability Act)');
           console.log('   BAA Agreements: 5 active');
           console.log('   PHI Encryption: AES-256 at rest, TLS 1.3 in transit');
           console.log('   Access Controls: Implemented');
           console.log('   Status: Compliant');
-          
+
           console.log('\n📋 Required Actions:');
           console.log('   • Complete Q1 security training (Due: Jan 31)');
           console.log('   • Update data retention policies (Due: Feb 15)');
           break;
-          
+
         case 'test':
           printSuccess('Running Security Test Suite...');
           console.log('\n🧪 Security Tests:');
@@ -1911,7 +1947,7 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
           console.log('   • Update TLS certificates (expire in 45 days)');
           console.log('   • Review inactive user accounts');
           break;
-          
+
         default:
           console.log('Security commands:');
           console.log('  status         - Show security status overview');
@@ -1929,7 +1965,7 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
           console.log('  security circuit-breaker reset api-gateway');
       }
       break;
-      
+
     case 'backup':
       const backupCmd = subArgs[0];
       switch (backupCmd) {
@@ -1950,7 +1986,7 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
           console.log('   Verification: Automatic');
           console.log('\n✅ Backup strategy configured');
           break;
-          
+
         case 'dr':
           const drAction = subArgs[1];
           if (drAction === 'configure') {
@@ -1976,14 +2012,14 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
             console.log('DR commands: configure, test, status');
           }
           break;
-          
+
         case 'restore':
           const restorePoint = subArgs[1];
           if (!restorePoint) {
             printError('Usage: backup restore <backup-id|timestamp>');
             break;
           }
-          
+
           printSuccess(`Restoring from backup: ${restorePoint}`);
           console.log('🔄 Restore Progress:');
           console.log('   ✓ Located backup in S3');
@@ -1995,7 +2031,7 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
           console.log('   ✓ Verifying restored data');
           console.log('\n✅ Restore completed successfully');
           break;
-          
+
         default:
           console.log('Backup commands:');
           console.log('  configure - Configure backup strategy');
@@ -2008,23 +2044,32 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
           console.log('  backup restore "backup-20240110-023000"');
       }
       break;
-      
+
     default:
       printError(`Unknown command: ${command}`);
       console.log('Run "claude-flow help" for available commands');
-      
+
       // Suggest similar commands
-      const commonCommands = ['agent', 'task', 'spawn', 'init', 'start', 'status', 'memory', 'sparc', 'help'];
-      const suggestions = commonCommands.filter(cmd => 
-        cmd.startsWith(command.toLowerCase()) || 
-        cmd.includes(command.toLowerCase())
+      const commonCommands = [
+        'agent',
+        'task',
+        'spawn',
+        'init',
+        'start',
+        'status',
+        'memory',
+        'sparc',
+        'help',
+      ];
+      const suggestions = commonCommands.filter(
+        (cmd) => cmd.startsWith(command.toLowerCase()) || cmd.includes(command.toLowerCase()),
       );
-      
+
       if (suggestions.length > 0) {
         console.log('\nDid you mean:');
-        suggestions.forEach(cmd => console.log(`  claude-flow ${cmd}`));
+        suggestions.forEach((cmd) => console.log(`  claude-flow ${cmd}`));
       }
-      
+
       process.exit(1);
   }
 }
@@ -2033,19 +2078,19 @@ ${flags.mode === 'full' || !flags.mode ? `Full-stack development covering all as
 async function startRepl() {
   console.log('🧠 Claude-Flow Interactive Shell v' + VERSION);
   console.log('Type "help" for available commands, "exit" to quit\n');
-  
+
   const replState = {
-    history: [],
+    history: [] as string[],
     historyIndex: -1,
     currentSession: null,
     context: {
-      agents: [],
-      tasks: [],
-      terminals: [],
-      memory: {}
-    }
+      agents: [] as any[],
+      tasks: [] as any[],
+      terminals: [] as any[],
+      memory: {} as Record<string, any>,
+    },
   };
-  
+
   // REPL command handlers
   const replCommands = {
     help: () => {
@@ -2089,7 +2134,7 @@ Shortcuts:
   ↑/↓           - Navigate command history
 `);
     },
-    
+
     status: () => {
       console.log('🟢 Claude-Flow Status:');
       console.log(`  Agents: ${replState.context.agents.length} active`);
@@ -2097,22 +2142,22 @@ Shortcuts:
       console.log(`  Terminals: ${replState.context.terminals.length} active`);
       console.log(`  Memory Keys: ${Object.keys(replState.context.memory).length}`);
     },
-    
+
     clear: () => {
       console.clear();
       console.log('🧠 Claude-Flow Interactive Shell v' + VERSION);
     },
-    
+
     history: () => {
       console.log('📜 Command History:');
       replState.history.forEach((cmd, i) => {
         console.log(`  ${i + 1}: ${cmd}`);
       });
     },
-    
+
     config: async (key: string) => {
       try {
-        const config = JSON.parse(await fs.readFile('claude-flow.config.json'));
+        const config = JSON.parse(await fs.readFile('claude-flow.config.json', 'utf-8'));
         if (key) {
           const keys = key.split('.');
           let value = config;
@@ -2126,24 +2171,24 @@ Shortcuts:
       } catch {
         console.log('No configuration file found. Using defaults.');
       }
-    }
+    },
   };
-  
+
   // Process REPL commands
   async function processReplCommand(input: string) {
     const trimmed = input.trim();
     if (!trimmed) return true;
-    
+
     // Add to history
     replState.history.push(trimmed);
     replState.historyIndex = replState.history.length;
-    
+
     // Handle special commands
     if (trimmed === 'exit' || trimmed === 'quit') {
       console.log('👋 Exiting Claude-Flow REPL...');
       return false;
     }
-    
+
     // Handle shell commands
     if (trimmed.startsWith('!')) {
       const shellCmd = trimmed.substring(1);
@@ -2151,7 +2196,7 @@ Shortcuts:
         const command = new Deno.Command('sh', {
           args: ['-c', shellCmd],
           stdout: 'piped',
-          stderr: 'piped'
+          stderr: 'piped',
         });
         const { stdout, stderr } = await command.output();
         if (stdout.length > 0) {
@@ -2165,31 +2210,31 @@ Shortcuts:
       }
       return true;
     }
-    
+
     // Handle search
     if (trimmed.startsWith('/')) {
       const search = trimmed.substring(1);
-      const matches = replState.history.filter(cmd => cmd.includes(search));
+      const matches = replState.history.filter((cmd) => cmd.includes(search));
       if (matches.length > 0) {
         console.log('🔍 Search results:');
-        matches.forEach(cmd => console.log(`  ${cmd}`));
+        matches.forEach((cmd) => console.log(`  ${cmd}`));
       } else {
         console.log('No matches found');
       }
       return true;
     }
-    
+
     // Parse command and arguments
     const parts = trimmed.split(' ');
     const command = parts[0];
     const args = parts.slice(1);
-    
+
     // Handle built-in REPL commands
-    if (replCommands[command]) {
-      await replCommands[command](...args);
+    if (command in replCommands) {
+      await (replCommands as any)[command](...args);
       return true;
     }
-    
+
     // Handle multi-word commands
     if (command === 'agent') {
       await handleAgentCommand(args, replState);
@@ -2202,10 +2247,10 @@ Shortcuts:
     } else {
       console.log(`Unknown command: ${command}. Type "help" for available commands.`);
     }
-    
+
     return true;
   }
-  
+
   // Agent command handler
   async function handleAgentCommand(args: string[], state: any) {
     const subCmd = args[0];
@@ -2218,12 +2263,12 @@ Shortcuts:
           type,
           name,
           status: 'active',
-          created: new Date().toISOString()
+          created: new Date().toISOString(),
         };
         state.context.agents.push(agent);
         printSuccess(`Spawned ${type} agent: ${name} (${agent.id})`);
         break;
-        
+
       case 'list':
         if (state.context.agents.length === 0) {
           console.log('No active agents');
@@ -2234,10 +2279,12 @@ Shortcuts:
           });
         }
         break;
-        
+
       case 'info':
         const agentId = args[1];
-        const foundAgent = state.context.agents.find((a: any) => a.id === agentId || a.name === agentId);
+        const foundAgent = state.context.agents.find(
+          (a: any) => a.id === agentId || a.name === agentId,
+        );
         if (foundAgent) {
           console.log(`Agent: ${foundAgent.name}`);
           console.log(`  ID: ${foundAgent.id}`);
@@ -2248,10 +2295,12 @@ Shortcuts:
           printError(`Agent not found: ${agentId}`);
         }
         break;
-        
+
       case 'terminate':
         const termId = args[1];
-        const index = state.context.agents.findIndex((a: any) => a.id === termId || a.name === termId);
+        const index = state.context.agents.findIndex(
+          (a: any) => a.id === termId || a.name === termId,
+        );
         if (index >= 0) {
           const removed = state.context.agents.splice(index, 1)[0];
           printSuccess(`Terminated agent: ${removed.name}`);
@@ -2259,12 +2308,12 @@ Shortcuts:
           printError(`Agent not found: ${termId}`);
         }
         break;
-        
+
       default:
         console.log('Agent commands: spawn, list, info, terminate');
     }
   }
-  
+
   // Task command handler
   async function handleTaskCommand(args: string[], state: any) {
     const subCmd = args[0];
@@ -2277,14 +2326,14 @@ Shortcuts:
           type,
           description,
           status: 'pending',
-          created: new Date().toISOString()
+          created: new Date().toISOString(),
         };
         state.context.tasks.push(task);
         printSuccess(`Created task: ${task.id}`);
         console.log(`  Type: ${type}`);
         console.log(`  Description: ${description}`);
         break;
-        
+
       case 'list':
         if (state.context.tasks.length === 0) {
           console.log('No active tasks');
@@ -2296,13 +2345,15 @@ Shortcuts:
           });
         }
         break;
-        
+
       case 'assign':
         const taskId = args[1];
         const assignAgentId = args[2];
         const foundTask = state.context.tasks.find((t: any) => t.id === taskId);
-        const assignAgent = state.context.agents.find((a: any) => a.id === assignAgentId || a.name === assignAgentId);
-        
+        const assignAgent = state.context.agents.find(
+          (a: any) => a.id === assignAgentId || a.name === assignAgentId,
+        );
+
         if (foundTask && assignAgent) {
           foundTask.assignedTo = assignAgent.id;
           foundTask.status = 'assigned';
@@ -2311,7 +2362,7 @@ Shortcuts:
           printError('Task or agent not found');
         }
         break;
-        
+
       case 'status':
         const statusId = args[1];
         const statusTask = state.context.tasks.find((t: any) => t.id === statusId);
@@ -2328,12 +2379,12 @@ Shortcuts:
           printError(`Task not found: ${statusId}`);
         }
         break;
-        
+
       default:
         console.log('Task commands: create, list, assign, status');
     }
   }
-  
+
   // Memory command handler
   async function handleMemoryCommand(args: string[], state: any) {
     const subCmd = args[0];
@@ -2348,7 +2399,7 @@ Shortcuts:
           printError('Usage: memory store <key> <value>');
         }
         break;
-        
+
       case 'get':
         const getKey = args[1];
         if (getKey && state.context.memory[getKey]) {
@@ -2357,29 +2408,29 @@ Shortcuts:
           console.log(`Key not found: ${getKey}`);
         }
         break;
-        
+
       case 'list':
         const keys = Object.keys(state.context.memory);
         if (keys.length === 0) {
           console.log('No data in memory');
         } else {
           console.log('Memory keys:');
-          keys.forEach(key => {
+          keys.forEach((key) => {
             console.log(`  ${key}: ${state.context.memory[key]}`);
           });
         }
         break;
-        
+
       case 'clear':
         state.context.memory = {};
         printSuccess('Memory cleared');
         break;
-        
+
       default:
         console.log('Memory commands: store, get, list, clear');
     }
   }
-  
+
   // Terminal command handler
   async function handleTerminalCommand(args: string[], state: any) {
     const subCmd = args[0];
@@ -2389,12 +2440,12 @@ Shortcuts:
         const terminal = {
           id: name,
           status: 'active',
-          created: new Date().toISOString()
+          created: new Date().toISOString(),
         };
         state.context.terminals.push(terminal);
         printSuccess(`Created terminal: ${name}`);
         break;
-        
+
       case 'list':
         if (state.context.terminals.length === 0) {
           console.log('No active terminals');
@@ -2405,7 +2456,7 @@ Shortcuts:
           });
         }
         break;
-        
+
       case 'exec':
         const cmd = args.slice(1).join(' ');
         if (cmd) {
@@ -2415,7 +2466,7 @@ Shortcuts:
           printError('Usage: terminal exec <command>');
         }
         break;
-        
+
       case 'attach':
         const attachId = args[1];
         if (attachId) {
@@ -2426,7 +2477,7 @@ Shortcuts:
           printError('Usage: terminal attach <id>');
         }
         break;
-        
+
       case 'detach':
         if (state.currentSession) {
           console.log(`Detached from terminal: ${state.currentSession}`);
@@ -2435,30 +2486,30 @@ Shortcuts:
           console.log('Not attached to any terminal');
         }
         break;
-        
+
       default:
         console.log('Terminal commands: create, list, exec, attach, detach');
     }
   }
-  
+
   // Main REPL loop
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
-  
+
   while (true) {
     // Show prompt
-    const prompt = replState.currentSession ? 
-      `claude-flow:${replState.currentSession}> ` : 
-      'claude-flow> ';
+    const prompt = replState.currentSession
+      ? `claude-flow:${replState.currentSession}> `
+      : 'claude-flow> ';
     await Deno.stdout.write(encoder.encode(prompt));
-    
+
     // Read input
     const buf = new Uint8Array(1024);
     const n = await Deno.stdin.read(buf);
     if (n === null) break;
-    
+
     const input = decoder.decode(buf.subarray(0, n)).trim();
-    
+
     // Process command
     const shouldContinue = await processReplCommand(input);
     if (!shouldContinue) break;
@@ -2787,9 +2838,9 @@ async function createSparcStructureManually() {
       '.roo/templates',
       '.roo/workflows',
       '.roo/modes',
-      '.roo/configs'
+      '.roo/configs',
     ];
-    
+
     for (const dir of rooDirectories) {
       try {
         await Deno.mkdir(dir, { recursive: true });
@@ -2800,7 +2851,7 @@ async function createSparcStructureManually() {
         }
       }
     }
-    
+
     // Create .roomodes file (copy from existing if available, or create basic version)
     let roomodesContent;
     try {
@@ -2813,112 +2864,131 @@ async function createSparcStructureManually() {
       await fs.writeFile('.roomodes', roomodesContent);
       console.log('  ✓ Created .roomodes configuration');
     }
-    
+
     // Create basic workflow templates
     const basicWorkflow = createBasicSparcWorkflow();
     await fs.writeFile('.roo/workflows/basic-tdd.json', basicWorkflow);
     console.log('  ✓ Created .roo/workflows/basic-tdd.json');
-    
+
     // Create README for .roo directory
     const rooReadme = createRooReadme();
     await fs.writeFile('.roo/README.md', rooReadme);
     console.log('  ✓ Created .roo/README.md');
-    
+
     console.log('  ✅ Basic SPARC structure created successfully');
-    
   } catch (err: unknown) {
     console.log(`  ❌ Failed to create SPARC structure: ${(err as Error).message}`);
   }
 }
 
 function createBasicRoomodesConfig() {
-  return JSON.stringify({
-    "customModes": [
-      {
-        "slug": "architect",
-        "name": "🏗️ Architect", 
-        "roleDefinition": "You design scalable, secure, and modular architectures based on functional specs and user needs. You define responsibilities across services, APIs, and components.",
-        "customInstructions": "Create architecture mermaid diagrams, data flows, and integration points. Ensure no part of the design includes secrets or hardcoded env values. Emphasize modular boundaries and maintain extensibility.",
-        "groups": ["read", "edit"],
-        "source": "project"
-      },
-      {
-        "slug": "code",
-        "name": "🧠 Auto-Coder",
-        "roleDefinition": "You write clean, efficient, modular code based on pseudocode and architecture. You use configuration for environments and break large components into maintainable files.",
-        "customInstructions": "Write modular code using clean architecture principles. Never hardcode secrets or environment values. Split code into files < 500 lines. Use config files or environment abstractions. Use \\`new_task\\` for subtasks and finish with \\`attempt_completion\\`.",
-        "groups": ["read", "edit", "browser", "mcp", "command"],
-        "source": "project"
-      },
-      {
-        "slug": "tdd",
-        "name": "🧪 Tester (TDD)",
-        "roleDefinition": "You implement Test-Driven Development (TDD, London School), writing tests first and refactoring after minimal implementation passes.",
-        "customInstructions": "Write failing tests first. Implement only enough code to pass. Refactor after green. Ensure tests do not hardcode secrets. Keep files < 500 lines.",
-        "groups": ["read", "edit", "browser", "mcp", "command"],
-        "source": "project"
-      },
-      {
-        "slug": "spec-pseudocode",
-        "name": "📋 Specification Writer",
-        "roleDefinition": "You capture full project context—functional requirements, edge cases, constraints—and translate that into modular pseudocode with TDD anchors.",
-        "customInstructions": "Write pseudocode as a series of md files with phase_number_name.md and flow logic that includes clear structure for future coding and testing. Split complex logic across modules.",
-        "groups": ["read", "edit"],
-        "source": "project"
-      },
-      {
-        "slug": "integration",
-        "name": "🔗 System Integrator",
-        "roleDefinition": "You merge the outputs of all modes into a working, tested, production-ready system. You ensure consistency, cohesion, and modularity.",
-        "customInstructions": "Verify interface compatibility, shared modules, and env config standards. Split integration logic across domains as needed. Use \\`new_task\\` for preflight testing.",
-        "groups": ["read", "edit", "browser", "mcp", "command"],
-        "source": "project"
-      },
-      {
-        "slug": "debug",
-        "name": "🪲 Debugger",
-        "roleDefinition": "You troubleshoot runtime bugs, logic errors, or integration failures by tracing, inspecting, and analyzing behavior.",
-        "customInstructions": "Use logs, traces, and stack analysis to isolate bugs. Avoid changing env configuration directly. Keep fixes modular.",
-        "groups": ["read", "edit", "browser", "mcp", "command"],
-        "source": "project"
-      }
-    ]
-  }, null, 2);
+  return JSON.stringify(
+    {
+      customModes: [
+        {
+          slug: 'architect',
+          name: '🏗️ Architect',
+          roleDefinition:
+            'You design scalable, secure, and modular architectures based on functional specs and user needs. You define responsibilities across services, APIs, and components.',
+          customInstructions:
+            'Create architecture mermaid diagrams, data flows, and integration points. Ensure no part of the design includes secrets or hardcoded env values. Emphasize modular boundaries and maintain extensibility.',
+          groups: ['read', 'edit'],
+          source: 'project',
+        },
+        {
+          slug: 'code',
+          name: '🧠 Auto-Coder',
+          roleDefinition:
+            'You write clean, efficient, modular code based on pseudocode and architecture. You use configuration for environments and break large components into maintainable files.',
+          customInstructions:
+            'Write modular code using clean architecture principles. Never hardcode secrets or environment values. Split code into files < 500 lines. Use config files or environment abstractions. Use \\`new_task\\` for subtasks and finish with \\`attempt_completion\\`.',
+          groups: ['read', 'edit', 'browser', 'mcp', 'command'],
+          source: 'project',
+        },
+        {
+          slug: 'tdd',
+          name: '🧪 Tester (TDD)',
+          roleDefinition:
+            'You implement Test-Driven Development (TDD, London School), writing tests first and refactoring after minimal implementation passes.',
+          customInstructions:
+            'Write failing tests first. Implement only enough code to pass. Refactor after green. Ensure tests do not hardcode secrets. Keep files < 500 lines.',
+          groups: ['read', 'edit', 'browser', 'mcp', 'command'],
+          source: 'project',
+        },
+        {
+          slug: 'spec-pseudocode',
+          name: '📋 Specification Writer',
+          roleDefinition:
+            'You capture full project context—functional requirements, edge cases, constraints—and translate that into modular pseudocode with TDD anchors.',
+          customInstructions:
+            'Write pseudocode as a series of md files with phase_number_name.md and flow logic that includes clear structure for future coding and testing. Split complex logic across modules.',
+          groups: ['read', 'edit'],
+          source: 'project',
+        },
+        {
+          slug: 'integration',
+          name: '🔗 System Integrator',
+          roleDefinition:
+            'You merge the outputs of all modes into a working, tested, production-ready system. You ensure consistency, cohesion, and modularity.',
+          customInstructions:
+            'Verify interface compatibility, shared modules, and env config standards. Split integration logic across domains as needed. Use \\`new_task\\` for preflight testing.',
+          groups: ['read', 'edit', 'browser', 'mcp', 'command'],
+          source: 'project',
+        },
+        {
+          slug: 'debug',
+          name: '🪲 Debugger',
+          roleDefinition:
+            'You troubleshoot runtime bugs, logic errors, or integration failures by tracing, inspecting, and analyzing behavior.',
+          customInstructions:
+            'Use logs, traces, and stack analysis to isolate bugs. Avoid changing env configuration directly. Keep fixes modular.',
+          groups: ['read', 'edit', 'browser', 'mcp', 'command'],
+          source: 'project',
+        },
+      ],
+    },
+    null,
+    2,
+  );
 }
 
 function createBasicSparcWorkflow() {
-  return JSON.stringify({
-    "name": "Basic TDD Workflow",
-    "description": "A simple SPARC-based TDD workflow for development",
-    "sequential": true,
-    "steps": [
-      {
-        "mode": "spec-pseudocode",
-        "description": "Create detailed specifications and pseudocode",
-        "phase": "specification"
-      },
-      {
-        "mode": "tdd", 
-        "description": "Write failing tests (Red phase)",
-        "phase": "red"
-      },
-      {
-        "mode": "code",
-        "description": "Implement minimal code to pass tests (Green phase)", 
-        "phase": "green"
-      },
-      {
-        "mode": "tdd",
-        "description": "Refactor and optimize (Refactor phase)",
-        "phase": "refactor"
-      },
-      {
-        "mode": "integration",
-        "description": "Integrate and verify complete solution",
-        "phase": "integration"
-      }
-    ]
-  }, null, 2);
+  return JSON.stringify(
+    {
+      name: 'Basic TDD Workflow',
+      description: 'A simple SPARC-based TDD workflow for development',
+      sequential: true,
+      steps: [
+        {
+          mode: 'spec-pseudocode',
+          description: 'Create detailed specifications and pseudocode',
+          phase: 'specification',
+        },
+        {
+          mode: 'tdd',
+          description: 'Write failing tests (Red phase)',
+          phase: 'red',
+        },
+        {
+          mode: 'code',
+          description: 'Implement minimal code to pass tests (Green phase)',
+          phase: 'green',
+        },
+        {
+          mode: 'tdd',
+          description: 'Refactor and optimize (Refactor phase)',
+          phase: 'refactor',
+        },
+        {
+          mode: 'integration',
+          description: 'Integrate and verify complete solution',
+          phase: 'integration',
+        },
+      ],
+    },
+    null,
+    2,
+  );
 }
 
 function createRooReadme() {
@@ -3229,6 +3299,7 @@ For more information about SPARC methodology, see: https://github.com/ruvnet/cla
 `;
 }
 
-if (import.meta.main) {
+// Run main if executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
   await main();
 }

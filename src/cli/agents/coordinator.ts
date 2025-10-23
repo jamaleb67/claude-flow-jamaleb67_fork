@@ -3,7 +3,12 @@
  */
 
 import { BaseAgent } from './base-agent.js';
-import type { AgentCapabilities, AgentConfig, AgentEnvironment, TaskDefinition } from '../../swarm/types.js';
+import type {
+  AgentCapabilities,
+  AgentConfig,
+  AgentEnvironment,
+  TaskDefinition,
+} from '../../swarm/types.js';
 import type { ILogger } from '../../core/logger.js';
 import type { IEventBus } from '../../core/event-bus.js';
 import type { DistributedMemorySystem } from '../../memory/distributed-memory.js';
@@ -29,7 +34,7 @@ export class CoordinatorAgent extends BaseAgent {
     environment: AgentEnvironment,
     logger: ILogger,
     eventBus: IEventBus,
-    memory: DistributedMemorySystem
+    memory: DistributedMemorySystem,
   ) {
     super(id, 'coordinator', config, environment, logger, eventBus, memory);
   }
@@ -56,7 +61,7 @@ export class CoordinatorAgent extends BaseAgent {
         'planning',
         'communication',
         'resource-allocation',
-        'progress-tracking'
+        'progress-tracking',
       ],
       tools: [
         'task-manager',
@@ -65,14 +70,14 @@ export class CoordinatorAgent extends BaseAgent {
         'progress-tracker',
         'resource-allocator',
         'deadline-manager',
-        'status-reporter'
+        'status-reporter',
       ],
       maxConcurrentTasks: 8,
       maxMemoryUsage: 512 * 1024 * 1024, // 512MB
       maxExecutionTime: 600000, // 10 minutes
       reliability: 0.95,
-      speed: 0.90,
-      quality: 0.88
+      speed: 0.9,
+      quality: 0.88,
     };
   }
 
@@ -86,27 +91,21 @@ export class CoordinatorAgent extends BaseAgent {
       timeoutThreshold: 600000,
       reportingInterval: 15000,
       heartbeatInterval: 8000,
-      permissions: [
-        'file-read',
-        'file-write',
-        'api-access',
-        'agent-management',
-        'task-management'
-      ],
+      permissions: ['file-read', 'file-write', 'api-access', 'agent-management', 'task-management'],
       trustedAgents: [],
       expertise: {
         'task-orchestration': 0.95,
-        'resource-management': 0.90,
+        'resource-management': 0.9,
         'progress-tracking': 0.92,
-        'communication': 0.88,
-        'planning': 0.85
+        communication: 0.88,
+        planning: 0.85,
       },
       preferences: {
         communicationStyle: 'clear',
         reportingFrequency: 'regular',
         prioritization: 'impact-based',
-        escalationThreshold: 'medium'
-      }
+        escalationThreshold: 'medium',
+      },
     };
   }
 
@@ -114,7 +113,7 @@ export class CoordinatorAgent extends BaseAgent {
     this.logger.info('Coordinator executing task', {
       agentId: this.id,
       taskType: task.type,
-      taskId: task.id
+      taskId: task.id,
     });
 
     try {
@@ -138,7 +137,7 @@ export class CoordinatorAgent extends BaseAgent {
       this.logger.error('Coordination task failed', {
         agentId: this.id,
         taskId: task.id,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -152,7 +151,7 @@ export class CoordinatorAgent extends BaseAgent {
     this.logger.info('Orchestrating tasks', {
       taskCount: tasks.length,
       strategy,
-      priority
+      priority,
     });
 
     const orchestration = {
@@ -163,19 +162,19 @@ export class CoordinatorAgent extends BaseAgent {
       timeline: {
         estimated: 0,
         critical_path: [],
-        milestones: []
+        milestones: [],
       },
       resource_allocation: {},
       monitoring: {
         checkpoints: [],
         alerts: [],
-        metrics: []
+        metrics: [],
       },
       risk_assessment: {
         risks: [],
-        mitigation: []
+        mitigation: [],
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate task orchestration
@@ -187,7 +186,7 @@ export class CoordinatorAgent extends BaseAgent {
       status: 'pending',
       assignee: null,
       estimated_duration: t.duration || 30,
-      dependencies: t.dependencies || []
+      dependencies: t.dependencies || [],
     }));
 
     return orchestration;
@@ -201,7 +200,7 @@ export class CoordinatorAgent extends BaseAgent {
     this.logger.info('Tracking progress', {
       project,
       timeframe,
-      metrics
+      metrics,
     });
 
     const progress = {
@@ -213,25 +212,25 @@ export class CoordinatorAgent extends BaseAgent {
         tasks_completed: 0,
         tasks_in_progress: 0,
         tasks_pending: 0,
-        blockers: 0
+        blockers: 0,
       },
       velocity: {
         current: 0,
         average: 0,
-        trend: 'stable'
+        trend: 'stable',
       },
       quality_metrics: {
         defect_rate: 0,
         review_coverage: 0,
-        test_coverage: 0
+        test_coverage: 0,
       },
       timeline: {
         on_track: true,
         estimated_completion: new Date(),
-        delays: []
+        delays: [],
       },
       recommendations: [],
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate progress tracking
@@ -242,7 +241,7 @@ export class CoordinatorAgent extends BaseAgent {
       tasks_completed: 15,
       tasks_in_progress: 6,
       tasks_pending: 4,
-      blockers: 1
+      blockers: 1,
     };
 
     return progress;
@@ -256,7 +255,7 @@ export class CoordinatorAgent extends BaseAgent {
     this.logger.info('Allocating resources', {
       resources: resources.length,
       requirements: requirements.length,
-      constraints: constraints.length
+      constraints: constraints.length,
     });
 
     const allocation = {
@@ -269,7 +268,7 @@ export class CoordinatorAgent extends BaseAgent {
       optimizations: [] as any[],
       recommendations: [] as any[],
       efficiency: 0,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate resource allocation
@@ -280,16 +279,16 @@ export class CoordinatorAgent extends BaseAgent {
         resource: 'Agent-001',
         task: 'API Development',
         utilization: 0.8,
-        duration: '2 days'
+        duration: '2 days',
       },
       {
         resource: 'Agent-002',
         task: 'Testing',
         utilization: 0.6,
-        duration: '1 day'
-      }
+        duration: '1 day',
+      },
     ];
-    
+
     allocation.efficiency = 0.85;
 
     return allocation;
@@ -303,7 +302,7 @@ export class CoordinatorAgent extends BaseAgent {
     this.logger.info('Managing workflow', {
       workflow,
       stage,
-      automation
+      automation,
     });
 
     const management = {
@@ -318,9 +317,9 @@ export class CoordinatorAgent extends BaseAgent {
       sla_compliance: {
         on_time: 0,
         quality: 0,
-        budget: 0
+        budget: 0,
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate workflow management
@@ -330,7 +329,7 @@ export class CoordinatorAgent extends BaseAgent {
       { name: 'Planning', status: 'completed', duration: '2 days' },
       { name: 'Development', status: 'in_progress', duration: '5 days' },
       { name: 'Testing', status: 'pending', duration: '2 days' },
-      { name: 'Deployment', status: 'pending', duration: '1 day' }
+      { name: 'Deployment', status: 'pending', duration: '1 day' },
     ];
 
     return management;
@@ -344,7 +343,7 @@ export class CoordinatorAgent extends BaseAgent {
     this.logger.info('Coordinating team', {
       teamSize: team.length,
       objectives: objectives.length,
-      communication
+      communication,
     });
 
     const coordination = {
@@ -356,19 +355,19 @@ export class CoordinatorAgent extends BaseAgent {
       collaboration: {
         tools: [],
         channels: [],
-        frequency: communication
+        frequency: communication,
       },
       performance: {
         individual: {},
         team: {
           productivity: 0,
           satisfaction: 0,
-          collaboration_score: 0
-        }
+          collaboration_score: 0,
+        },
       },
       issues: [],
       improvements: [],
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate team coordination
@@ -377,7 +376,7 @@ export class CoordinatorAgent extends BaseAgent {
     coordination.performance.team = {
       productivity: 0.82,
       satisfaction: 0.88,
-      collaboration_score: 0.85
+      collaboration_score: 0.85,
     };
 
     return coordination;
@@ -393,7 +392,7 @@ export class CoordinatorAgent extends BaseAgent {
       scope,
       period,
       audience,
-      format
+      format,
     });
 
     const report = {
@@ -411,27 +410,28 @@ export class CoordinatorAgent extends BaseAgent {
       appendix: {
         detailed_metrics: {},
         charts: [] as any[],
-        raw_data: {}
+        raw_data: {},
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate report generation
     await this.delay(3000);
 
-    report.executive_summary = 'Project is 68% complete and on track for delivery. Team productivity is high with minor blockers identified.';
-    
+    report.executive_summary =
+      'Project is 68% complete and on track for delivery. Team productivity is high with minor blockers identified.';
+
     report.key_metrics = {
       completion: '68%',
       velocity: '12 points/sprint',
       quality: '4.2/5.0',
-      budget: '72% utilized'
+      budget: '72% utilized',
     };
-    
+
     report.achievements = [
       'Completed API development milestone',
       'Achieved 85% test coverage',
-      'Resolved 3 critical bugs'
+      'Resolved 3 critical bugs',
     ];
 
     return report;
@@ -439,7 +439,7 @@ export class CoordinatorAgent extends BaseAgent {
 
   private async performGeneralCoordination(task: TaskDefinition): Promise<any> {
     this.logger.info('Performing general coordination', {
-      description: task.description
+      description: task.description,
     });
 
     // Default to task orchestration
@@ -447,7 +447,7 @@ export class CoordinatorAgent extends BaseAgent {
   }
 
   private async delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   override getAgentStatus(): any {
@@ -460,13 +460,13 @@ export class CoordinatorAgent extends BaseAgent {
         'Progress Tracking',
         'Team Coordination',
         'Workflow Management',
-        'Status Reporting'
+        'Status Reporting',
       ],
       managementStyles: ['Agile', 'Waterfall', 'Hybrid'],
       currentCoordinations: this.getCurrentTasks().length,
       averageCoordinationTime: '5-15 minutes',
       lastCoordinationCompleted: this.getLastTaskCompletedTime(),
-      teamSize: this.collaborators.length
+      teamSize: this.collaborators.length,
     };
   }
 }
@@ -477,7 +477,7 @@ export const createCoordinatorAgent = (
   environment: Partial<AgentEnvironment>,
   logger: ILogger,
   eventBus: IEventBus,
-  memory: DistributedMemorySystem
+  memory: DistributedMemorySystem,
 ): CoordinatorAgent => {
   const defaultConfig = {
     autonomyLevel: 0.9,
@@ -494,22 +494,22 @@ export const createCoordinatorAgent = (
       'progress-tracking',
       'team-coordination',
       'reporting',
-      'workflow-management'
+      'workflow-management',
     ],
     trustedAgents: [],
     expertise: {
       'task-orchestration': 0.98,
       'resource-allocation': 0.95,
       'progress-tracking': 0.92,
-      'team-coordination': 0.90,
-      'workflow-management': 0.94
+      'team-coordination': 0.9,
+      'workflow-management': 0.94,
     },
     preferences: {
       coordinationStyle: 'collaborative',
       reportingFrequency: 'regular',
       escalationThreshold: 'medium',
-      teamSize: 'medium'
-    }
+      teamSize: 'medium',
+    },
   };
   const defaultEnv = {
     runtime: 'deno' as const,
@@ -523,12 +523,12 @@ export const createCoordinatorAgent = (
       'task-manager',
       'workflow-orchestrator',
       'communication-hub',
-      'progress-tracker'
+      'progress-tracker',
     ],
     toolConfigs: {
       taskManager: { autoAssign: true, prioritization: 'impact' },
-      communication: { frequency: 'regular', style: 'clear' }
-    }
+      communication: { frequency: 'regular', style: 'clear' },
+    },
   };
 
   return new CoordinatorAgent(
@@ -537,6 +537,6 @@ export const createCoordinatorAgent = (
     { ...defaultEnv, ...environment } as AgentEnvironment,
     logger,
     eventBus,
-    memory
+    memory,
   );
 };

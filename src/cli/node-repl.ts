@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Node.js Interactive REPL for Claude-Flow
  * Compatible implementation using Node.js readline and inquirer
@@ -57,13 +56,13 @@ class CommandHistory {
   }
 
   search(query: string): string[] {
-    return this.history.filter(cmd => cmd.includes(query));
+    return this.history.filter((cmd) => cmd.includes(query));
   }
 
   private async loadHistory(): Promise<void> {
     try {
       const content = await fs.readFile(this.historyFile, 'utf-8');
-      this.history = content.split('\n').filter(line => line.trim());
+      this.history = content.split('\n').filter((line) => line.trim());
     } catch {
       // History file doesn't exist yet
     }
@@ -78,12 +77,10 @@ class CommandHistory {
   }
 }
 
-
 /**
  * Start the Node.js interactive REPL
  */
 export async function startNodeREPL(options: any = {}): Promise<void> {
-  
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -100,7 +97,7 @@ export async function startNodeREPL(options: any = {}): Promise<void> {
   };
 
   const history = new CommandHistory(options.historyFile);
-  
+
   const commands: REPLCommand[] = [
     {
       name: 'help',
@@ -144,7 +141,7 @@ export async function startNodeREPL(options: any = {}): Promise<void> {
         'agent list',
         'agent spawn researcher --name "Research Agent"',
         'agent info agent-001',
-        'agent terminate agent-001'
+        'agent terminate agent-001',
       ],
       handler: async (args, ctx) => {
         await handleAgentCommand(args, ctx);
@@ -158,7 +155,7 @@ export async function startNodeREPL(options: any = {}): Promise<void> {
         'task list',
         'task create research "Find quantum computing papers"',
         'task status task-001',
-        'task cancel task-001'
+        'task cancel task-001',
       ],
       handler: async (args, ctx) => {
         await handleTaskCommand(args, ctx);
@@ -168,11 +165,7 @@ export async function startNodeREPL(options: any = {}): Promise<void> {
       name: 'memory',
       description: 'Memory operations (query, stats, export)',
       usage: 'memory <subcommand> [options]',
-      examples: [
-        'memory stats',
-        'memory query --agent agent-001',
-        'memory export memory.json'
-      ],
+      examples: ['memory stats', 'memory query --agent agent-001', 'memory export memory.json'],
       handler: async (args, ctx) => {
         await handleMemoryCommand(args, ctx);
       },
@@ -184,7 +177,7 @@ export async function startNodeREPL(options: any = {}): Promise<void> {
       examples: [
         'session list',
         'session save "Development Session"',
-        'session restore session-001'
+        'session restore session-001',
       ],
       handler: async (args, ctx) => {
         await handleSessionCommand(args, ctx);
@@ -194,11 +187,7 @@ export async function startNodeREPL(options: any = {}): Promise<void> {
       name: 'workflow',
       description: 'Workflow operations (run, list, status)',
       usage: 'workflow <subcommand> [options]',
-      examples: [
-        'workflow list',
-        'workflow run workflow.json',
-        'workflow status workflow-001'
-      ],
+      examples: ['workflow list', 'workflow run workflow.json', 'workflow status workflow-001'],
       handler: async (args, ctx) => {
         await handleWorkflowCommand(args, ctx);
       },
@@ -221,17 +210,20 @@ export async function startNodeREPL(options: any = {}): Promise<void> {
       usage: 'history [--search query]',
       examples: ['history', 'history --search agent'],
       handler: async (args) => {
-        const searchQuery = args.indexOf('--search') >= 0 ? args[args.indexOf('--search') + 1] : null;
+        const searchQuery =
+          args.indexOf('--search') >= 0 ? args[args.indexOf('--search') + 1] : null;
         const historyItems = searchQuery ? history.search(searchQuery) : history.get();
-        
-        console.log(chalk.cyan.bold(`Command History${searchQuery ? ` (search: ${searchQuery})` : ''}`));
+
+        console.log(
+          chalk.cyan.bold(`Command History${searchQuery ? ` (search: ${searchQuery})` : ''}`),
+        );
         console.log('─'.repeat(50));
-        
+
         if (historyItems.length === 0) {
           console.log(chalk.gray('No commands in history'));
           return;
         }
-        
+
         const recent = historyItems.slice(-20); // Show last 20
         recent.forEach((cmd, i) => {
           const lineNumber = historyItems.length - recent.length + i + 1;
@@ -257,14 +249,17 @@ export async function startNodeREPL(options: any = {}): Promise<void> {
           console.log(ctx.workingDirectory);
           return;
         }
-        
+
         try {
           const newDir = args[0] === '~' ? process.env.HOME || '/' : args[0];
           process.chdir(newDir);
           ctx.workingDirectory = process.cwd();
           console.log(chalk.gray(`Changed to: ${ctx.workingDirectory}`));
         } catch (error) {
-          console.error(chalk.red('Error:'), error instanceof Error ? error.message : String(error));
+          console.error(
+            chalk.red('Error:'),
+            error instanceof Error ? error.message : String(error),
+          );
         }
       },
     },
@@ -296,12 +291,11 @@ export async function startNodeREPL(options: any = {}): Promise<void> {
     },
   ];
 
-  
   // Show initial status
   if (options.banner !== false) {
     displayBanner();
   }
-  
+
   await showSystemStatus(context);
   console.log(chalk.gray('Type "help" for available commands or "exit" to quit.\n'));
 
@@ -319,27 +313,29 @@ export async function startNodeREPL(options: any = {}): Promise<void> {
     // Parse command
     const args = parseCommand(input);
     const [commandName, ...commandArgs] = args;
-    
+
     // Find and execute command
-    const command = commands.find(c => 
-      c.name === commandName || 
-      (c.aliases && c.aliases.includes(commandName))
+    const command = commands.find(
+      (c) => c.name === commandName || (c.aliases && c.aliases.includes(commandName)),
     );
 
     if (command) {
       try {
         await command.handler(commandArgs, context);
       } catch (error) {
-        console.error(chalk.red('Command failed:'), error instanceof Error ? error.message : String(error));
+        console.error(
+          chalk.red('Command failed:'),
+          error instanceof Error ? error.message : String(error),
+        );
       }
     } else {
       console.log(chalk.red(`Unknown command: ${commandName}`));
       console.log(chalk.gray('Type "help" for available commands'));
-      
+
       // Suggest similar commands
       const suggestions = findSimilarCommands(commandName, commands);
       if (suggestions.length > 0) {
-        console.log(chalk.gray('Did you mean:'), suggestions.map(s => chalk.cyan(s)).join(', '));
+        console.log(chalk.gray('Did you mean:'), suggestions.map((s) => chalk.cyan(s)).join(', '));
       }
     }
   };
@@ -355,7 +351,10 @@ export async function startNodeREPL(options: any = {}): Promise<void> {
     try {
       await processCommand(input);
     } catch (error) {
-      console.error(chalk.red('REPL Error:'), error instanceof Error ? error.message : String(error));
+      console.error(
+        chalk.red('REPL Error:'),
+        error instanceof Error ? error.message : String(error),
+      );
     }
     showPrompt();
   });
@@ -387,16 +386,20 @@ ${chalk.cyan.bold('╚═══════════════════�
 function createPrompt(context: REPLContext): string {
   const statusIcon = getConnectionStatusIcon(context.connectionStatus);
   const dir = path.basename(context.workingDirectory) || '/';
-  
+
   return `${statusIcon} ${chalk.cyan('claude-flow')}:${chalk.yellow(dir)}${chalk.white('> ')}`;
 }
 
 function getConnectionStatusIcon(status: string): string {
   switch (status) {
-    case 'connected': return chalk.green('●');
-    case 'connecting': return chalk.yellow('◐');
-    case 'disconnected': return chalk.red('○');
-    default: return chalk.gray('?');
+    case 'connected':
+      return chalk.green('●');
+    case 'connecting':
+      return chalk.yellow('◐');
+    case 'disconnected':
+      return chalk.red('○');
+    default:
+      return chalk.gray('?');
   }
 }
 
@@ -406,10 +409,10 @@ function parseCommand(input: string): string[] {
   let current = '';
   let inQuotes = false;
   let quoteChar = '';
-  
+
   for (let i = 0; i < input.length; i++) {
     const char = input[i];
-    
+
     if (inQuotes) {
       if (char === quoteChar) {
         inQuotes = false;
@@ -431,11 +434,11 @@ function parseCommand(input: string): string[] {
       }
     }
   }
-  
+
   if (current.trim()) {
     args.push(current.trim());
   }
-  
+
   return args;
 }
 
@@ -443,26 +446,26 @@ function showHelp(commands: REPLCommand[]): void {
   console.log(chalk.cyan.bold('Claude-Flow Interactive REPL'));
   console.log('─'.repeat(50));
   console.log();
-  
+
   console.log(chalk.white.bold('Available Commands:'));
   console.log();
-  
+
   const table = new Table({
     head: ['Command', 'Aliases', 'Description'],
-    style: { head: ['cyan'] }
+    style: { head: ['cyan'] },
   });
 
   for (const cmd of commands) {
     table.push([
       chalk.cyan(cmd.name),
       cmd.aliases ? chalk.gray(cmd.aliases.join(', ')) : '',
-      cmd.description
+      cmd.description,
     ]);
   }
-  
+
   console.log(table.toString());
   console.log();
-  
+
   console.log(chalk.gray('Tips:'));
   console.log(chalk.gray('• Use TAB for command completion'));
   console.log(chalk.gray('• Use "help <command>" for detailed help'));
@@ -471,28 +474,27 @@ function showHelp(commands: REPLCommand[]): void {
 }
 
 function showCommandHelp(commands: REPLCommand[], commandName: string): void {
-  const command = commands.find(c => 
-    c.name === commandName || 
-    (c.aliases && c.aliases.includes(commandName))
+  const command = commands.find(
+    (c) => c.name === commandName || (c.aliases && c.aliases.includes(commandName)),
   );
-  
+
   if (!command) {
     console.log(chalk.red(`Unknown command: ${commandName}`));
     return;
   }
-  
+
   console.log(chalk.cyan.bold(`Command: ${command.name}`));
   console.log('─'.repeat(30));
   console.log(`${chalk.white('Description:')} ${command.description}`);
-  
+
   if (command.aliases) {
     console.log(`${chalk.white('Aliases:')} ${command.aliases.join(', ')}`);
   }
-  
+
   if (command.usage) {
     console.log(`${chalk.white('Usage:')} ${command.usage}`);
   }
-  
+
   if (command.examples) {
     console.log();
     console.log(chalk.white.bold('Examples:'));
@@ -505,18 +507,18 @@ function showCommandHelp(commands: REPLCommand[], commandName: string): void {
 async function showSystemStatus(context: REPLContext, component?: string): Promise<void> {
   console.log(chalk.cyan.bold('System Status'));
   console.log('─'.repeat(30));
-  
+
   const statusIcon = context.connectionStatus === 'connected' ? chalk.green('✓') : chalk.red('✗');
   console.log(`${statusIcon} Connection: ${context.connectionStatus}`);
   console.log(`${chalk.white('Working Directory:')} ${context.workingDirectory}`);
   console.log(`${chalk.white('Last Activity:')} ${context.lastActivity.toLocaleTimeString()}`);
-  
+
   if (context.currentSession) {
     console.log(`${chalk.white('Current Session:')} ${context.currentSession}`);
   }
-  
+
   console.log(`${chalk.white('Commands in History:')} ${context.history.length}`);
-  
+
   if (context.connectionStatus === 'disconnected') {
     console.log();
     console.log(chalk.yellow('⚠ Not connected to orchestrator'));
@@ -526,13 +528,13 @@ async function showSystemStatus(context: REPLContext, component?: string): Promi
 
 async function connectToOrchestrator(context: REPLContext, target?: string): Promise<void> {
   const host = target || 'localhost:3000';
-  
+
   console.log(chalk.yellow(`Connecting to ${host}...`));
   context.connectionStatus = 'connecting';
-  
+
   // Mock connection attempt
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
   // Check if orchestrator is actually running by trying to execute status command
   try {
     const result = await executeCliCommand(['status']);
@@ -596,15 +598,18 @@ async function handleAgentCommand(args: string[], context: REPLContext): Promise
     console.log(chalk.gray('Usage: agent <spawn|list|terminate|info> [options]'));
     return;
   }
-  
+
   const subcommand = args[0];
   const cliArgs = ['agent', ...args];
-  
+
   try {
     const result = await executeCliCommand(cliArgs);
     console.log(result.output);
   } catch (error) {
-    console.error(chalk.red('Error executing agent command:'), error instanceof Error ? error.message : String(error));
+    console.error(
+      chalk.red('Error executing agent command:'),
+      error instanceof Error ? error.message : String(error),
+    );
   }
 }
 
@@ -618,14 +623,17 @@ async function handleTaskCommand(args: string[], context: REPLContext): Promise<
     console.log(chalk.gray('Usage: task <create|list|status|cancel> [options]'));
     return;
   }
-  
+
   const cliArgs = ['task', ...args];
-  
+
   try {
     const result = await executeCliCommand(cliArgs);
     console.log(result.output);
   } catch (error) {
-    console.error(chalk.red('Error executing task command:'), error instanceof Error ? error.message : String(error));
+    console.error(
+      chalk.red('Error executing task command:'),
+      error instanceof Error ? error.message : String(error),
+    );
   }
 }
 
@@ -634,14 +642,17 @@ async function handleMemoryCommand(args: string[], context: REPLContext): Promis
     console.log(chalk.gray('Usage: memory <query|stats|export> [options]'));
     return;
   }
-  
+
   const cliArgs = ['memory', ...args];
-  
+
   try {
     const result = await executeCliCommand(cliArgs);
     console.log(result.output);
   } catch (error) {
-    console.error(chalk.red('Error executing memory command:'), error instanceof Error ? error.message : String(error));
+    console.error(
+      chalk.red('Error executing memory command:'),
+      error instanceof Error ? error.message : String(error),
+    );
   }
 }
 
@@ -650,14 +661,17 @@ async function handleSessionCommand(args: string[], context: REPLContext): Promi
     console.log(chalk.gray('Usage: session <list|save|restore> [options]'));
     return;
   }
-  
+
   const cliArgs = ['session', ...args];
-  
+
   try {
     const result = await executeCliCommand(cliArgs);
     console.log(result.output);
   } catch (error) {
-    console.error(chalk.red('Error executing session command:'), error instanceof Error ? error.message : String(error));
+    console.error(
+      chalk.red('Error executing session command:'),
+      error instanceof Error ? error.message : String(error),
+    );
   }
 }
 
@@ -671,24 +685,27 @@ async function handleWorkflowCommand(args: string[], context: REPLContext): Prom
     console.log(chalk.gray('Usage: workflow <list|run|status> [options]'));
     return;
   }
-  
+
   const cliArgs = ['workflow', ...args];
-  
+
   try {
     const result = await executeCliCommand(cliArgs);
     console.log(result.output);
   } catch (error) {
-    console.error(chalk.red('Error executing workflow command:'), error instanceof Error ? error.message : String(error));
+    console.error(
+      chalk.red('Error executing workflow command:'),
+      error instanceof Error ? error.message : String(error),
+    );
   }
 }
 
 function findSimilarCommands(input: string, commands: REPLCommand[]): string[] {
-  const allNames = commands.flatMap(c => [c.name, ...(c.aliases || [])]);
-  
+  const allNames = commands.flatMap((c) => [c.name, ...(c.aliases || [])]);
+
   return allNames
-    .filter(name => {
+    .filter((name) => {
       // Simple similarity check - could use Levenshtein distance
-      const commonChars = input.split('').filter(char => name.includes(char)).length;
+      const commonChars = input.split('').filter((char) => name.includes(char)).length;
       return commonChars >= Math.min(2, input.length / 2);
     })
     .slice(0, 3); // Top 3 suggestions

@@ -12,7 +12,9 @@ You implement Test-Driven Development (TDD, London School) with parallel test cr
 Optimize TDD workflow using batchtools for parallel test development and execution:
 
 ### Parallel Test Development (Red Phase)
+
 1. **Batch Test Creation**: Write multiple failing tests simultaneously:
+
    - Create unit tests for all methods in parallel
    - Generate integration tests concurrently
    - Build edge case tests in batch operations
@@ -24,12 +26,14 @@ Optimize TDD workflow using batchtools for parallel test development and executi
      { path: '/tests/unit/auth.service.test.ts', content: authServiceTests },
      { path: '/tests/unit/auth.controller.test.ts', content: authControllerTests },
      { path: '/tests/integration/auth.integration.test.ts', content: authIntegrationTests },
-     { path: '/tests/e2e/auth.e2e.test.ts', content: authE2ETests }
+     { path: '/tests/e2e/auth.e2e.test.ts', content: authE2ETests },
    ]);
    ```
 
 ### Efficient Implementation (Green Phase)
+
 1. **Parallel Minimal Implementation**:
+
    - Implement multiple functions to pass tests concurrently
    - Create stubs and mocks in parallel
    - Generate minimal code across layers simultaneously
@@ -41,12 +45,14 @@ Optimize TDD workflow using batchtools for parallel test development and executi
      runUnitTests(),
      runIntegrationTests(),
      runE2ETests(),
-     checkCoverage()
+     checkCoverage(),
    ]);
    ```
 
 ### Concurrent Refactoring (Refactor Phase)
+
 1. **Parallel Code Improvements**:
+
    - Refactor multiple components simultaneously
    - Optimize algorithms across files concurrently
    - Clean up code patterns in batch operations
@@ -58,11 +64,12 @@ Optimize TDD workflow using batchtools for parallel test development and executi
      validateCodeQuality(),
      checkTestCoverage(),
      runLinters(),
-     analyzePerformance()
+     analyzePerformance(),
    ]);
    ```
 
 ### TDD Workflow Optimization
+
 ```
 1. Red Phase (Parallel):
    ├── Write unit tests for all components
@@ -84,7 +91,9 @@ Optimize TDD workflow using batchtools for parallel test development and executi
 ```
 
 ### Batchtools Test Patterns
+
 - **Parallel Test Generation**:
+
   ```javascript
   // Generate tests for multiple methods at once
   const methods = ['create', 'read', 'update', 'delete'];
@@ -100,11 +109,12 @@ Optimize TDD workflow using batchtools for parallel test development and executi
     unit: () => exec('npm run test:unit'),
     integration: () => exec('npm run test:integration'),
     e2e: () => exec('npm run test:e2e'),
-    coverage: () => exec('npm run test:coverage')
+    coverage: () => exec('npm run test:coverage'),
   });
   ```
 
 ### Test Organization
+
 ```
 /tests/
   ├── unit/          # Created in parallel batches
@@ -116,6 +126,7 @@ Optimize TDD workflow using batchtools for parallel test development and executi
 Write failing tests first. Implement only enough code to pass. Refactor after green. Ensure tests do not hardcode secrets. Keep files < 500 lines. Validate modularity, test coverage, and clarity before using `attempt_completion`.
 
 ## Groups/Permissions
+
 - read
 - edit
 - browser
@@ -139,6 +150,7 @@ npx claude-flow sparc run tdd "implement user authentication"
 ## Batchtools TDD Examples
 
 ### Parallel Test Suite Creation
+
 ```javascript
 // Create complete test suite for a feature
 await batchtools.createTestSuite({
@@ -146,28 +158,30 @@ await batchtools.createTestSuite({
   tests: [
     { type: 'unit', targets: ['service', 'controller', 'middleware'] },
     { type: 'integration', scenarios: ['login', 'logout', 'refresh'] },
-    { type: 'e2e', flows: ['complete-auth-flow', 'error-handling'] }
-  ]
+    { type: 'e2e', flows: ['complete-auth-flow', 'error-handling'] },
+  ],
 });
 ```
 
 ### Concurrent Test-Code Cycle
+
 ```javascript
 // Run Red-Green cycle in parallel for multiple components
 await batchtools.parallel([
   { component: 'authService', test: writeAuthServiceTests, implement: implementAuthService },
   { component: 'tokenService', test: writeTokenServiceTests, implement: implementTokenService },
-  { component: 'userValidator', test: writeValidatorTests, implement: implementValidator }
+  { component: 'userValidator', test: writeValidatorTests, implement: implementValidator },
 ]);
 ```
 
 ### Batch Test Coverage Analysis
+
 ```javascript
 // Analyze coverage across all modules simultaneously
 const coverage = await batchtools.analyzeCoverage([
   '/src/services/**/*.ts',
   '/src/controllers/**/*.ts',
   '/src/middleware/**/*.ts',
-  '/src/validators/**/*.ts'
+  '/src/validators/**/*.ts',
 ]);
 ```

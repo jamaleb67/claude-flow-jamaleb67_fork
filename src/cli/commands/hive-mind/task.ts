@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
  * Hive Mind Task Command
- * 
+ *
  * Submit tasks to the Hive Mind for collective processing
  * with automatic agent assignment and consensus coordination.
  */
 
-import { Command } from 'commander';
+import { Command } from '../commander-fix.js';
 import chalk from 'chalk';
 import ora from 'ora';
 import inquirer from 'inquirer';
@@ -20,7 +20,11 @@ export const taskCommand = new Command('task')
   .argument('[description]', 'Task description')
   .option('-s, --swarm-id <id>', 'Target swarm ID')
   .option('-p, --priority <level>', 'Task priority (low, medium, high, critical)', 'medium')
-  .option('-t, --strategy <type>', 'Execution strategy (parallel, sequential, adaptive, consensus)', 'adaptive')
+  .option(
+    '-t, --strategy <type>',
+    'Execution strategy (parallel, sequential, adaptive, consensus)',
+    'adaptive',
+  )
   .option('-d, --dependencies <ids>', 'Comma-separated list of dependent task IDs')
   .option('-a, --assign-to <agent>', 'Assign to specific agent')
   .option('-r, --require-consensus', 'Require consensus for this task', false)
@@ -33,30 +37,30 @@ export const taskCommand = new Command('task')
   .action(async (description, options) => {
     try {
       // Get swarm ID
-      const swarmId = options.swarmId || await getActiveSwarmId();
+      const swarmId = options.swarmId || (await getActiveSwarmId());
       if (!swarmId) {
         throw new Error('No active swarm found. Initialize a Hive Mind first.');
       }
-      
+
       // Load Hive Mind
       const hiveMind = await HiveMind.load(swarmId);
-      
+
       // Handle special operations
       if (options.list) {
         await listTasks(hiveMind);
         return;
       }
-      
+
       if (options.cancel) {
         await cancelTask(hiveMind, options.cancel);
         return;
       }
-      
+
       if (options.retry) {
         await retryTask(hiveMind, options.retry);
         return;
       }
-      
+
       // Interactive mode
       if (options.interactive || !description) {
         const answers = await inquirer.prompt([
@@ -65,14 +69,14 @@ export const taskCommand = new Command('task')
             name: 'description',
             message: 'Enter task description:',
             when: !description,
-            validate: (input) => input.length > 0 || 'Task description is required'
+            validate: (input) => input.length > 0 || 'Task description is required',
           },
           {
             type: 'list',
             name: 'priority',
             message: 'Select task priority:',
             choices: ['low', 'medium', 'high', 'critical'],
-            default: options.priority
+            default: options.priority,
           },
           {
             type: 'list',
@@ -82,35 +86,41 @@ export const taskCommand = new Command('task')
               { name: 'Adaptive (AI-optimized)', value: 'adaptive' },
               { name: 'Parallel (Fast, multiple agents)', value: 'parallel' },
               { name: 'Sequential (Step-by-step)', value: 'sequential' },
-              { name: 'Consensus (Requires agreement)', value: 'consensus' }
+              { name: 'Consensus (Requires agreement)', value: 'consensus' },
             ],
-            default: options.strategy
+            default: options.strategy,
           },
           {
             type: 'confirm',
             name: 'requireConsensus',
             message: 'Require consensus for critical decisions?',
             default: options.requireConsensus,
-            when: (answers) => answers.strategy !== 'consensus'
+            when: (answers) => answers.strategy !== 'consensus',
           },
           {
             type: 'number',
             name: 'maxAgents',
             message: 'Maximum agents to assign:',
             default: parseInt(options.maxAgents, 10),
-            validate: (input) => input > 0 && input <= 10 || 'Must be between 1 and 10'
+            validate: (input) => (input > 0 && input <= 10) || 'Must be between 1 and 10',
           },
           {
             type: 'checkbox',
             name: 'capabilities',
             message: 'Required agent capabilities:',
             choices: [
-              'code_generation', 'research', 'analysis', 'testing',
-              'optimization', 'documentation', 'architecture', 'review'
-            ]
-          }
+              'code_generation',
+              'research',
+              'analysis',
+              'testing',
+              'optimization',
+              'documentation',
+              'architecture',
+              'review',
+            ],
+          },
         ]);
-        
+
         description = description || answers.description;
         options.priority = answers.priority || options.priority;
         options.strategy = answers.strategy || options.strategy;
@@ -118,14 +128,14 @@ export const taskCommand = new Command('task')
         options.maxAgents = answers.maxAgents || options.maxAgents;
         options.requiredCapabilities = answers.capabilities;
       }
-      
+
       const spinner = ora('Submitting task to Hive Mind...').start();
-      
+
       // Parse dependencies
-      const dependencies = options.dependencies 
+      const dependencies = options.dependencies
         ? options.dependencies.split(',').map((id: string) => id.trim())
         : [];
-      
+
       // Submit task
       const task = await hiveMind.submitTask({
         description,
@@ -138,12 +148,12 @@ export const taskCommand = new Command('task')
         requiredCapabilities: options.requiredCapabilities || [],
         metadata: {
           submittedBy: 'cli',
-          submittedAt: new Date()
-        }
+          submittedAt: new Date(),
+        },
       });
-      
+
       spinner.succeed(formatSuccess('Task submitted successfully!'));
-      
+
       // Display task details
       console.log('\n' + chalk.bold('📋 Task Details:'));
       console.log(formatInfo(`Task ID: ${task.id}`));
@@ -151,19 +161,20 @@ export const taskCommand = new Command('task')
       console.log(formatInfo(`Priority: ${getPriorityBadge(task.priority)} ${task.priority}`));
       console.log(formatInfo(`Strategy: ${task.strategy}`));
       console.log(formatInfo(`Status: ${task.status}`));
-      
+
       if (task.assignedAgents.length > 0) {
         console.log(formatInfo(`Assigned to: ${task.assignedAgents.join(', ')}`));
       }
-      
+
       // Watch mode
       if (options.watch) {
         console.log('\n' + chalk.bold('👀 Watching task progress...'));
         await watchTaskProgress(hiveMind, task.id);
       } else {
-        console.log('\n' + chalk.gray(`Track progress: ruv-swarm hive-mind task --watch ${task.id}`));
+        console.log(
+          '\n' + chalk.gray(`Track progress: ruv-swarm hive-mind task --watch ${task.id}`),
+        );
       }
-      
     } catch (error) {
       console.error(formatError('Failed to submit task'));
       console.error(formatError((error as Error).message));
@@ -178,36 +189,36 @@ async function getActiveSwarmId(): Promise<string | null> {
 
 async function listTasks(hiveMind: HiveMind) {
   const tasks = await hiveMind.getTasks();
-  
+
   if (tasks.length === 0) {
     console.log(formatInfo('No tasks found.'));
     return;
   }
-  
+
   console.log('\n' + chalk.bold('📋 Task List:'));
   const Table = require('cli-table3');
   const table = new Table({
     head: ['ID', 'Description', 'Priority', 'Status', 'Progress', 'Agents'],
-    style: { head: ['cyan'] }
+    style: { head: ['cyan'] },
   });
-  
-  tasks.forEach(task => {
+
+  tasks.forEach((task) => {
     table.push([
       task.id.substring(0, 8),
       task.description.substring(0, 40) + (task.description.length > 40 ? '...' : ''),
       getPriorityBadge(task.priority),
       getTaskStatusBadge(task.status),
       `${task.progress}%`,
-      task.assignedAgents.length
+      task.assignedAgents.length,
     ]);
   });
-  
+
   console.log(table.toString());
 }
 
 async function cancelTask(hiveMind: HiveMind, taskId: string) {
   const spinner = ora('Cancelling task...').start();
-  
+
   try {
     await hiveMind.cancelTask(taskId);
     spinner.succeed(formatSuccess('Task cancelled successfully!'));
@@ -219,7 +230,7 @@ async function cancelTask(hiveMind: HiveMind, taskId: string) {
 
 async function retryTask(hiveMind: HiveMind, taskId: string) {
   const spinner = ora('Retrying task...').start();
-  
+
   try {
     const newTask = await hiveMind.retryTask(taskId);
     spinner.succeed(formatSuccess('Task retry submitted!'));
@@ -233,40 +244,40 @@ async function retryTask(hiveMind: HiveMind, taskId: string) {
 async function watchTaskProgress(hiveMind: HiveMind, taskId: string) {
   let lastProgress = -1;
   let completed = false;
-  
+
   const progressBar = require('cli-progress');
   const bar = new progressBar.SingleBar({
     format: 'Progress |' + chalk.cyan('{bar}') + '| {percentage}% | {status}',
     barCompleteChar: '\u2588',
     barIncompleteChar: '\u2591',
-    hideCursor: true
+    hideCursor: true,
   });
-  
+
   bar.start(100, 0, { status: 'Initializing...' });
-  
+
   const interval = setInterval(async () => {
     try {
       const task = await hiveMind.getTask(taskId);
-      
+
       if (task.progress !== lastProgress) {
         lastProgress = task.progress;
         bar.update(task.progress, { status: task.status });
       }
-      
+
       if (task.status === 'completed' || task.status === 'failed') {
         completed = true;
         bar.stop();
         clearInterval(interval);
-        
+
         console.log('\n' + chalk.bold('📊 Task Result:'));
         console.log(formatInfo(`Status: ${task.status}`));
         console.log(formatInfo(`Duration: ${formatDuration(task.completedAt - task.createdAt)}`));
-        
+
         if (task.result) {
           console.log(formatInfo('Result:'));
           console.log(chalk.gray(JSON.stringify(task.result, null, 2)));
         }
-        
+
         if (task.error) {
           console.log(formatError(`Error: ${task.error}`));
         }
@@ -277,7 +288,7 @@ async function watchTaskProgress(hiveMind: HiveMind, taskId: string) {
       console.error(formatError('Error watching task: ' + (error as Error).message));
     }
   }, 1000);
-  
+
   // Handle Ctrl+C
   process.on('SIGINT', () => {
     if (!completed) {
@@ -294,7 +305,7 @@ function getPriorityBadge(priority: string): string {
     low: '🟢',
     medium: '🟡',
     high: '🟠',
-    critical: '🔴'
+    critical: '🔴',
   };
   return badges[priority] || '⚪';
 }
@@ -305,7 +316,7 @@ function getTaskStatusBadge(status: string): string {
     assigned: chalk.yellow('🔄'),
     in_progress: chalk.blue('▶️'),
     completed: chalk.green('✅'),
-    failed: chalk.red('❌')
+    failed: chalk.red('❌'),
   };
   return badges[status] || chalk.gray('❓');
 }
@@ -314,7 +325,7 @@ function formatDuration(ms: number): string {
   const seconds = Math.floor(ms / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
-  
+
   if (hours > 0) return `${hours}h ${minutes % 60}m`;
   if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
   return `${seconds}s`;

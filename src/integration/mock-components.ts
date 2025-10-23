@@ -18,7 +18,7 @@ export class MockConfigManager {
     this.config = {
       agents: { maxAgents: 10 },
       swarm: { topology: 'mesh' },
-      memory: { backend: 'memory' }
+      memory: { backend: 'memory' },
     };
   }
 
@@ -58,7 +58,7 @@ export class MockConfigManager {
       component: 'configManager',
       healthy: true,
       message: 'Mock config manager healthy',
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 }
@@ -89,10 +89,10 @@ export class MockMemoryManager {
   async keys(pattern?: string): Promise<string[]> {
     const allKeys = Array.from(this.storage.keys());
     if (!pattern) return allKeys;
-    
+
     // Simple pattern matching
     const regex = new RegExp(pattern.replace(/\*/g, '.*'));
-    return allKeys.filter(key => regex.test(key));
+    return allKeys.filter((key) => regex.test(key));
   }
 
   healthCheck(): Promise<any> {
@@ -100,14 +100,14 @@ export class MockMemoryManager {
       component: 'memoryManager',
       healthy: true,
       message: 'Mock memory manager healthy',
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
   getMetrics(): Promise<any> {
     return Promise.resolve({
       storageSize: this.storage.size,
-      memoryUsage: process.memoryUsage().heapUsed
+      memoryUsage: process.memoryUsage().heapUsed,
     });
   }
 }
@@ -115,7 +115,10 @@ export class MockMemoryManager {
 export class MockAgentManager {
   private agents: Map<string, any> = new Map();
 
-  constructor(private eventBus: EventBus, private logger: Logger) {}
+  constructor(
+    private eventBus: EventBus,
+    private logger: Logger,
+  ) {}
 
   async initialize(): Promise<void> {
     // Mock initialization
@@ -132,7 +135,7 @@ export class MockAgentManager {
       type,
       config,
       status: 'active',
-      createdAt: new Date()
+      createdAt: new Date(),
     });
     return agentId;
   }
@@ -159,14 +162,14 @@ export class MockAgentManager {
       component: 'agentManager',
       healthy: true,
       message: 'Mock agent manager healthy',
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
   getMetrics(): Promise<any> {
     return Promise.resolve({
       activeAgents: this.agents.size,
-      totalAgents: this.agents.size
+      totalAgents: this.agents.size,
     });
   }
 }
@@ -177,7 +180,7 @@ export class MockSwarmCoordinator {
   constructor(
     private eventBus: EventBus,
     private logger: Logger,
-    private memoryManager: MockMemoryManager
+    private memoryManager: MockMemoryManager,
   ) {}
 
   async initialize(): Promise<void> {
@@ -195,7 +198,7 @@ export class MockSwarmCoordinator {
       config,
       status: 'active',
       agents: [],
-      createdAt: new Date()
+      createdAt: new Date(),
     });
     return swarmId;
   }
@@ -224,14 +227,17 @@ export class MockSwarmCoordinator {
       component: 'swarmCoordinator',
       healthy: true,
       message: 'Mock swarm coordinator healthy',
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
   getMetrics(): Promise<any> {
     return Promise.resolve({
       activeSwarms: this.swarms.size,
-      totalAgents: Array.from(this.swarms.values()).reduce((sum, swarm) => sum + swarm.agents.length, 0)
+      totalAgents: Array.from(this.swarms.values()).reduce(
+        (sum, swarm) => sum + swarm.agents.length,
+        0,
+      ),
     });
   }
 }
@@ -242,7 +248,7 @@ export class MockTaskEngine {
   constructor(
     private eventBus: EventBus,
     private logger: Logger,
-    private memoryManager: MockMemoryManager
+    private memoryManager: MockMemoryManager,
   ) {}
 
   async initialize(): Promise<void> {
@@ -259,7 +265,7 @@ export class MockTaskEngine {
       id: taskId,
       ...taskConfig,
       status: 'pending',
-      createdAt: new Date()
+      createdAt: new Date(),
     });
     return taskId;
   }
@@ -270,9 +276,9 @@ export class MockTaskEngine {
 
   async getActiveTasks(swarmId?: string): Promise<any[]> {
     const allTasks = Array.from(this.tasks.values());
-    return swarmId 
-      ? allTasks.filter(task => task.swarmId === swarmId && task.status === 'active')
-      : allTasks.filter(task => task.status === 'active');
+    return swarmId
+      ? allTasks.filter((task) => task.swarmId === swarmId && task.status === 'active')
+      : allTasks.filter((task) => task.status === 'active');
   }
 
   healthCheck(): Promise<any> {
@@ -280,7 +286,7 @@ export class MockTaskEngine {
       component: 'taskEngine',
       healthy: true,
       message: 'Mock task engine healthy',
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -288,15 +294,18 @@ export class MockTaskEngine {
     const tasks = Array.from(this.tasks.values());
     return Promise.resolve({
       totalTasks: tasks.length,
-      activeTasks: tasks.filter(t => t.status === 'active').length,
-      queuedTasks: tasks.filter(t => t.status === 'pending').length,
-      completedTasks: tasks.filter(t => t.status === 'completed').length
+      activeTasks: tasks.filter((t) => t.status === 'active').length,
+      queuedTasks: tasks.filter((t) => t.status === 'pending').length,
+      completedTasks: tasks.filter((t) => t.status === 'completed').length,
     });
   }
 }
 
 export class MockRealTimeMonitor {
-  constructor(private eventBus: EventBus, private logger: Logger) {}
+  constructor(
+    private eventBus: EventBus,
+    private logger: Logger,
+  ) {}
 
   async initialize(): Promise<void> {
     // Mock initialization
@@ -327,13 +336,16 @@ export class MockRealTimeMonitor {
       component: 'monitor',
       healthy: true,
       message: 'Mock monitor healthy',
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 }
 
 export class MockMcpServer {
-  constructor(private eventBus: EventBus, private logger: Logger) {}
+  constructor(
+    private eventBus: EventBus,
+    private logger: Logger,
+  ) {}
 
   async initialize(): Promise<void> {
     // Mock initialization
@@ -368,7 +380,7 @@ export class MockMcpServer {
       component: 'mcpServer',
       healthy: true,
       message: 'Mock MCP server healthy',
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 }
@@ -377,7 +389,7 @@ export class MockOrchestrator {
   constructor(
     private configManager: any,
     private eventBus: EventBus,
-    private logger: Logger
+    private logger: Logger,
   ) {}
 
   async initialize(): Promise<void> {
@@ -397,7 +409,7 @@ export class MockOrchestrator {
       component: 'orchestrator',
       healthy: true,
       message: 'Mock orchestrator healthy',
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 }

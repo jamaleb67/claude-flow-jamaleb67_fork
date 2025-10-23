@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 import * as process from 'node:process';
 /**
  * Terminal manager interface and implementation
@@ -20,7 +19,11 @@ export interface ITerminalManager {
   spawnTerminal(profile: AgentProfile): Promise<string>;
   terminateTerminal(terminalId: string): Promise<void>;
   executeCommand(terminalId: string, command: string): Promise<string>;
-  getHealthStatus(): Promise<{ healthy: boolean; error?: string; metrics?: Record<string, number> }>;
+  getHealthStatus(): Promise<{
+    healthy: boolean;
+    error?: string;
+    metrics?: Record<string, number>;
+  }>;
   performMaintenance(): Promise<void>;
 }
 
@@ -40,7 +43,7 @@ export class TerminalManager implements ITerminalManager {
   ) {
     // Select adapter based on configuration
     this.adapter = this.createAdapter();
-    
+
     // Create terminal pool
     this.pool = new TerminalPool(
       this.config.poolSize,
@@ -82,9 +85,7 @@ export class TerminalManager implements ITerminalManager {
     try {
       // Terminate all sessions
       const sessionIds = Array.from(this.sessions.keys());
-      await Promise.all(
-        sessionIds.map((id) => this.terminateTerminal(id)),
-      );
+      await Promise.all(sessionIds.map((id) => this.terminateTerminal(id)));
 
       // Shutdown pool
       await this.pool.shutdown();
@@ -125,8 +126,8 @@ export class TerminalManager implements ITerminalManager {
       // Store session
       this.sessions.set(session.id, session);
 
-      this.logger.info('Terminal spawned', { 
-        terminalId: session.id, 
+      this.logger.info('Terminal spawned', {
+        terminalId: session.id,
         agentId: profile.id,
       });
 
@@ -171,16 +172,17 @@ export class TerminalManager implements ITerminalManager {
     return await session.executeCommand(command);
   }
 
-  async getHealthStatus(): Promise<{ 
-    healthy: boolean; 
-    error?: string; 
+  async getHealthStatus(): Promise<{
+    healthy: boolean;
+    error?: string;
     metrics?: Record<string, number>;
   }> {
     try {
       const poolHealth = await this.pool.getHealthStatus();
       const activeSessions = this.sessions.size;
-      const healthySessions = Array.from(this.sessions.values())
-        .filter((session) => session.isHealthy()).length;
+      const healthySessions = Array.from(this.sessions.values()).filter((session) =>
+        session.isHealthy(),
+      ).length;
 
       const metrics = {
         activeSessions,
@@ -221,13 +223,14 @@ export class TerminalManager implements ITerminalManager {
 
     try {
       // Clean up dead sessions
-      const deadSessions = Array.from(this.sessions.entries())
-        .filter(([_, session]) => !session.isHealthy());
+      const deadSessions = Array.from(this.sessions.entries()).filter(
+        ([_, session]) => !session.isHealthy(),
+      );
 
       for (const [terminalId, _] of deadSessions) {
         this.logger.warn('Cleaning up dead terminal session', { terminalId });
-        await this.terminateTerminal(terminalId).catch(error => 
-          this.logger.error('Failed to clean up terminal', { terminalId, error })
+        await this.terminateTerminal(terminalId).catch((error) =>
+          this.logger.error('Failed to clean up terminal', { terminalId, error }),
         );
       }
 
@@ -251,7 +254,7 @@ export class TerminalManager implements ITerminalManager {
    * Get all active sessions
    */
   getActiveSessions(): AgentSession[] {
-    return Array.from(this.sessions.values()).map(session => ({
+    return Array.from(this.sessions.values()).map((session) => ({
       id: session.id,
       agentId: session.profile.id,
       terminalId: session.terminal.id,
@@ -303,8 +306,10 @@ export class TerminalManager implements ITerminalManager {
 
   private isVSCodeEnvironment(): boolean {
     // Check for VSCode-specific environment variables
-    return process.env.TERM_PROGRAM === 'vscode' ||
-           process.env.VSCODE_PID !== undefined ||
-           process.env.VSCODE_IPC_HOOK !== undefined;
+    return (
+      process.env.TERM_PROGRAM === 'vscode' ||
+      process.env.VSCODE_PID !== undefined ||
+      process.env.VSCODE_IPC_HOOK !== undefined
+    );
   }
 }

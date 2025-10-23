@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Progress Reporter - Provides visual feedback during migration
  */
@@ -20,7 +19,7 @@ export class ProgressReporter {
       current: '',
       phase: 'analyzing',
       errors: 0,
-      warnings: 0
+      warnings: 0,
     };
     this.startTime = new Date();
   }
@@ -29,39 +28,44 @@ export class ProgressReporter {
     this.progress.phase = phase;
     this.progress.current = message;
     this.startTime = new Date();
-    
+
     console.log(chalk.bold(`\n🚀 Starting ${phase}...`));
     this.startSpinner();
   }
 
-  update(phase: MigrationProgress['phase'], message: string, completed?: number, total?: number): void {
+  update(
+    phase: MigrationProgress['phase'],
+    message: string,
+    completed?: number,
+    total?: number,
+  ): void {
     this.progress.phase = phase;
     this.progress.current = message;
-    
+
     if (completed !== undefined) {
       this.progress.completed = completed;
     }
-    
+
     if (total !== undefined) {
       this.progress.total = total;
     }
-    
+
     this.updateDisplay();
   }
 
   complete(message: string): void {
     this.stopSpinner();
-    
+
     const duration = new Date().getTime() - this.startTime.getTime();
     const seconds = (duration / 1000).toFixed(2);
-    
+
     console.log(chalk.green(`\n✅ ${message}`));
     console.log(chalk.gray(`   Completed in ${seconds}s`));
-    
+
     if (this.progress.warnings > 0) {
       console.log(chalk.yellow(`   ${this.progress.warnings} warnings`));
     }
-    
+
     if (this.progress.errors > 0) {
       console.log(chalk.red(`   ${this.progress.errors} errors`));
     }
@@ -102,22 +106,22 @@ export class ProgressReporter {
     const spinner = this.spinner[this.spinnerIndex];
     const phase = this.getPhaseDisplay();
     const progress = this.getProgressDisplay();
-    
+
     const message = `${spinner} ${phase} ${progress} ${this.progress.current}`;
-    
+
     // Clear line and write new message
     process.stdout.write('\r\x1b[K' + message);
   }
 
   private getPhaseDisplay(): string {
     const phases = {
-      'analyzing': chalk.blue('📊 Analyzing'),
+      analyzing: chalk.blue('📊 Analyzing'),
       'backing-up': chalk.yellow('💾 Backing up'),
-      'migrating': chalk.green('🔄 Migrating'),
-      'validating': chalk.cyan('✅ Validating'),
-      'complete': chalk.green('✅ Complete')
+      migrating: chalk.green('🔄 Migrating'),
+      validating: chalk.cyan('✅ Validating'),
+      complete: chalk.green('✅ Complete'),
     };
-    
+
     return phases[this.progress.phase] || chalk.gray('⏳ Processing');
   }
 
@@ -133,10 +137,10 @@ export class ProgressReporter {
   private createProgressBar(percentage: number, width: number = 20): string {
     const filled = Math.round((percentage / 100) * width);
     const empty = width - filled;
-    
+
     const filledBar = '█'.repeat(filled);
     const emptyBar = '░'.repeat(empty);
-    
+
     return chalk.green(filledBar) + chalk.gray(emptyBar);
   }
 

@@ -19,7 +19,7 @@ export enum ProcessType {
   MEMORY_MANAGER = 'memory-manager',
   TERMINAL_POOL = 'terminal-pool',
   COORDINATOR = 'coordinator',
-  EVENT_BUS = 'event-bus'
+  EVENT_BUS = 'event-bus',
 }
 
 export enum ProcessStatus {
@@ -28,7 +28,7 @@ export enum ProcessStatus {
   RUNNING = 'running',
   STOPPING = 'stopping',
   ERROR = 'error',
-  CRASHED = 'crashed'
+  CRASHED = 'crashed',
 }
 
 export interface ProcessMetrics {

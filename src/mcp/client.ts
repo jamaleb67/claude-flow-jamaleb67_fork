@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * MCP Client for Model Context Protocol
  */
@@ -22,7 +21,10 @@ export class MCPClient extends EventEmitter {
   private timeout: number;
   private connected = false;
   private recoveryManager?: RecoveryManager;
-  private pendingRequests = new Map<string, { resolve: Function; reject: Function; timer: NodeJS.Timeout }>();
+  private pendingRequests = new Map<
+    string,
+    { resolve: Function; reject: Function; timer: NodeJS.Timeout }
+  >();
 
   constructor(config: MCPClientConfig) {
     super();
@@ -35,7 +37,7 @@ export class MCPClient extends EventEmitter {
         this,
         config.mcpConfig || {},
         logger,
-        config.recoveryConfig
+        config.recoveryConfig,
       );
       this.setupRecoveryHandlers();
     }
@@ -46,22 +48,22 @@ export class MCPClient extends EventEmitter {
       await this.transport.connect();
       this.connected = true;
       logger.info('MCP Client connected');
-      
+
       // Start recovery manager if enabled
       if (this.recoveryManager) {
         await this.recoveryManager.start();
       }
-      
+
       this.emit('connected');
     } catch (error) {
       logger.error('Failed to connect MCP client', error);
       this.connected = false;
-      
+
       // Trigger recovery if enabled
       if (this.recoveryManager) {
         await this.recoveryManager.forceRecovery();
       }
-      
+
       throw error;
     }
   }
@@ -72,11 +74,11 @@ export class MCPClient extends EventEmitter {
       if (this.recoveryManager) {
         await this.recoveryManager.stop();
       }
-      
+
       await this.transport.disconnect();
       this.connected = false;
       logger.info('MCP Client disconnected');
-      
+
       this.emit('disconnected');
     }
   }
@@ -110,14 +112,14 @@ export class MCPClient extends EventEmitter {
 
     try {
       const response = await this.transport.sendRequest(request);
-      
+
       // Clear pending request
       const pending = this.pendingRequests.get(request.id!);
       if (pending) {
         clearTimeout(pending.timer);
         this.pendingRequests.delete(request.id!);
       }
-      
+
       if ('error' in response) {
         throw new Error(response.error);
       }
@@ -130,7 +132,7 @@ export class MCPClient extends EventEmitter {
         clearTimeout(pending.timer);
         this.pendingRequests.delete(request.id!);
       }
-      
+
       throw error;
     }
   }

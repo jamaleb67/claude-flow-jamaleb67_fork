@@ -1,16 +1,14 @@
-import { getErrorMessage } from '../../utils/error-handler.js';
 /**
  * Comprehensive Agent management commands with advanced features
  */
 
 // Converted from @cliffy to commander.js for Node.js compatibility
-import { Command } from 'commander';
+import { Command } from '../commander-fix.js';
 import Table from 'cli-table3';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 const { colors } = { colors: chalk }; // Compatibility shim
 import type { AgentProfile } from '../../utils/types.js';
-import { generateId } from '../../utils/helpers.js';
 import { AgentManager } from '../../agents/agent-manager.js';
 import type { MemoryManager } from '../../memory/manager.js';
 import { EventBus } from '../../core/event-bus.js';
@@ -26,17 +24,17 @@ let agentManager: AgentManager | null = null;
 // Initialize agent manager
 async function initializeAgentManager(): Promise<AgentManager> {
   if (agentManager) return agentManager;
-  
+
   const logger = new Logger({ level: 'info', format: 'text', destination: 'console' });
   const eventBus = EventBus.getInstance();
   const memorySystem = new DistributedMemorySystem(
     {}, // Use default config
     logger,
-    eventBus
+    eventBus,
   );
-  
+
   await memorySystem.initialize();
-  
+
   agentManager = new AgentManager(
     {
       maxAgents: 100,
@@ -47,14 +45,14 @@ async function initializeAgentManager(): Promise<AgentManager> {
       resourceLimits: {
         memory: 1024 * 1024 * 1024, // 1GB
         cpu: 2.0,
-        disk: 2 * 1024 * 1024 * 1024 // 2GB
-      }
+        disk: 2 * 1024 * 1024 * 1024, // 2GB
+      },
     },
     logger,
     eventBus,
-    memorySystem
+    memorySystem,
   );
-  
+
   await agentManager.initialize();
   return agentManager;
 }
@@ -90,58 +88,69 @@ export function createAgentCommand(): Command {
       try {
         const manager = await initializeAgentManager();
         let agents = manager.getAllAgents();
-        
+
         // Apply filters
         if (options.type) {
-          agents = agents.filter(agent => agent.type === options.type);
+          agents = agents.filter((agent) => agent.type === options.type);
         }
-        
+
         if (options.status) {
-          agents = agents.filter(agent => agent.status === options.status);
+          agents = agents.filter((agent) => agent.status === options.status);
         }
-        
+
         if (options.unhealthy) {
-          agents = agents.filter(agent => agent.health < 0.7);
+          agents = agents.filter((agent) => agent.health < 0.7);
         }
-        
+
         // Sort agents
         agents.sort((a, b) => {
           switch (options.sort) {
-            case 'type': return a.type.localeCompare(b.type);
-            case 'status': return a.status.localeCompare(b.status);
-            case 'health': return b.health - a.health;
-            case 'workload': return b.workload - a.workload;
-            default: return a.name.localeCompare(b.name);
+            case 'type':
+              return a.type.localeCompare(b.type);
+            case 'status':
+              return a.status.localeCompare(b.status);
+            case 'health':
+              return b.health - a.health;
+            case 'workload':
+              return b.workload - a.workload;
+            default:
+              return a.name.localeCompare(b.name);
           }
         });
-        
+
         if (options.json) {
           console.log(JSON.stringify(agents, null, 2));
           return;
         }
-        
+
         if (agents.length === 0) {
           console.log(chalk.yellow('No agents found matching the criteria'));
           return;
         }
-        
+
         console.log(chalk.cyan(`\n🤖 Agent Status Report (${agents.length} agents)`));
-        console.log('=' .repeat(80));
-        
+        console.log('='.repeat(80));
+
         if (options.detailed) {
           displayDetailedAgentList(agents, manager);
         } else {
           displayCompactAgentList(agents);
         }
-        
+
         // Display system stats
         const stats = manager.getSystemStats();
         console.log('\n' + chalk.cyan('System Overview:'));
-        console.log(`Total Agents: ${stats.totalAgents} | Active: ${stats.activeAgents} | Healthy: ${stats.healthyAgents}`);
-        console.log(`Average Health: ${formatPercentage(stats.averageHealth)} | Pools: ${stats.pools}`);
-        
+        console.log(
+          `Total Agents: ${stats.totalAgents} | Active: ${stats.activeAgents} | Healthy: ${stats.healthyAgents}`,
+        );
+        console.log(
+          `Average Health: ${formatPercentage(stats.averageHealth)} | Pools: ${stats.pools}`,
+        );
       } catch (error) {
-        console.error(chalk.red('Error listing agents:'), (error instanceof Error ? error.message : String(error)));
+        console.error(
+          chalk.red('Error listing agents:'),
+          error instanceof Error ? error.message : String(error),
+        );
         process.exit(1);
       }
     });
@@ -164,16 +173,16 @@ export function createAgentCommand(): Command {
     .action(async (template: string, options: any) => {
       try {
         const manager = await initializeAgentManager();
-        
+
         let agentConfig: any = {};
-        
+
         // Load from config file if provided
         if (options.config) {
           const configPath = path.resolve(options.config);
           const configData = await fs.readFile(configPath, 'utf-8');
           agentConfig = JSON.parse(configData);
         }
-        
+
         // Interactive mode
         if (options.interactive) {
           agentConfig = await interactiveAgentConfiguration(manager);
@@ -181,53 +190,54 @@ export function createAgentCommand(): Command {
           // Use template or command line options
           const templateName = template || options.template;
           if (!templateName) {
-            console.error(chalk.red('Error: Template name is required. Use --interactive for guided setup.'));
+            console.error(
+              chalk.red('Error: Template name is required. Use --interactive for guided setup.'),
+            );
             return;
           }
-          
+
           const templates = manager.getAgentTemplates();
-          const selectedTemplate = templates.find(t => t.name.toLowerCase().includes(templateName.toLowerCase()));
-          
+          const selectedTemplate = templates.find((t) =>
+            t.name.toLowerCase().includes(templateName.toLowerCase()),
+          );
+
           if (!selectedTemplate) {
             console.error(chalk.red(`Template '${templateName}' not found.`));
             console.log('Available templates:');
-            templates.forEach(t => console.log(`  - ${t.name} (${t.type})`));
+            templates.forEach((t) => console.log(`  - ${t.name} (${t.type})`));
             return;
           }
-          
+
           agentConfig = {
             template: selectedTemplate.name,
             name: options.name,
             config: {
               autonomyLevel: parseFloat(options.autonomy),
               maxConcurrentTasks: parseInt(options.maxTasks),
-              timeoutThreshold: parseInt(options.timeout)
+              timeoutThreshold: parseInt(options.timeout),
             },
             environment: {
-              maxMemoryUsage: parseInt(options.maxMemory) * 1024 * 1024
-            }
+              maxMemoryUsage: parseInt(options.maxMemory) * 1024 * 1024,
+            },
           };
         }
-        
+
         console.log(chalk.cyan('\n🚀 Creating new agent...'));
-        
+
         // Create the agent
-        const agentId = await manager.createAgent(
-          agentConfig.template || 'researcher',
-          {
-            name: agentConfig.name,
-            config: agentConfig.config,
-            environment: agentConfig.environment
-          }
-        );
-        
+        const agentId = await manager.createAgent(agentConfig.template || 'researcher', {
+          name: agentConfig.name,
+          config: agentConfig.config,
+          environment: agentConfig.environment,
+        });
+
         console.log(chalk.green(`✅ Agent created successfully!`));
         console.log(`Agent ID: ${chalk.bold(agentId)}`);
-        
+
         // Add to pool if specified
         if (options.pool) {
           const pools = manager.getAllPools();
-          const targetPool = pools.find(p => p.name === options.pool || p.id === options.pool);
+          const targetPool = pools.find((p) => p.name === options.pool || p.id === options.pool);
           if (targetPool) {
             // Add agent to pool (this would need pool management methods)
             console.log(chalk.blue(`Added to pool: ${targetPool.name}`));
@@ -235,7 +245,7 @@ export function createAgentCommand(): Command {
             console.log(chalk.yellow(`Warning: Pool '${options.pool}' not found`));
           }
         }
-        
+
         // Start agent if requested
         if (options.start) {
           console.log(chalk.cyan('Starting agent...'));
@@ -244,15 +254,17 @@ export function createAgentCommand(): Command {
         } else {
           console.log(chalk.yellow(`Use 'claude-flow agent start ${agentId}' to start the agent`));
         }
-        
+
         // Display agent info
         const agent = manager.getAgent(agentId);
         if (agent) {
           displayAgentSummary(agent);
         }
-        
       } catch (error) {
-        console.error(chalk.red('Error creating agent:'), (error instanceof Error ? error.message : String(error)));
+        console.error(
+          chalk.red('Error creating agent:'),
+          error instanceof Error ? error.message : String(error),
+        );
         process.exit(1);
       }
     });
@@ -272,22 +284,22 @@ export const agentCommand = createAgentCommand();
 
 async function interactiveAgentConfiguration(manager: AgentManager): Promise<any> {
   console.log(chalk.cyan('\n🛠️  Interactive Agent Configuration'));
-  
+
   const templates = manager.getAgentTemplates();
-  const templateChoices = templates.map(t => ({ name: `${t.name} (${t.type})`, value: t.name }));
-  
+  const templateChoices = templates.map((t) => ({ name: `${t.name} (${t.type})`, value: t.name }));
+
   const answers = await inquirer.prompt([
     {
       type: 'list',
       name: 'template',
       message: 'Select agent template:',
-      choices: templateChoices
+      choices: templateChoices,
     },
     {
       type: 'input',
       name: 'name',
       message: 'Agent name:',
-      default: `agent-${Date.now().toString(36)}`
+      default: `agent-${Date.now().toString(36)}`,
     },
     {
       type: 'input',
@@ -297,7 +309,7 @@ async function interactiveAgentConfiguration(manager: AgentManager): Promise<any
       validate: (value) => {
         const num = parseFloat(value);
         return (num >= 0 && num <= 1) || 'Must be between 0 and 1';
-      }
+      },
     },
     {
       type: 'input',
@@ -307,18 +319,18 @@ async function interactiveAgentConfiguration(manager: AgentManager): Promise<any
       validate: (value) => {
         const num = parseInt(value);
         return (num > 0 && num <= 20) || 'Must be between 1 and 20';
-      }
+      },
     },
     {
-      type: 'input', 
+      type: 'input',
       name: 'maxMemory',
       message: 'Memory limit (MB):',
       default: '512',
       validate: (value) => {
         const num = parseInt(value);
         return (num >= 128 && num <= 4096) || 'Must be between 128 and 4096';
-      }
-    }
+      },
+    },
   ]);
 
   return {
@@ -327,21 +339,21 @@ async function interactiveAgentConfiguration(manager: AgentManager): Promise<any
     config: {
       autonomyLevel: parseFloat(answers.autonomyLevel),
       maxConcurrentTasks: parseInt(answers.maxTasks),
-      timeoutThreshold: 300000
+      timeoutThreshold: 300000,
     },
     environment: {
-      maxMemoryUsage: parseInt(answers.maxMemory) * 1024 * 1024
-    }
+      maxMemoryUsage: parseInt(answers.maxMemory) * 1024 * 1024,
+    },
   };
 }
 
 function displayCompactAgentList(agents: any[]): void {
   const table = new Table({
     head: ['ID', 'Name', 'Type', 'Status', 'Health', 'Workload', 'Last Activity'],
-    colWidths: [10, 20, 15, 12, 10, 10, 20]
+    colWidths: [10, 20, 15, 12, 10, 10, 20],
   });
-  
-  agents.forEach(agent => {
+
+  agents.forEach((agent) => {
     table.push([
       agent.id.id.slice(-8),
       agent.name,
@@ -349,27 +361,31 @@ function displayCompactAgentList(agents: any[]): void {
       getStatusDisplay(agent.status),
       getHealthDisplay(agent.health),
       agent.workload.toString(),
-      formatRelativeTime(agent.metrics?.lastActivity || agent.lastHeartbeat)
+      formatRelativeTime(agent.metrics?.lastActivity || agent.lastHeartbeat),
     ]);
   });
-  
+
   console.log(table.toString());
 }
 
 function displayDetailedAgentList(agents: any[], manager: AgentManager): void {
   agents.forEach((agent, index) => {
     if (index > 0) console.log('\n' + '-'.repeat(60));
-    
+
     console.log(`\n${chalk.bold(agent.name)} (${agent.id.id.slice(-8)})`);
     console.log(`Type: ${chalk.blue(agent.type)} | Status: ${getStatusDisplay(agent.status)}`);
     console.log(`Health: ${getHealthDisplay(agent.health)} | Workload: ${agent.workload}`);
-    
+
     if (agent.metrics) {
-      console.log(`Tasks: ${agent.metrics.tasksCompleted} completed, ${agent.metrics.tasksFailed} failed`);
+      console.log(
+        `Tasks: ${agent.metrics.tasksCompleted} completed, ${agent.metrics.tasksFailed} failed`,
+      );
       console.log(`Success Rate: ${formatPercentage(agent.metrics.successRate)}`);
-      console.log(`CPU: ${formatPercentage(agent.metrics.cpuUsage)} | Memory: ${formatBytes(agent.metrics.memoryUsage)}`);
+      console.log(
+        `CPU: ${formatPercentage(agent.metrics.cpuUsage)} | Memory: ${formatBytes(agent.metrics.memoryUsage)}`,
+      );
     }
-    
+
     const health = manager.getAgentHealth(agent.id.id);
     if (health && health.issues.length > 0) {
       console.log(chalk.red(`Issues: ${health.issues.length} active`));
@@ -389,14 +405,22 @@ function displayAgentSummary(agent: any): void {
 
 function getStatusColor(status: string): any {
   switch (status) {
-    case 'idle': return chalk.green;
-    case 'busy': return chalk.blue;
-    case 'error': return chalk.red;
-    case 'offline': return chalk.gray;
-    case 'initializing': return chalk.yellow;
-    case 'terminating': return chalk.yellow;
-    case 'terminated': return chalk.gray;
-    default: return chalk.white;
+    case 'idle':
+      return chalk.green;
+    case 'busy':
+      return chalk.blue;
+    case 'error':
+      return chalk.red;
+    case 'offline':
+      return chalk.gray;
+    case 'initializing':
+      return chalk.yellow;
+    case 'terminating':
+      return chalk.yellow;
+    case 'terminated':
+      return chalk.gray;
+    default:
+      return chalk.white;
   }
 }
 
@@ -408,17 +432,17 @@ function getStatusDisplay(status: string): string {
 function getHealthDisplay(health: number): string {
   const percentage = Math.round(health * 100);
   let color = chalk.green;
-  
+
   if (health < 0.3) color = chalk.red;
   else if (health < 0.7) color = chalk.yellow;
-  
+
   return `${color}${percentage}%${chalk.reset}`;
 }
 
 function formatRelativeTime(date: Date): string {
   const now = new Date();
   const diff = now.getTime() - date.getTime();
-  
+
   if (diff < 60000) return 'just now';
   if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
   if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;

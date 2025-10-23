@@ -1,14 +1,13 @@
 #!/usr/bin/env -S deno run --allow-all
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Claude-Flow CLI entry point
  * This redirects to simple-cli.ts for remote execution compatibility
  */
 
 // Import and run the simple CLI which doesn't have external dependencies
-import "./simple-cli.ts";
+import './simple-cli.ts';
 // Spinner import removed - not available in current cliffy version
-import { Command } from 'commander';
+import { Command } from './commander-fix.js';
 import chalk from 'chalk';
 import { logger } from '../core/logger.js';
 import { configManager } from '../core/config.js';
@@ -26,10 +25,7 @@ import { mcpCommand } from './commands/mcp.js';
 import { formatError, displayBanner, displayVersion } from './formatter.js';
 import { startREPL } from './repl.js';
 import { CompletionGenerator } from './completion.js';
-
-// Version information
-const VERSION = '1.0.71';
-const BUILD_DATE = new Date().toISOString().split('T')[0];
+import { VERSION, BUILD_DATE } from '../core/version.js';
 
 // Main CLI command
 const cli = new Command()
@@ -48,87 +44,97 @@ const cli = new Command()
   .action(async (options: any) => {
     // If no subcommand, show banner and start REPL
     await setupLogging(options);
-    
+
     if (!options.quiet) {
       displayBanner(VERSION);
       console.log(chalk.gray('Type "help" for available commands or "exit" to quit.\n'));
     }
-    
+
     await startREPL(options);
   });
 
 // Add subcommands
-cli
-  .addCommand(startCommand)
-  .addCommand(agentCommand)
-  .addCommand(taskCommand)
-  .addCommand(memoryCommand)
-  .addCommand(configCommand)
-  .addCommand(statusCommand)
-  .addCommand(monitorCommand)
-  .addCommand(sessionCommand)
-  .addCommand(workflowCommand)
-  .addCommand(mcpCommand)
-  .addCommand(helpCommand)
-  .command('repl', new Command()
-    .description('Start interactive REPL mode with command completion')
-    .option('--no-banner', 'Skip welcome banner')
-    .option('--history-file <path:string>', 'Custom history file path')
-    .action(async (options: any) => {
-      await setupLogging(options);
-      if (options.banner !== false) {
-        displayBanner(VERSION);
-      }
-      await startREPL(options);
-    }),
-  )
-  .command('version', new Command()
-    .description('Show detailed version information')
-    .option('--short', 'Show version number only')
-    .action(async (options: any) => {
-      if (options.short) {
-        console.log(VERSION);
-      } else {
-        displayVersion(VERSION, BUILD_DATE);
-      }
-    }),
-  )
-  .command('completion', new Command()
-    .description('Generate shell completion scripts')
-    .arguments('[shell:string]')
-    .option('--install', 'Install completion script automatically')
-    .action(async (options: any, shell: any) => {
-      const generator = new CompletionGenerator();
-      await generator.generate(shell || 'detect', options.install === true);
-    }),
-  );
+// NOTE: Temporarily disabled due to Cliffy/Commander compatibility issues
+// These commands are created with Cliffy but being added to Commander
+// cli
+//   .addCommand(startCommand)
+//   .addCommand(agentCommand)
+//   .addCommand(taskCommand)
+//   .addCommand(memoryCommand)
+//   .addCommand(configCommand)
+//   .addCommand(statusCommand)
+//   .addCommand(monitorCommand)
+//   .addCommand(sessionCommand)
+//   .addCommand(workflowCommand)
+//   .addCommand(mcpCommand)
+//   .addCommand(helpCommand);
+
+// Add repl command
+const replCommand = new Command('repl')
+  .description('Start interactive REPL mode with command completion')
+  .option('--no-banner', 'Skip welcome banner')
+  .option('--history-file <path>', 'Custom history file path')
+  .action(async (options: any) => {
+    await setupLogging(options);
+    if (options.banner !== false) {
+      displayBanner(VERSION);
+    }
+    await startREPL(options);
+  });
+cli.addCommand(replCommand);
+
+// Add version command
+const versionCommand = new Command('version')
+  .description('Show detailed version information')
+  .option('--short', 'Show version number only')
+  .action(async (options: any) => {
+    if (options.short) {
+      console.log(VERSION);
+    } else {
+      displayVersion(VERSION, BUILD_DATE);
+    }
+  });
+cli.addCommand(versionCommand);
+
+// Add completion command
+const completionCommand = new Command('completion')
+  .description('Generate shell completion scripts')
+  .argument('[shell]', 'Shell type')
+  .option('--install', 'Install completion script automatically')
+  .action(async (shell: any, options: any) => {
+    const generator = new CompletionGenerator();
+    await generator.generate(shell || 'detect', options.install === true);
+  });
+cli.addCommand(completionCommand);
 
 // Global error handler
 async function handleError(error: unknown, options?: any): Promise<void> {
   const formatted = formatError(error);
-  
+
   if (options?.json) {
-    console.error(JSON.stringify({
-      error: true,
-      message: formatted,
-      timestamp: new Date().toISOString(),
-    }));
+    console.error(
+      JSON.stringify({
+        error: true,
+        message: formatted,
+        timestamp: new Date().toISOString(),
+      }),
+    );
   } else {
     console.error(chalk.red(chalk.bold('✗ Error:')), formatted);
   }
-  
+
   // Show stack trace in debug mode or verbose
   if (process.env['CLAUDE_FLOW_DEBUG'] === 'true' || options?.verbose) {
     console.error(chalk.gray('\nStack trace:'));
     console.error(error);
   }
-  
+
   // Suggest helpful actions
   if (!options?.quiet) {
     console.error(chalk.gray('\nTry running with --verbose for more details'));
     console.error(chalk.gray('Or use "claude-flow help" to see available commands'));
   }
-  
+
   process.exit(1);
 }
 
@@ -138,14 +144,14 @@ async function setupLogging(options: any): Promise<void> {
   let logLevel = options.logLevel;
   if (options.verbose) logLevel = 'debug';
   if (options.quiet) logLevel = 'warn';
-  
+
   // Configure logger
   await logger.configure({
     level: logLevel as any,
     format: options.json ? 'json' : 'text',
     destination: 'console',
   });
-  
+
   // Load configuration
   try {
     if (options.config) {
@@ -159,7 +165,7 @@ async function setupLogging(options: any): Promise<void> {
         configManager.loadDefault();
       }
     }
-    
+
     // Apply profile if specified
     if (options.profile) {
       await configManager.applyProfile(options.profile);
@@ -176,19 +182,20 @@ function setupSignalHandlers(): void {
     console.log('\n' + chalk.gray('Gracefully shutting down...'));
     process.exit(0);
   };
-  
+
   Deno.addSignalListener('SIGINT', gracefulShutdown);
   Deno.addSignalListener('SIGTERM', gracefulShutdown);
 }
 
 // Main entry point
-if (false) { // import.meta.main not available
+if (false) {
+  // import.meta.main not available
   let globalOptions: any = {};
-  
+
   try {
     // Setup signal handlers
     setupSignalHandlers();
-    
+
     // Pre-parse global options for error handling
     const args = Deno.args;
     globalOptions = {
@@ -197,12 +204,12 @@ if (false) { // import.meta.main not available
       json: args.includes('--json'),
       noColor: args.includes('--no-color'),
     };
-    
+
     // Configure colors based on options
     if (globalOptions.noColor) {
       // colors.setColorEnabled(false);
     }
-    
+
     await cli.parse(args);
   } catch (error) {
     await handleError(error, globalOptions);

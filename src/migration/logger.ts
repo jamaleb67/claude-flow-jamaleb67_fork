@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 import * as process from 'node:process';
 /**
  * Migration Logger - Structured logging for migration operations
@@ -38,7 +37,7 @@ export class MigrationLogger {
     this.log('error', message, context, error?.stack);
     console.log(chalk.red(`❌ ${message}`));
     if (error && (error instanceof Error ? error.message : String(error)) !== message) {
-      console.log(chalk.red(`   ${(error instanceof Error ? error.message : String(error))}`));
+      console.log(chalk.red(`   ${error instanceof Error ? error.message : String(error)}`));
     }
   }
 
@@ -60,7 +59,7 @@ export class MigrationLogger {
       level,
       message,
       context,
-      stack
+      stack,
     };
 
     this.entries.push(entry);
@@ -81,7 +80,10 @@ export class MigrationLogger {
       await fs.appendFile(this.logFile, logLine);
     } catch (error) {
       // Prevent recursive logging
-      console.error('Failed to write to log file:', (error instanceof Error ? error.message : String(error)));
+      console.error(
+        'Failed to write to log file:',
+        error instanceof Error ? error.message : String(error),
+      );
     }
   }
 
@@ -95,7 +97,7 @@ export class MigrationLogger {
   }
 
   getEntriesByLevel(level: LogEntry['level']): LogEntry[] {
-    return this.entries.filter(entry => entry.level === level);
+    return this.entries.filter((entry) => entry.level === level);
   }
 
   clear(): void {
@@ -109,7 +111,7 @@ export class MigrationLogger {
       warn: this.getEntriesByLevel('warn').length,
       error: this.getEntriesByLevel('error').length,
       success: this.getEntriesByLevel('success').length,
-      debug: this.getEntriesByLevel('debug').length
+      debug: this.getEntriesByLevel('debug').length,
     };
 
     console.log(chalk.bold('\n📊 Migration Log Summary'));

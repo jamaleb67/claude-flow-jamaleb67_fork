@@ -1,334 +1,284 @@
-/**
- * Test utilities for Claude-Flow
- */
+import { jest } from '@jest/globals';
 
-import { describe, it, beforeEach, afterEach, beforeAll, afterAll, expect, jest } from '@jest/globals';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-import { spawn } from 'child_process';
-
-// Jest-compatible assertion helpers
-export function assertEquals<T>(actual: T, expected: T, message?: string): void {
-  expect(actual).toBe(expected);
-}
-
-export function assertExists<T>(value: T, message?: string): void {
-  expect(value).toBeDefined();
-}
-
-export function assertRejects(promise: Promise<any>, message?: string): void {
-  expect(promise).rejects.toThrow();
-}
-
-export function assertThrows(fn: () => any, message?: string): void {
-  expect(fn).toThrow();
-}
-
-// Re-export Jest testing utilities
-export {
-  describe,
-  it,
-  beforeEach,
-  afterEach,
-  beforeAll,
-  afterAll,
-  expect,
-  jest,
+// Mock logger utilities
+export const mockLogger = {
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+  trace: jest.fn()
 };
 
-// Mock Jest spy utilities for compatibility
-export const spy = jest.fn;
-export const stub = jest.fn;
-export function assertSpyCall(mockFn: jest.Mock, callIndex: number, expectedArgs?: any[]): void {
-  expect(mockFn).toHaveBeenNthCalledWith(callIndex + 1, ...(expectedArgs || []));
-}
-export function assertSpyCalls(mockFn: jest.Mock, expectedCalls: number): void {
-  expect(mockFn).toHaveBeenCalledTimes(expectedCalls);
-}
+// Mock coordination system utilities
+export const mockCoordinationSystem = {
+  initialize: jest.fn(),
+  shutdown: jest.fn(),
+  getStatus: jest.fn(),
+  addAgent: jest.fn(),
+  removeAgent: jest.fn(),
+  orchestrateTask: jest.fn()
+};
 
-// Simple FakeTime implementation for Jest
+// Mock memory backend utilities
+export const mockMemoryBackend = {
+  store: jest.fn(),
+  retrieve: jest.fn(),
+  delete: jest.fn(),
+  list: jest.fn(),
+  clear: jest.fn()
+};
+
+// Mock orchestrator utilities
+export const mockOrchestrator = {
+  start: jest.fn(),
+  stop: jest.fn(),
+  executeTask: jest.fn(),
+  getAgents: jest.fn(),
+  getTaskStatus: jest.fn()
+};
+
+// Test helper functions
+export const createMockAgent = (id: string, type: string = 'test') => ({
+  id,
+  type,
+  capabilities: ['test'],
+  status: 'idle',
+  execute: jest.fn(),
+  initialize: jest.fn(),
+  shutdown: jest.fn()
+});
+
+export const createMockTask = (id: string, description: string) => ({
+  id,
+  description,
+  status: 'pending',
+  priority: 'medium',
+  createdAt: new Date(),
+  updatedAt: new Date()
+});
+
+// Async test utilities
+export const waitFor = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+export const waitForCondition = async (
+  condition: () => boolean,
+  timeout: number = 5000,
+  interval: number = 100
+): Promise<void> => {
+  const startTime = Date.now();
+  
+  while (!condition()) {
+    if (Date.now() - startTime > timeout) {
+      throw new Error('Condition not met within timeout');
+    }
+    await waitFor(interval);
+  }
+};
+
+// Environment setup utilities
+export const setupTestEnvironment = () => {
+  // Reset all mocks
+  jest.clearAllMocks();
+  
+  // Set test environment variables
+  process.env.NODE_ENV = 'test';
+  process.env.LOG_LEVEL = 'error';
+  
+  return {
+    logger: mockLogger,
+    coordinationSystem: mockCoordinationSystem,
+    memoryBackend: mockMemoryBackend,
+    orchestrator: mockOrchestrator
+  };
+};
+
+export const teardownTestEnvironment = () => {
+  jest.clearAllMocks();
+  
+  // Clean up environment variables
+  delete process.env.LOG_LEVEL;
+};
+
+// Re-export commonly used test utilities
+export { jest } from '@jest/globals';
+export { describe, it, test, beforeEach, afterEach, beforeAll, afterAll, expect } from '@jest/globals';
+
+// Export assertion utilities
+export const assert = (condition: boolean, message?: string) => {
+  if (!condition) {
+    throw new Error(message || 'Assertion failed');
+  }
+};
+
+export const assertEquals = (actual: any, expected: any, message?: string) => {
+  expect(actual).toEqual(expected);
+};
+
+export const assertExists = (value: any, message?: string) => {
+  expect(value).toBeDefined();
+  expect(value).not.toBeNull();
+};
+
+export const assertRejects = async (fn: () => Promise<any>, errorType?: any) => {
+  if (errorType) {
+    await expect(fn()).rejects.toThrow(errorType);
+  } else {
+    await expect(fn()).rejects.toThrow();
+  }
+};
+
+export const assertThrows = (fn: () => any, errorType?: any) => {
+  if (errorType) {
+    expect(fn).toThrow(errorType);
+  } else {
+    expect(fn).toThrow();
+  }
+};
+
+// Export assertion utilities for spies
+export const assertSpyCalls = (spyFn: any, expectedCalls: number) => {
+  expect(spyFn).toHaveBeenCalledTimes(expectedCalls);
+};
+
+// Export FakeTime for timer mocking
 export class FakeTime {
-  private originalNow = Date.now;
-  private currentTime: number;
-
-  constructor(time?: number | Date) {
-    this.currentTime = time instanceof Date ? time.getTime() : time || Date.now();
-    Date.now = () => this.currentTime;
+  constructor() {
+    jest.useFakeTimers();
   }
-
-  tick(ms: number): void {
-    this.currentTime += ms;
-  }
-
-  restore(): void {
-    Date.now = this.originalNow;
-  }
-}
-
-/**
- * Creates a test fixture
- */
-export function createFixture<T>(factory: () => T): {
-  get(): T;
-  reset(): void;
-} {
-  let instance: T;
-
-  return {
-    get(): T {
-      if (!instance) {
-        instance = factory();
-      }
-      return instance;
-    },
-    reset(): void {
-      instance = factory();
-    },
-  };
-}
-
-/**
- * Waits for a condition to be true
- */
-export async function waitFor(
-  condition: () => boolean | Promise<boolean>,
-  options: { timeout?: number; interval?: number } = {},
-): Promise<void> {
-  const { timeout = 5000, interval = 100 } = options;
-  const start = Date.now();
-
-  while (Date.now() - start < timeout) {
-    if (await condition()) {
-      return;
-    }
-    await new Promise((resolve) => setTimeout(resolve, interval));
-  }
-
-  throw new Error('Timeout waiting for condition');
-}
-
-/**
- * Creates a deferred promise for testing
- */
-export function createDeferred<T>(): {
-  promise: Promise<T>;
-  resolve: (value: T) => void;
-  reject: (reason?: any) => void;
-} {
-  let resolve: (value: T) => void;
-  let reject: (reason?: any) => void;
-
-  const promise = new Promise<T>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-
-  return { promise, resolve: resolve!, reject: reject! };
-}
-
-/**
- * Captures console output during test
- */
-export function captureConsole(): {
-  getOutput(): string[];
-  getErrors(): string[];
-  restore(): void;
-} {
-  const output: string[] = [];
-  const errors: string[] = [];
-
-  const originalLog = console.log;
-  const originalError = console.error;
-  const originalDebug = console.debug;
-  const originalInfo = console.info;
-  const originalWarn = console.warn;
-
-  console.log = (...args: any[]) => output.push(args.join(' '));
-  console.error = (...args: any[]) => errors.push(args.join(' '));
-  console.debug = (...args: any[]) => output.push(args.join(' '));
-  console.info = (...args: any[]) => output.push(args.join(' '));
-  console.warn = (...args: any[]) => output.push(args.join(' '));
-
-  return {
-    getOutput: () => [...output],
-    getErrors: () => [...errors],
-    restore: () => {
-      console.log = originalLog;
-      console.error = originalError;
-      console.debug = originalDebug;
-      console.info = originalInfo;
-      console.warn = originalWarn;
-    },
-  };
-}
-
-/**
- * Creates a test file in a temporary directory
- */
-export function createTestFile(
-  filePath: string,
-  content: string,
-): string {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-flow-'));
-  const fullPath = path.join(tempDir, filePath);
-  const dir = path.dirname(fullPath);
   
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(fullPath, content);
+  install() {
+    jest.useFakeTimers();
+  }
   
-  return fullPath;
+  restore() {
+    jest.useRealTimers();
+  }
+  
+  uninstall() {
+    jest.useRealTimers();
+  }
+  
+  tick(ms: number) {
+    jest.advanceTimersByTime(ms);
+  }
+  
+  async tickAsync(ms: number) {
+    await jest.advanceTimersByTimeAsync(ms);
+  }
+  
+  runAll() {
+    jest.runAllTimers();
+  }
+  
+  runPending() {
+    jest.runOnlyPendingTimers();
+  }
 }
 
-/**
- * Runs a CLI command and captures output
- */
-export function runCommand(
-  args: string[],
-  options: { stdin?: string; env?: Record<string, string> } = {},
-): Promise<{ stdout: string; stderr: string; code: number }> {
-  return new Promise((resolve, reject) => {
-    const env = { ...process.env, ...options.env };
-    const child = spawn('node', ['src/cli/index.ts', ...args], {
-      stdio: ['pipe', 'pipe', 'pipe'],
-      env,
-    });
+// Additional spy utilities with sinon-like API
+export const spy = (obj?: any, method?: string) => {
+  if (obj && method) {
+    return jest.spyOn(obj, method);
+  }
+  // Return a standalone spy function
+  const spyFn = jest.fn();
+  (spyFn as any).calls = {
+    get length() { return spyFn.mock.calls.length; },
+    get count() { return spyFn.mock.calls.length; }
+  };
+  return spyFn;
+};
 
-    let stdout = '';
-    let stderr = '';
+export const stub = () => {
+  const stubFn = jest.fn();
+  (stubFn as any).calls = {
+    get length() { return stubFn.mock.calls.length; },
+    get count() { return stubFn.mock.calls.length; }
+  };
+  return stubFn;
+};
 
-    child.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-
-    child.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-
-    child.on('close', (code) => {
-      resolve({ stdout, stderr, code: code || 0 });
-    });
-
-    child.on('error', (error) => {
-      reject(error);
-    });
-
-    if (options.stdin) {
-      child.stdin.write(options.stdin);
-      child.stdin.end();
-    }
-  });
+// Additional testing utilities
+export function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/**
- * Test data builder for common types
- */
+// Test data builder utilities
 export class TestDataBuilder {
-  static agentProfile(overrides = {}) {
+  static createTestAgent(overrides?: any) {
     return {
-      id: 'agent-1',
+      id: 'test-agent-1',
       name: 'Test Agent',
-      type: 'coordinator' as const,
-      capabilities: ['task-management', 'coordination'],
-      systemPrompt: 'You are a test agent',
-      maxConcurrentTasks: 5,
-      priority: 10,
-      environment: {},
-      workingDirectory: '/tmp',
-      shell: '/bin/bash',
-      metadata: {},
-      ...overrides,
-    };
-  }
-
-  static task(overrides = {}) {
-    return {
-      id: 'task-1',
       type: 'test',
-      description: 'Test task',
-      priority: 50,
-      dependencies: [],
-      status: 'pending' as const,
-      input: { test: true },
-      createdAt: new Date(),
-      metadata: {},
-      ...overrides,
+      status: 'active',
+      ...overrides
     };
   }
-
-  static config(overrides = {}) {
+  
+  static createTestTask(overrides?: any) {
+    return {
+      id: 'test-task-1',
+      description: 'Test task description',
+      status: 'pending',
+      priority: 'medium',
+      ...overrides
+    };
+  }
+  
+  static createTestMemory(overrides?: any) {
+    return {
+      id: 'test-memory-1',
+      key: 'test-key',
+      value: { data: 'test data' },
+      metadata: {
+        created: new Date().toISOString(),
+        updated: new Date().toISOString()
+      },
+      ...overrides
+    };
+  }
+  
+  static config() {
     return {
       orchestrator: {
         maxConcurrentAgents: 10,
         taskQueueSize: 100,
-        healthCheckInterval: 30000,
-        shutdownTimeout: 30000,
-        maintenanceInterval: 300000,
-        metricsInterval: 60000,
-        persistSessions: false,
-        dataDir: './tests/data',
-        sessionRetentionMs: 3600000,
-        taskHistoryRetentionMs: 86400000,
-        taskMaxRetries: 3,
-      },
-      terminal: {
-        type: 'native' as const,
-        poolSize: 5,
-        recycleAfter: 10,
-        healthCheckInterval: 60000,
-        commandTimeout: 300000,
-      },
-      memory: {
-        backend: 'sqlite' as const,
-        cacheSizeMB: 10,
-        syncInterval: 5000,
-        conflictResolution: 'last-write' as const,
-        retentionDays: 1,
-        sqlitePath: ':memory:',
-        markdownDir: './tests/data/memory',
+        healthCheckInterval: 10000,
+        sessionRetentionMs: 3600000
       },
       coordination: {
-        maxRetries: 3,
-        retryDelay: 100,
-        deadlockDetection: true,
-        resourceTimeout: 60000,
-        messageTimeout: 30000,
+        deadlockDetection: false,
+        maxTaskRetries: 3
       },
-      mcp: {
-        transport: 'stdio' as const,
-        port: 8081,
-        tlsEnabled: false,
-      },
-      logging: {
-        level: 'error' as const,
-        format: 'json' as const,
-        destination: 'console' as const,
-      },
-      ...overrides,
+      memory: {
+        defaultBackend: 'memory',
+        maxCacheSize: 1000
+      }
     };
   }
-}
-
-/**
- * Assertion helpers
- */
-export function assertEventEmitted(
-  events: Array<{ event: string; data: any }>,
-  eventName: string,
-  matcher?: (data: any) => boolean,
-): void {
-  const emitted = events.find((e) => e.event === eventName);
-  expect(emitted).toBeDefined();
   
-  if (matcher && emitted && !matcher(emitted.data)) {
-    throw new Error(`Event '${eventName}' data did not match expected criteria`);
+  static agentProfile(overrides?: any) {
+    return {
+      id: 'test-agent-' + Math.random().toString(36).substr(2, 9),
+      name: 'Test Agent',
+      type: 'test',
+      capabilities: ['test'],
+      maxConcurrentTasks: 5,
+      priority: 5,
+      ...overrides
+    };
   }
-}
-
-export function assertNoEventEmitted(
-  events: Array<{ event: string; data: any }>,
-  eventName: string,
-): void {
-  const emitted = events.find((e) => e.event === eventName);
-  expect(emitted).toBeUndefined();
+  
+  static task(overrides?: any) {
+    return {
+      id: 'test-task-' + Math.random().toString(36).substr(2, 9),
+      type: 'test',
+      description: 'Test task',
+      priority: 50,
+      status: 'pending',
+      dependencies: [],
+      metadata: {},
+      ...overrides
+    };
+  }
 }

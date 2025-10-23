@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Dependency graph management for task scheduling
  */
@@ -113,10 +112,10 @@ export class DependencyGraph {
 
     node.status = 'completed';
     this.completedTasks.add(taskId);
-    
+
     // Find newly ready tasks
     const readyTasks: string[] = [];
-    
+
     for (const dependentId of node.dependents) {
       const dependent = this.nodes.get(dependentId);
       if (dependent && dependent.status === 'pending' && this.isTaskReady(dependentId)) {
@@ -141,10 +140,10 @@ export class DependencyGraph {
     }
 
     node.status = 'failed';
-    
+
     // Get all dependent tasks that need to be cancelled
     const toCancelIds = this.getAllDependents(taskId);
-    
+
     // Mark all dependents as failed
     for (const depId of toCancelIds) {
       const depNode = this.nodes.get(depId);
@@ -180,7 +179,7 @@ export class DependencyGraph {
    */
   getReadyTasks(): string[] {
     const ready: string[] = [];
-    
+
     for (const [taskId, node] of this.nodes) {
       if (node.status === 'ready' || (node.status === 'pending' && this.isTaskReady(taskId))) {
         ready.push(taskId);
@@ -285,7 +284,7 @@ export class DependencyGraph {
 
     const sorted: string[] = [];
     const visited = new Set<string>();
-    
+
     const visit = (taskId: string) => {
       if (visited.has(taskId)) {
         return;
@@ -322,12 +321,12 @@ export class DependencyGraph {
    */
   findCriticalPath(): DependencyPath | null {
     const paths: DependencyPath[] = [];
-    
+
     // Find all paths from tasks with no dependencies to tasks with no dependents
     const sources = Array.from(this.nodes.entries())
       .filter(([_, node]) => node.dependencies.size === 0)
       .map(([id]) => id);
-      
+
     const sinks = Array.from(this.nodes.entries())
       .filter(([_, node]) => node.dependents.size === 0)
       .map(([id]) => id);
@@ -346,8 +345,8 @@ export class DependencyGraph {
       return null;
     }
 
-    return paths.reduce((longest, current) => 
-      current.path.length > longest.path.length ? current : longest
+    return paths.reduce((longest, current) =>
+      current.path.length > longest.path.length ? current : longest,
     );
   }
 
@@ -360,13 +359,11 @@ export class DependencyGraph {
     }
 
     const visited = new Set<string>();
-    const queue: Array<{ taskId: string; path: string[] }> = [
-      { taskId: from, path: [from] }
-    ];
+    const queue: Array<{ taskId: string; path: string[] }> = [{ taskId: from, path: [from] }];
 
     while (queue.length > 0) {
       const { taskId, path } = queue.shift()!;
-      
+
       if (visited.has(taskId)) {
         continue;
       }
@@ -381,7 +378,7 @@ export class DependencyGraph {
         if (depId === to) {
           return [...path, to];
         }
-        
+
         if (!visited.has(depId)) {
           queue.push({ taskId: depId, path: [...path, depId] });
         }
@@ -411,7 +408,7 @@ export class DependencyGraph {
     for (const node of this.nodes.values()) {
       totalDeps += node.dependencies.size;
       stats.maxDependencies = Math.max(stats.maxDependencies, node.dependencies.size);
-      
+
       switch (node.status) {
         case 'ready':
           stats.readyTasks++;

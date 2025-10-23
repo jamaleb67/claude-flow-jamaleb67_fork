@@ -1,51 +1,49 @@
-# Analysis Reports and Performance Data
+# 📊 Reports & Analysis
 
-This directory contains various analysis reports, performance metrics, and optimization data for Claude Flow.
+This directory contains validation reports, release notes, and comprehensive analysis documents.
 
-## Contents
+## 📂 Report Categories
 
-### Performance Comparison Reports
-JSON files containing detailed performance comparisons across different configurations:
-- `comparison-analysis-mesh_*.json`: Mesh topology analysis
-- `comparison-development-hierarchical_*.json`: Hierarchical development patterns
-- `comparison-optimization-hybrid_*.json`: Hybrid optimization strategies
-- `comparison-research-distributed_*.json`: Distributed research patterns
-- `comparison-testing-distributed_*.json`: Distributed testing analysis
+### ✅ Validation Reports (`validation/`)
+Testing, validation, and verification reports for system components.
 
-### Swarm Auto Reports
-- `swarm-auto-centralized-*.json`: Automated centralized swarm analysis
+**Documents:**
+- `DOCKER-VALIDATION-REPORT-v2.7.0-alpha.7.md` - Latest Docker validation
+- `DOCKER-VALIDATION-REPORT.md` - Docker container testing
+- `FINAL_PRE_PUBLISH_VALIDATION.md` - Pre-release validation
+- `FINAL_VALIDATION_REPORT.md` - Comprehensive validation
+- `MEMORY_REDACTION_TEST_REPORT.md` - Memory security testing
+- `COMMAND-VERIFICATION-REPORT.md` - Command integrity verification
+- `VALIDATION-SUMMARY.md` - Overall validation summary
 
-### Swarm Optimization
-The `swarm-optimization/` subdirectory contains:
-- Initial analysis and findings
-- Optimization recommendations
-- Strategy documents
-- Performance benchmarks
+**Total: 7 documents**
 
-## Report Format
+### 🚀 Release Reports (`releases/`)
+Release notes, integration completion, and deployment summaries.
 
-Most reports are in JSON format containing:
-- Timestamp and session information
-- Performance metrics
-- Resource utilization
-- Success/failure rates
-- Optimization recommendations
+**Documents:**
+- `RELEASE_v2.6.0-alpha.2.md` - Version 2.6.0 release notes
+- `PRE_RELEASE_FIXES_REPORT.md` - Pre-release bug fixes
+- `INTEGRATION_COMPLETE.md` - Integration completion status
+- `COMMIT_SUMMARY.md` - Development commit summary
 
-## Using the Reports
+**Total: 4 documents**
 
-These reports are valuable for:
-1. Performance tuning
-2. Identifying bottlenecks
-3. Comparing different strategies
-4. Making architectural decisions
-5. Tracking improvements over time
+### 🔍 Analysis Reports (`analysis/`)
+Deep technical analysis and comprehensive reviews.
 
-## Generating New Reports
+**Documents:**
+- `DEEP_REVIEW_COMPREHENSIVE_REPORT.md` - Comprehensive system review
+- `REGRESSION-ANALYSIS-REPORT.md` - Regression testing analysis
 
-Reports are automatically generated during:
-- Performance benchmarks
-- Swarm executions
-- Optimization runs
-- Comparison analyses
+**Total: 2 documents**
 
-See the benchmark documentation for details on generating custom reports.
+---
+
+## 📈 Report Types
+
+- **Validation Reports**: System testing, verification, and quality assurance
+- **Release Reports**: Version releases, deployment status, and integration milestones
+- **Analysis Reports**: Deep technical analysis, performance reviews, and security audits
+
+Navigate to specific report directories for detailed documentation.

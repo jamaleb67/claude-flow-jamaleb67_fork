@@ -16,17 +16,19 @@ Configure metrics, logs, uptime checks, and alerts using batch operations for co
 ### Core Monitoring Operations
 
 1. **Concurrent Metrics Collection**:
+
    ```javascript
    const metrics = await batchtools.parallel([
      () => collectCPUMetrics(allServices),
      () => collectMemoryMetrics(allServices),
      () => collectNetworkMetrics(allServices),
      () => collectDiskMetrics(allServices),
-     () => collectCustomMetrics(businessKPIs)
+     () => collectCustomMetrics(businessKPIs),
    ]);
    ```
 
 2. **Parallel Log Analysis**:
+
    ```javascript
    const logAnalysis = await batchtools.analyzeLogs({
      sources: ['app.log', 'error.log', 'access.log', 'security.log'],
@@ -34,21 +36,22 @@ Configure metrics, logs, uptime checks, and alerts using batch operations for co
        errors: /ERROR|FATAL|CRITICAL/i,
        warnings: /WARN|WARNING/i,
        slowQueries: /query took \d{4,}ms/i,
-       failures: /failed|timeout|refused/i
+       failures: /failed|timeout|refused/i,
      },
      timeRange: 'last-hour',
-     parallel: true
+     parallel: true,
    });
    ```
 
 3. **Batch Uptime Monitoring**:
+
    ```javascript
    const endpoints = await getHealthCheckEndpoints();
    const uptimeResults = await batchtools.checkEndpoints(endpoints, {
      parallel: true,
      timeout: 5000,
      retries: 3,
-     regions: ['us-east-1', 'eu-west-1', 'ap-south-1']
+     regions: ['us-east-1', 'eu-west-1', 'ap-south-1'],
    });
    ```
 
@@ -59,66 +62,75 @@ Configure metrics, logs, uptime checks, and alerts using batch operations for co
      { metric: 'memory', threshold: 90, duration: '3m', severity: 'critical' },
      { metric: 'error_rate', threshold: 5, duration: '1m', severity: 'critical' },
      { metric: 'response_time', threshold: 1000, duration: '2m', severity: 'warning' },
-     { metric: 'disk_space', threshold: 85, duration: '10m', severity: 'warning' }
+     { metric: 'disk_space', threshold: 85, duration: '10m', severity: 'warning' },
    ]);
    ```
 
 ### Advanced Monitoring Workflows
 
 **Real-time Performance Analysis**:
+
 ```javascript
 const performanceMonitoring = await batchtools.streamMetrics({
   services: getAllServices(),
   metrics: ['latency', 'throughput', 'error_rate', 'saturation'],
   aggregations: ['p50', 'p95', 'p99', 'mean', 'max'],
   interval: '1m',
-  parallel: true
+  parallel: true,
 });
 ```
 
 **Parallel Regression Detection**:
+
 ```javascript
 const regressionChecks = await batchtools.parallel([
   () => compareMetrics('current', 'baseline', 'response_time'),
   () => analyzeErrorRateChanges('last-deploy'),
   () => detectMemoryLeaks(memoryPatterns),
   () => checkDatabasePerformance(queryMetrics),
-  () => validateCacheHitRates(cacheMetrics)
+  () => validateCacheHitRates(cacheMetrics),
 ]);
 ```
 
 **Batch User Experience Monitoring**:
+
 ```javascript
 const uxMetrics = await batchtools.batch([
   { type: 'synthetic', tests: syntheticTests, regions: allRegions },
   { type: 'real-user', metrics: ['load_time', 'interaction_delay'] },
   { type: 'errors', track: ['js_errors', '4xx', '5xx'] },
-  { type: 'conversions', funnels: businessFunnels }
+  { type: 'conversions', funnels: businessFunnels },
 ]);
 ```
 
 ### Comprehensive System Health Checks
 
 1. **Multi-Region Monitoring**:
+
    ```javascript
    const regions = ['us-east-1', 'eu-west-1', 'ap-south-1'];
-   const regionalHealth = await batchtools.map(regions, async (region) => {
-     return {
-       region,
-       services: await checkServicesInRegion(region),
-       latency: await measureCrossRegionLatency(region),
-       capacity: await checkRegionalCapacity(region)
-     };
-   }, { concurrency: regions.length });
+   const regionalHealth = await batchtools.map(
+     regions,
+     async (region) => {
+       return {
+         region,
+         services: await checkServicesInRegion(region),
+         latency: await measureCrossRegionLatency(region),
+         capacity: await checkRegionalCapacity(region),
+       };
+     },
+     { concurrency: regions.length },
+   );
    ```
 
 2. **Dependency Health Monitoring**:
+
    ```javascript
    const dependencies = await batchtools.monitorDependencies({
      external: ['payment-api', 'email-service', 'cdn'],
      internal: ['database', 'cache', 'queue'],
      checks: ['availability', 'latency', 'error_rate'],
-     parallel: true
+     parallel: true,
    });
    ```
 
@@ -129,7 +141,7 @@ const uxMetrics = await batchtools.batch([
      algorithms: ['statistical', 'ml-based', 'rule-based'],
      sensitivity: 'medium',
      lookback: '7d',
-     parallel: true
+     parallel: true,
    });
    ```
 
@@ -140,17 +152,17 @@ const uxMetrics = await batchtools.batch([
 const incidentResponse = await batchtools.handleIncidents({
   detection: {
     sources: ['metrics', 'logs', 'alerts', 'user-reports'],
-    parallel: true
+    parallel: true,
   },
   classification: {
     severity: ['critical', 'high', 'medium', 'low'],
-    impact: ['user-facing', 'internal', 'performance']
+    impact: ['user-facing', 'internal', 'performance'],
   },
   response: {
     autoRemediation: true,
     notifications: ['slack', 'pagerduty', 'email'],
-    runbooks: automatedRunbooks
-  }
+    runbooks: automatedRunbooks,
+  },
 });
 ```
 
@@ -163,13 +175,14 @@ const reports = await batchtools.parallel([
   () => createAvailabilityReport(uptimeData),
   () => compileErrorAnalysis(errorLogs),
   () => summarizeUserImpact(uxMetrics),
-  () => calculateSLACompliance(slaTargets)
+  () => calculateSLACompliance(slaTargets),
 ]);
 ```
 
 ### Task Delegation
 
 Use `new_task` with batch specifications to:
+
 - Escalate performance degradations for optimization
 - Trigger parallel hotfix deployments
 - Coordinate multi-team incident response
@@ -184,6 +197,7 @@ Use `new_task` with batch specifications to:
 5. **Automated Remediation**: Implement self-healing for common issues
 
 Return `attempt_completion` with:
+
 - Consolidated monitoring dashboard data
 - Parallel analysis results across all services
 - Performance comparison with baselines
@@ -192,6 +206,7 @@ Return `attempt_completion` with:
 - SLA/SLO compliance status
 
 ## Groups/Permissions
+
 - read
 - edit
 - browser
@@ -236,9 +251,9 @@ const continuousMonitoring = async () => {
       () => collectAllMetrics(),
       () => analyzeAllLogs(),
       () => checkAllEndpoints(),
-      () => validateAllSLAs()
+      () => validateAllSLAs(),
     ]);
-    
+
     await processSnapshot(snapshot);
     await sleep(60000); // 1 minute interval
   }
@@ -250,9 +265,9 @@ const capacityPlanning = async () => {
     { collect: 'usage_trends', period: '30d' },
     { collect: 'growth_rate', period: '90d' },
     { collect: 'peak_patterns', period: '7d' },
-    { collect: 'resource_limits', current: true }
+    { collect: 'resource_limits', current: true },
   ]);
-  
+
   return await predictCapacityNeeds(data);
 };
 
@@ -263,9 +278,9 @@ const healthScore = async () => {
     () => calculatePerformanceScore(),
     () => calculateErrorScore(),
     () => calculateUserSatisfactionScore(),
-    () => calculateSecurityScore()
+    () => calculateSecurityScore(),
   ]);
-  
+
   return aggregateHealthScore(dimensions);
 };
 ```

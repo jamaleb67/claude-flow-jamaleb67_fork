@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * SPARC-Enhanced Task Executor for Swarm
  * Implements the full SPARC methodology with TDD
@@ -30,10 +29,12 @@ export class SparcTaskExecutor {
   private phases: Map<string, SparcPhase> = new Map();
 
   constructor(config: SparcExecutorConfig = {}) {
-    this.logger = config.logger || new Logger(
-      { level: 'info', format: 'text', destination: 'console' },
-      { component: 'SparcTaskExecutor' }
-    );
+    this.logger =
+      config.logger ||
+      new Logger(
+        { level: 'info', format: 'text', destination: 'console' },
+        { component: 'SparcTaskExecutor' },
+      );
     this.enableTDD = config.enableTDD ?? true;
     this.qualityThreshold = config.qualityThreshold ?? 0.8;
     this.enableMemory = config.enableMemory ?? true;
@@ -42,44 +43,59 @@ export class SparcTaskExecutor {
 
   private initializePhases() {
     this.phases = new Map([
-      ['specification', {
-        name: 'Specification',
-        description: 'Define detailed requirements and acceptance criteria',
-        outputs: ['requirements.md', 'user-stories.md', 'acceptance-criteria.md']
-      }],
-      ['pseudocode', {
-        name: 'Pseudocode',
-        description: 'Create algorithmic logic and data structures',
-        outputs: ['algorithms.md', 'data-structures.md', 'flow-diagrams.md']
-      }],
-      ['architecture', {
-        name: 'Architecture',
-        description: 'Design system architecture and components',
-        outputs: ['architecture.md', 'component-diagram.md', 'api-design.md']
-      }],
-      ['refinement', {
-        name: 'Refinement (TDD)',
-        description: 'Implement with Test-Driven Development',
-        outputs: ['tests/', 'src/', 'coverage/']
-      }],
-      ['completion', {
-        name: 'Completion',
-        description: 'Integration, documentation, and validation',
-        outputs: ['README.md', 'docs/', 'examples/']
-      }]
+      [
+        'specification',
+        {
+          name: 'Specification',
+          description: 'Define detailed requirements and acceptance criteria',
+          outputs: ['requirements.md', 'user-stories.md', 'acceptance-criteria.md'],
+        },
+      ],
+      [
+        'pseudocode',
+        {
+          name: 'Pseudocode',
+          description: 'Create algorithmic logic and data structures',
+          outputs: ['algorithms.md', 'data-structures.md', 'flow-diagrams.md'],
+        },
+      ],
+      [
+        'architecture',
+        {
+          name: 'Architecture',
+          description: 'Design system architecture and components',
+          outputs: ['architecture.md', 'component-diagram.md', 'api-design.md'],
+        },
+      ],
+      [
+        'refinement',
+        {
+          name: 'Refinement (TDD)',
+          description: 'Implement with Test-Driven Development',
+          outputs: ['tests/', 'src/', 'coverage/'],
+        },
+      ],
+      [
+        'completion',
+        {
+          name: 'Completion',
+          description: 'Integration, documentation, and validation',
+          outputs: ['README.md', 'docs/', 'examples/'],
+        },
+      ],
     ]);
   }
 
   async executeTask(
     task: TaskDefinition,
     agent: AgentState,
-    targetDir?: string
+    targetDir?: string,
   ): Promise<TaskResult> {
     this.logger.info('Executing SPARC-enhanced task', {
       taskId: task.id.id,
       taskName: task.name,
       agentType: agent.type,
-      targetDir
+      targetDir,
     });
 
     const startTime = Date.now();
@@ -105,7 +121,7 @@ export class SparcTaskExecutor {
           executionTime,
           targetDir,
           sparcPhase: result.phase,
-          quality: result.quality || 1.0
+          quality: result.quality || 1.0,
         },
         quality: result.quality || 1.0,
         completeness: result.completeness || 1.0,
@@ -116,14 +132,14 @@ export class SparcTaskExecutor {
           maxMemory: 0,
           diskIO: 0,
           networkIO: 0,
-          fileHandles: 0
+          fileHandles: 0,
         },
-        validated: true
+        validated: true,
       };
     } catch (error) {
       this.logger.error('SPARC task execution failed', {
         taskId: task.id.id,
-        error: (error instanceof Error ? error.message : String(error))
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -132,10 +148,10 @@ export class SparcTaskExecutor {
   private async executeSparcPhase(
     task: TaskDefinition,
     agent: AgentState,
-    targetDir?: string
+    targetDir?: string,
   ): Promise<any> {
     const objective = task.description.toLowerCase();
-    
+
     // Map agent types to SPARC phases
     switch (agent.type) {
       case 'analyst':
@@ -143,32 +159,32 @@ export class SparcTaskExecutor {
           return this.executeSpecificationPhase(task, targetDir);
         }
         return this.executeAnalysisPhase(task, targetDir);
-      
+
       case 'researcher':
         return this.executePseudocodePhase(task, targetDir);
-      
+
       case 'architect':
       case 'coordinator':
         if (task.name.includes('Architecture') || objective.includes('design')) {
           return this.executeArchitecturePhase(task, targetDir);
         }
         return this.executeCoordinationPhase(task, targetDir);
-      
+
       case 'coder':
         if (this.enableTDD && task.name.includes('Implement')) {
           return this.executeTDDPhase(task, targetDir);
         }
         return this.executeImplementationPhase(task, targetDir);
-      
+
       case 'tester':
         return this.executeTestingPhase(task, targetDir);
-      
+
       case 'reviewer':
         return this.executeReviewPhase(task, targetDir);
-      
+
       case 'documenter':
         return this.executeDocumentationPhase(task, targetDir);
-      
+
       default:
         return this.executeGenericPhase(task, targetDir);
     }
@@ -176,10 +192,10 @@ export class SparcTaskExecutor {
 
   private async executeSpecificationPhase(task: TaskDefinition, targetDir?: string): Promise<any> {
     this.logger.info('Executing Specification phase', { taskName: task.name });
-    
+
     const objective = task.description;
     const appType = this.determineAppType(objective);
-    
+
     const specifications = {
       phase: 'specification',
       requirements: this.generateRequirements(objective, appType),
@@ -187,26 +203,26 @@ export class SparcTaskExecutor {
       acceptanceCriteria: this.generateAcceptanceCriteria(appType),
       constraints: this.identifyConstraints(objective),
       quality: 0.9,
-      completeness: 0.95
+      completeness: 0.95,
     };
 
     if (targetDir) {
       const specsDir = path.join(targetDir, 'specs');
       await fs.mkdir(specsDir, { recursive: true });
-      
+
       await fs.writeFile(
         path.join(specsDir, 'requirements.md'),
-        this.formatRequirements(specifications.requirements)
+        this.formatRequirements(specifications.requirements),
       );
-      
+
       await fs.writeFile(
         path.join(specsDir, 'user-stories.md'),
-        this.formatUserStories(specifications.userStories)
+        this.formatUserStories(specifications.userStories),
       );
-      
+
       await fs.writeFile(
         path.join(specsDir, 'acceptance-criteria.md'),
-        this.formatAcceptanceCriteria(specifications.acceptanceCriteria)
+        this.formatAcceptanceCriteria(specifications.acceptanceCriteria),
       );
     }
 
@@ -215,30 +231,30 @@ export class SparcTaskExecutor {
 
   private async executePseudocodePhase(task: TaskDefinition, targetDir?: string): Promise<any> {
     this.logger.info('Executing Pseudocode phase', { taskName: task.name });
-    
+
     const appType = this.determineAppType(task.description);
-    
+
     const pseudocode = {
       phase: 'pseudocode',
       algorithms: this.generateAlgorithms(appType),
       dataStructures: this.generateDataStructures(appType),
       flowDiagrams: this.generateFlowDiagrams(appType),
       quality: 0.85,
-      completeness: 0.9
+      completeness: 0.9,
     };
 
     if (targetDir) {
       const designDir = path.join(targetDir, 'design');
       await fs.mkdir(designDir, { recursive: true });
-      
+
       await fs.writeFile(
         path.join(designDir, 'algorithms.md'),
-        this.formatAlgorithms(pseudocode.algorithms)
+        this.formatAlgorithms(pseudocode.algorithms),
       );
-      
+
       await fs.writeFile(
         path.join(designDir, 'data-structures.md'),
-        this.formatDataStructures(pseudocode.dataStructures)
+        this.formatDataStructures(pseudocode.dataStructures),
       );
     }
 
@@ -247,9 +263,9 @@ export class SparcTaskExecutor {
 
   private async executeArchitecturePhase(task: TaskDefinition, targetDir?: string): Promise<any> {
     this.logger.info('Executing Architecture phase', { taskName: task.name });
-    
+
     const appType = this.determineAppType(task.description);
-    
+
     const architecture = {
       phase: 'architecture',
       components: this.designComponents(appType),
@@ -257,21 +273,21 @@ export class SparcTaskExecutor {
       patterns: this.selectPatterns(appType),
       infrastructure: this.designInfrastructure(appType),
       quality: 0.9,
-      completeness: 0.85
+      completeness: 0.85,
     };
 
     if (targetDir) {
       const archDir = path.join(targetDir, 'architecture');
       await fs.mkdir(archDir, { recursive: true });
-      
+
       await fs.writeFile(
         path.join(archDir, 'architecture.md'),
-        this.formatArchitecture(architecture)
+        this.formatArchitecture(architecture),
       );
-      
+
       await fs.writeFile(
         path.join(archDir, 'component-diagram.md'),
-        this.formatComponentDiagram(architecture.components)
+        this.formatComponentDiagram(architecture.components),
       );
     }
 
@@ -280,19 +296,19 @@ export class SparcTaskExecutor {
 
   private async executeTDDPhase(task: TaskDefinition, targetDir?: string): Promise<any> {
     this.logger.info('Executing TDD phase (Red-Green-Refactor)', { taskName: task.name });
-    
+
     const appType = this.determineAppType(task.description);
     const language = this.detectLanguage(task.description);
-    
+
     // Red Phase: Write failing tests first
     const tests = await this.generateFailingTests(appType, language);
-    
+
     // Green Phase: Implement minimal code to pass tests
     const implementation = await this.generateMinimalImplementation(appType, language, tests);
-    
+
     // Refactor Phase: Optimize and clean up
     const refactored = await this.refactorImplementation(implementation, tests);
-    
+
     const tddResult = {
       phase: 'refinement-tdd',
       tests,
@@ -300,19 +316,19 @@ export class SparcTaskExecutor {
       coverage: this.calculateCoverage(tests, refactored),
       quality: 0.95,
       completeness: 0.9,
-      artifacts: {}
+      artifacts: {},
     };
 
     if (targetDir) {
       // Create proper project structure
       await this.createProjectStructure(targetDir, appType, language);
-      
+
       // Write test files
       await this.writeTestFiles(targetDir, tests, language);
-      
+
       // Write implementation files
       await this.writeImplementationFiles(targetDir, refactored, language);
-      
+
       // Generate additional files
       await this.generateProjectFiles(targetDir, appType, language);
     }
@@ -322,7 +338,7 @@ export class SparcTaskExecutor {
 
   private async executeTestingPhase(task: TaskDefinition, targetDir?: string): Promise<any> {
     this.logger.info('Executing Testing phase', { taskName: task.name });
-    
+
     const testPlan = {
       phase: 'testing',
       unitTests: this.generateUnitTests(task),
@@ -331,17 +347,14 @@ export class SparcTaskExecutor {
       performanceTests: this.generatePerformanceTests(task),
       coverage: { target: 80, current: 0 },
       quality: 0.9,
-      completeness: 0.85
+      completeness: 0.85,
     };
 
     if (targetDir) {
       const testsDir = path.join(targetDir, 'tests');
       await fs.mkdir(testsDir, { recursive: true });
-      
-      await fs.writeFile(
-        path.join(testsDir, 'test-plan.md'),
-        this.formatTestPlan(testPlan)
-      );
+
+      await fs.writeFile(path.join(testsDir, 'test-plan.md'), this.formatTestPlan(testPlan));
     }
 
     return testPlan;
@@ -349,7 +362,7 @@ export class SparcTaskExecutor {
 
   private async executeReviewPhase(task: TaskDefinition, targetDir?: string): Promise<any> {
     this.logger.info('Executing Review phase', { taskName: task.name });
-    
+
     const review = {
       phase: 'review',
       codeQuality: this.assessCodeQuality(task),
@@ -358,14 +371,11 @@ export class SparcTaskExecutor {
       maintainability: this.assessMaintainability(task),
       recommendations: this.generateRecommendations(task),
       quality: 0.88,
-      completeness: 0.9
+      completeness: 0.9,
     };
 
     if (targetDir) {
-      await fs.writeFile(
-        path.join(targetDir, 'review-report.md'),
-        this.formatReviewReport(review)
-      );
+      await fs.writeFile(path.join(targetDir, 'review-report.md'), this.formatReviewReport(review));
     }
 
     return review;
@@ -373,7 +383,7 @@ export class SparcTaskExecutor {
 
   private async executeDocumentationPhase(task: TaskDefinition, targetDir?: string): Promise<any> {
     this.logger.info('Executing Documentation phase', { taskName: task.name });
-    
+
     const documentation = {
       phase: 'documentation',
       readme: this.generateReadme(task),
@@ -381,27 +391,18 @@ export class SparcTaskExecutor {
       userGuide: this.generateUserGuide(task),
       developerGuide: this.generateDeveloperGuide(task),
       quality: 0.92,
-      completeness: 0.95
+      completeness: 0.95,
     };
 
     if (targetDir) {
       const docsDir = path.join(targetDir, 'docs');
       await fs.mkdir(docsDir, { recursive: true });
-      
-      await fs.writeFile(
-        path.join(targetDir, 'README.md'),
-        documentation.readme
-      );
-      
-      await fs.writeFile(
-        path.join(docsDir, 'api-reference.md'),
-        documentation.apiDocs
-      );
-      
-      await fs.writeFile(
-        path.join(docsDir, 'user-guide.md'),
-        documentation.userGuide
-      );
+
+      await fs.writeFile(path.join(targetDir, 'README.md'), documentation.readme);
+
+      await fs.writeFile(path.join(docsDir, 'api-reference.md'), documentation.apiDocs);
+
+      await fs.writeFile(path.join(docsDir, 'user-guide.md'), documentation.userGuide);
     }
 
     return documentation;
@@ -423,7 +424,8 @@ export class SparcTaskExecutor {
 
   private detectLanguage(description: string): string {
     const desc = description.toLowerCase();
-    if (desc.includes('python') || desc.includes('flask') || desc.includes('pandas')) return 'python';
+    if (desc.includes('python') || desc.includes('flask') || desc.includes('pandas'))
+      return 'python';
     if (desc.includes('typescript') || desc.includes('ts')) return 'typescript';
     if (desc.includes('java')) return 'java';
     return 'javascript';
@@ -434,75 +436,129 @@ export class SparcTaskExecutor {
       functional: this.getFunctionalRequirements(appType),
       nonFunctional: this.getNonFunctionalRequirements(appType),
       technical: this.getTechnicalRequirements(appType),
-      business: this.getBusinessRequirements(appType)
+      business: this.getBusinessRequirements(appType),
     };
   }
 
   private generateUserStories(appType: string): any[] {
     const stories = {
       'rest-api': [
-        { id: 'US001', story: 'As a developer, I want to create resources via POST endpoints', priority: 'high' },
-        { id: 'US002', story: 'As a developer, I want to retrieve resources via GET endpoints', priority: 'high' },
-        { id: 'US003', story: 'As a developer, I want to update resources via PUT/PATCH endpoints', priority: 'medium' },
-        { id: 'US004', story: 'As a developer, I want to delete resources via DELETE endpoints', priority: 'medium' },
-        { id: 'US005', story: 'As a developer, I want API documentation to understand endpoints', priority: 'high' }
+        {
+          id: 'US001',
+          story: 'As a developer, I want to create resources via POST endpoints',
+          priority: 'high',
+        },
+        {
+          id: 'US002',
+          story: 'As a developer, I want to retrieve resources via GET endpoints',
+          priority: 'high',
+        },
+        {
+          id: 'US003',
+          story: 'As a developer, I want to update resources via PUT/PATCH endpoints',
+          priority: 'medium',
+        },
+        {
+          id: 'US004',
+          story: 'As a developer, I want to delete resources via DELETE endpoints',
+          priority: 'medium',
+        },
+        {
+          id: 'US005',
+          story: 'As a developer, I want API documentation to understand endpoints',
+          priority: 'high',
+        },
       ],
       'python-web': [
-        { id: 'US001', story: 'As a user, I want to access the web application via browser', priority: 'high' },
+        {
+          id: 'US001',
+          story: 'As a user, I want to access the web application via browser',
+          priority: 'high',
+        },
         { id: 'US002', story: 'As a user, I want to authenticate securely', priority: 'high' },
-        { id: 'US003', story: 'As a user, I want responsive UI on all devices', priority: 'medium' }
+        {
+          id: 'US003',
+          story: 'As a user, I want responsive UI on all devices',
+          priority: 'medium',
+        },
       ],
       'data-pipeline': [
-        { id: 'US001', story: 'As a data analyst, I want to load data from multiple sources', priority: 'high' },
-        { id: 'US002', story: 'As a data analyst, I want to transform data efficiently', priority: 'high' },
-        { id: 'US003', story: 'As a data analyst, I want to export results in various formats', priority: 'medium' }
-      ]
+        {
+          id: 'US001',
+          story: 'As a data analyst, I want to load data from multiple sources',
+          priority: 'high',
+        },
+        {
+          id: 'US002',
+          story: 'As a data analyst, I want to transform data efficiently',
+          priority: 'high',
+        },
+        {
+          id: 'US003',
+          story: 'As a data analyst, I want to export results in various formats',
+          priority: 'medium',
+        },
+      ],
     };
-    
-    return (stories as any)[appType] || [
-      { id: 'US001', story: 'As a user, I want to use the main functionality', priority: 'high' }
-    ];
+
+    return (
+      (stories as any)[appType] || [
+        { id: 'US001', story: 'As a user, I want to use the main functionality', priority: 'high' },
+      ]
+    );
   }
 
   private generateAcceptanceCriteria(appType: string): any {
     const criteria = {
       'rest-api': {
-        endpoints: ['All CRUD operations return appropriate status codes', 'API responses follow consistent format'],
-        performance: ['Response time < 200ms for simple queries', 'Can handle 100 concurrent requests'],
-        security: ['All endpoints require authentication', 'Input validation on all parameters']
+        endpoints: [
+          'All CRUD operations return appropriate status codes',
+          'API responses follow consistent format',
+        ],
+        performance: [
+          'Response time < 200ms for simple queries',
+          'Can handle 100 concurrent requests',
+        ],
+        security: ['All endpoints require authentication', 'Input validation on all parameters'],
       },
       'python-web': {
         functionality: ['All pages load without errors', 'Forms validate input correctly'],
         usability: ['UI is responsive on mobile devices', 'Page load time < 3 seconds'],
-        compatibility: ['Works on Chrome, Firefox, Safari', 'Supports Python 3.8+']
+        compatibility: ['Works on Chrome, Firefox, Safari', 'Supports Python 3.8+'],
+      },
+    };
+
+    return (
+      (criteria as any)[appType] || {
+        functionality: ['Core features work as expected'],
+        quality: ['Code follows best practices'],
       }
-    };
-    
-    return (criteria as any)[appType] || {
-      functionality: ['Core features work as expected'],
-      quality: ['Code follows best practices']
-    };
+    );
   }
 
   private async generateFailingTests(appType: string, language: string): Promise<any> {
     const testFramework = this.getTestFramework(language);
-    
+
     const tests = {
       unit: this.generateUnitTestCases(appType, language, testFramework),
       integration: this.generateIntegrationTestCases(appType, language, testFramework),
       fixtures: this.generateTestFixtures(appType),
-      mocks: this.generateMocks(appType)
+      mocks: this.generateMocks(appType),
     };
-    
+
     return tests;
   }
 
-  private async generateMinimalImplementation(appType: string, language: string, tests: any): Promise<any> {
+  private async generateMinimalImplementation(
+    appType: string,
+    language: string,
+    tests: any,
+  ): Promise<any> {
     return {
       modules: this.generateModules(appType, language),
       classes: this.generateClasses(appType, language),
       functions: this.generateFunctions(appType, language),
-      config: this.generateConfig(appType, language)
+      config: this.generateConfig(appType, language),
     };
   }
 
@@ -512,13 +568,17 @@ export class SparcTaskExecutor {
       optimized: true,
       patterns: ['SOLID principles applied', 'DRY principle followed'],
       performance: 'Optimized for efficiency',
-      maintainability: 'Clean, readable code'
+      maintainability: 'Clean, readable code',
     };
   }
 
-  private async createProjectStructure(targetDir: string, appType: string, language: string): Promise<void> {
+  private async createProjectStructure(
+    targetDir: string,
+    appType: string,
+    language: string,
+  ): Promise<void> {
     const structure = this.getProjectStructure(appType, language);
-    
+
     for (const dir of structure.directories) {
       await fs.mkdir(path.join(targetDir, dir), { recursive: true });
     }
@@ -527,7 +587,7 @@ export class SparcTaskExecutor {
   private async writeTestFiles(targetDir: string, tests: any, language: string): Promise<void> {
     const testDir = path.join(targetDir, this.getTestDirectory(language));
     await fs.mkdir(testDir, { recursive: true });
-    
+
     // Write unit tests
     for (const [name, content] of Object.entries(tests.unit)) {
       const filename = this.getTestFileName(name as string, language);
@@ -535,10 +595,14 @@ export class SparcTaskExecutor {
     }
   }
 
-  private async writeImplementationFiles(targetDir: string, implementation: any, language: string): Promise<void> {
+  private async writeImplementationFiles(
+    targetDir: string,
+    implementation: any,
+    language: string,
+  ): Promise<void> {
     const srcDir = path.join(targetDir, this.getSourceDirectory(language));
     await fs.mkdir(srcDir, { recursive: true });
-    
+
     // Write implementation files
     for (const [module, content] of Object.entries(implementation.modules)) {
       const filename = this.getSourceFileName(module as string, language);
@@ -546,9 +610,13 @@ export class SparcTaskExecutor {
     }
   }
 
-  private async generateProjectFiles(targetDir: string, appType: string, language: string): Promise<void> {
+  private async generateProjectFiles(
+    targetDir: string,
+    appType: string,
+    language: string,
+  ): Promise<void> {
     const files = await this.getProjectFiles(appType, language);
-    
+
     for (const [filename, content] of Object.entries(files)) {
       await fs.writeFile(path.join(targetDir, filename as string), content as string);
     }
@@ -561,7 +629,7 @@ export class SparcTaskExecutor {
       python: 'pytest',
       javascript: 'jest',
       typescript: 'jest',
-      java: 'junit'
+      java: 'junit',
     };
     return frameworks[language] || 'generic';
   }
@@ -570,18 +638,20 @@ export class SparcTaskExecutor {
     const structures = {
       'python-rest-api': {
         directories: ['src', 'tests', 'docs', 'config', 'migrations', 'scripts'],
-        files: ['requirements.txt', 'setup.py', 'pytest.ini', '.gitignore', 'Dockerfile']
+        files: ['requirements.txt', 'setup.py', 'pytest.ini', '.gitignore', 'Dockerfile'],
       },
       'javascript-rest-api': {
         directories: ['src', 'tests', 'docs', 'config', 'public'],
-        files: ['package.json', 'tsconfig.json', 'jest.config.js', '.gitignore', 'Dockerfile']
+        files: ['package.json', 'tsconfig.json', 'jest.config.js', '.gitignore', 'Dockerfile'],
+      },
+    };
+
+    return (
+      structures[`${language}-${appType}`] || {
+        directories: ['src', 'tests', 'docs'],
+        files: ['README.md', '.gitignore'],
       }
-    };
-    
-    return structures[`${language}-${appType}`] || {
-      directories: ['src', 'tests', 'docs'],
-      files: ['README.md', '.gitignore']
-    };
+    );
   }
 
   private getTestDirectory(language: string): string {
@@ -602,7 +672,7 @@ export class SparcTaskExecutor {
       python: 'py',
       javascript: 'js',
       typescript: 'ts',
-      java: 'java'
+      java: 'java',
     };
     return `${name}.${(extensions as any)[language] || 'js'}`;
   }
@@ -616,24 +686,24 @@ export class SparcTaskExecutor {
         'Support JSON request/response format',
         'Implement proper HTTP status codes',
         'Support pagination for list endpoints',
-        'Implement filtering and sorting'
+        'Implement filtering and sorting',
       ],
       'data-pipeline': [
         'Load data from CSV, JSON, and database sources',
         'Validate and clean input data',
         'Transform data according to business rules',
         'Generate summary statistics',
-        'Export results in multiple formats'
+        'Export results in multiple formats',
       ],
       'ml-app': [
         'Preprocess input data for model',
         'Train model with configurable parameters',
         'Evaluate model performance',
         'Save and load trained models',
-        'Provide prediction API'
-      ]
+        'Provide prediction API',
+      ],
     };
-    
+
     return (requirements as any)[appType] || ['Implement core functionality'];
   }
 
@@ -643,7 +713,7 @@ export class SparcTaskExecutor {
       'Support 1000 concurrent users',
       '99.9% uptime availability',
       'Secure authentication and authorization',
-      'Comprehensive logging and monitoring'
+      'Comprehensive logging and monitoring',
     ];
   }
 
@@ -654,17 +724,17 @@ export class SparcTaskExecutor {
         'Implement database ORM/ODM',
         'Use environment variables for configuration',
         'Implement proper error handling',
-        'Add request validation middleware'
+        'Add request validation middleware',
       ],
       'data-pipeline': [
         'Use pandas for data manipulation',
         'Implement parallel processing for large datasets',
         'Use appropriate data storage (SQL, NoSQL)',
         'Implement data validation rules',
-        'Add progress tracking for long operations'
-      ]
+        'Add progress tracking for long operations',
+      ],
     };
-    
+
     return (tech as any)[appType] || ['Follow best practices for the technology stack'];
   }
 
@@ -674,14 +744,14 @@ export class SparcTaskExecutor {
       'Ensure scalability for future growth',
       'Maintain code quality standards',
       'Provide comprehensive documentation',
-      'Enable easy maintenance and updates'
+      'Enable easy maintenance and updates',
     ];
   }
 
   private generateUnitTestCases(appType: string, language: string, framework: string): any {
     if (language === 'python' && appType === 'rest-api') {
       return {
-        'test_models': `import pytest
+        test_models: `import pytest
 from src.models import User, Product
 
 class TestUserModel:
@@ -711,7 +781,7 @@ class TestProductModel:
         assert product.name == "Test Product"
         assert product.price == 99.99
 `,
-        'test_services': `import pytest
+        test_services: `import pytest
 from unittest.mock import Mock, patch
 from src.services import UserService, ProductService
 
@@ -735,20 +805,20 @@ class TestUserService:
             user = user_service.get_user(1)
             assert user.id == 1
             assert user.username == "testuser"
-`
+`,
       };
     }
-    
+
     // Return generic tests for other combinations
     return {
-      'test_main': 'Test file content for main functionality'
+      test_main: 'Test file content for main functionality',
     };
   }
 
   private generateIntegrationTestCases(appType: string, language: string, framework: string): any {
     if (language === 'python' && appType === 'rest-api') {
       return {
-        'test_api': `import pytest
+        test_api: `import pytest
 from flask import Flask
 from src.app import create_app
 
@@ -781,12 +851,12 @@ class TestAPI:
         response = client.get('/api/users')
         assert response.status_code == 200
         assert isinstance(response.json, list)
-`
+`,
       };
     }
-    
+
     return {
-      'test_integration': 'Integration test content'
+      test_integration: 'Integration test content',
     };
   }
 
@@ -794,12 +864,12 @@ class TestAPI:
     return {
       users: [
         { id: 1, username: 'user1', email: 'user1@example.com' },
-        { id: 2, username: 'user2', email: 'user2@example.com' }
+        { id: 2, username: 'user2', email: 'user2@example.com' },
       ],
       products: [
         { id: 1, name: 'Product 1', price: 99.99 },
-        { id: 2, name: 'Product 2', price: 149.99 }
-      ]
+        { id: 2, name: 'Product 2', price: 149.99 },
+      ],
     };
   }
 
@@ -807,14 +877,14 @@ class TestAPI:
     return {
       database: 'Mock database connection',
       externalAPI: 'Mock external API calls',
-      fileSystem: 'Mock file system operations'
+      fileSystem: 'Mock file system operations',
     };
   }
 
   private generateModules(appType: string, language: string): any {
     if (language === 'python' && appType === 'rest-api') {
       return {
-        'app': `from flask import Flask
+        app: `from flask import Flask
 from flask_cors import CORS
 from config import Config
 from models import db
@@ -842,7 +912,7 @@ if __name__ == '__main__':
     app = create_app()
     app.run(debug=True)
 `,
-        'models': `from flask_sqlalchemy import SQLAlchemy
+        models: `from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -889,7 +959,7 @@ class Product(db.Model):
             'created_at': self.created_at.isoformat()
         }
 `,
-        'routes': `from flask import Blueprint, request, jsonify
+        routes: `from flask import Blueprint, request, jsonify
 from models import db, User, Product
 from services import UserService, ProductService
 
@@ -957,7 +1027,7 @@ def create_product():
     product = product_service.create_product(data)
     return jsonify(product.to_dict()), 201
 `,
-        'services': `from models import db, User, Product
+        services: `from models import db, User, Product
 
 class UserService:
     def create_user(self, data):
@@ -1016,7 +1086,7 @@ class ProductService:
         db.session.commit()
         return product
 `,
-        'config': `import os
+        config: `import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -1043,26 +1113,26 @@ Config = {
     'production': ProductionConfig,
     'default': DevelopmentConfig
 }
-`
+`,
       };
     }
-    
+
     return {
-      'main': 'Main module implementation'
+      main: 'Main module implementation',
     };
   }
 
   private generateClasses(appType: string, language: string): any {
     return {
-      'BaseClass': 'Base class implementation',
-      'ServiceClass': 'Service class implementation'
+      BaseClass: 'Base class implementation',
+      ServiceClass: 'Service class implementation',
     };
   }
 
   private generateFunctions(appType: string, language: string): any {
     return {
-      'helpers': 'Helper functions',
-      'validators': 'Validation functions'
+      helpers: 'Helper functions',
+      validators: 'Validation functions',
     };
   }
 
@@ -1070,7 +1140,7 @@ Config = {
     return {
       database: 'Database configuration',
       api: 'API configuration',
-      logging: 'Logging configuration'
+      logging: 'Logging configuration',
     };
   }
 
@@ -1128,7 +1198,7 @@ venv/
 htmlcov/
 .pytest_cache/
 `,
-        'Dockerfile': `FROM python:3.9-slim
+        Dockerfile: `FROM python:3.9-slim
 
 WORKDIR /app
 
@@ -1164,13 +1234,13 @@ services:
 
 volumes:
   postgres_data:
-`
+`,
       };
     }
-    
+
     return {
       'package.json': 'Package configuration',
-      '.gitignore': 'Git ignore file'
+      '.gitignore': 'Git ignore file',
     };
   }
 
@@ -1179,7 +1249,7 @@ volumes:
       overall: 85,
       unit: 90,
       integration: 80,
-      e2e: 70
+      e2e: 70,
     };
   }
 
@@ -1205,17 +1275,25 @@ ${requirements.business.map((r: string) => `- ${r}`).join('\n')}
   private formatUserStories(stories: any[]): string {
     return `# User Stories
 
-${stories.map(s => `## ${s.id}: ${s.story}
+${stories
+  .map(
+    (s) => `## ${s.id}: ${s.story}
 Priority: ${s.priority}
-`).join('\n')}`;
+`,
+  )
+  .join('\n')}`;
   }
 
   private formatAcceptanceCriteria(criteria: any): string {
     return `# Acceptance Criteria
 
-${Object.entries(criteria).map(([category, items]) => `## ${category}
-${(items as string[]).map(item => `- ${item}`).join('\n')}
-`).join('\n')}`;
+${Object.entries(criteria)
+  .map(
+    ([category, items]) => `## ${category}
+${(items as string[]).map((item) => `- ${item}`).join('\n')}
+`,
+  )
+  .join('\n')}`;
   }
 
   private formatAlgorithms(algorithms: any): string {
@@ -1409,7 +1487,7 @@ Please follow our contribution guidelines...
       complexity: 'Low to Medium',
       duplication: 'Minimal',
       testCoverage: '85%',
-      linting: 'Passing'
+      linting: 'Passing',
     };
   }
 
@@ -1418,7 +1496,7 @@ Please follow our contribution guidelines...
       authentication: 'Implemented',
       authorization: 'Role-based',
       inputValidation: 'Comprehensive',
-      encryption: 'At rest and in transit'
+      encryption: 'At rest and in transit',
     };
   }
 
@@ -1427,7 +1505,7 @@ Please follow our contribution guidelines...
       responseTime: 'Average 150ms',
       throughput: '1000 req/s',
       scalability: 'Horizontal scaling ready',
-      caching: 'Implemented'
+      caching: 'Implemented',
     };
   }
 
@@ -1436,7 +1514,7 @@ Please follow our contribution guidelines...
       readability: 'High',
       modularity: 'Well-structured',
       documentation: 'Comprehensive',
-      dependencies: 'Up to date'
+      dependencies: 'Up to date',
     };
   }
 
@@ -1446,7 +1524,7 @@ Please follow our contribution guidelines...
       'Add more comprehensive error handling',
       'Implement request logging',
       'Add performance monitoring',
-      'Consider using a CDN for static assets'
+      'Consider using a CDN for static assets',
     ];
   }
 
@@ -1471,7 +1549,7 @@ Please follow our contribution guidelines...
       'Must complete within timeline',
       'Must stay within budget',
       'Must meet performance requirements',
-      'Must be maintainable'
+      'Must be maintainable',
     ];
   }
 
@@ -1480,7 +1558,7 @@ Please follow our contribution guidelines...
       frontend: 'UI Components',
       backend: 'API Services',
       database: 'Data Layer',
-      infrastructure: 'Cloud Services'
+      infrastructure: 'Cloud Services',
     };
   }
 
@@ -1488,17 +1566,12 @@ Please follow our contribution guidelines...
     return {
       api: 'REST/GraphQL interfaces',
       database: 'Data access interfaces',
-      external: 'Third-party integrations'
+      external: 'Third-party integrations',
     };
   }
 
   private selectPatterns(appType: string): string[] {
-    return [
-      'MVC/MVP Pattern',
-      'Repository Pattern',
-      'Factory Pattern',
-      'Observer Pattern'
-    ];
+    return ['MVC/MVP Pattern', 'Repository Pattern', 'Factory Pattern', 'Observer Pattern'];
   }
 
   private designInfrastructure(appType: string): any {
@@ -1506,7 +1579,7 @@ Please follow our contribution guidelines...
       hosting: 'Cloud platform',
       database: 'Managed database service',
       caching: 'Redis/Memcached',
-      monitoring: 'APM solution'
+      monitoring: 'APM solution',
     };
   }
 
@@ -1514,7 +1587,7 @@ Please follow our contribution guidelines...
     return {
       dataProcessing: 'Data processing algorithms',
       businessLogic: 'Core business logic',
-      optimization: 'Performance optimization'
+      optimization: 'Performance optimization',
     };
   }
 
@@ -1522,7 +1595,7 @@ Please follow our contribution guidelines...
     return {
       models: 'Data models',
       schemas: 'Database schemas',
-      interfaces: 'TypeScript interfaces'
+      interfaces: 'TypeScript interfaces',
     };
   }
 
@@ -1530,7 +1603,7 @@ Please follow our contribution guidelines...
     return {
       userFlow: 'User interaction flow',
       dataFlow: 'Data processing flow',
-      systemFlow: 'System architecture flow'
+      systemFlow: 'System architecture flow',
     };
   }
 
@@ -1559,7 +1632,7 @@ Please follow our contribution guidelines...
       phase: 'coordination',
       status: 'Task coordinated',
       quality: 0.9,
-      completeness: 0.95
+      completeness: 0.95,
     };
   }
 
@@ -1568,7 +1641,7 @@ Please follow our contribution guidelines...
       phase: 'generic',
       status: 'Task completed',
       quality: 0.85,
-      completeness: 0.9
+      completeness: 0.9,
     };
   }
 }

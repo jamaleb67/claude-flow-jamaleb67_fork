@@ -18,21 +18,21 @@ describe('Agent Type Validation Consistency', () => {
 
   test('Claude Flow tools use consistent agent types', () => {
     const tools = getClaudeFlowTools({} as any);
-    const spawnTool = tools.find(t => t.name === 'spawn_agent');
+    const spawnTool = tools.find((t) => t.name === 'spawn_agent');
     const enumValues = spawnTool?.inputSchema.properties.type.enum;
     expect(enumValues?.sort()).toEqual(expectedTypes);
   });
 
   test('Ruv Swarm tools use consistent agent types', () => {
     const tools = getRuvSwarmTools({} as any);
-    const spawnTool = tools.find(t => t.name === 'spawn_agent');
+    const spawnTool = tools.find((t) => t.name === 'spawn_agent');
     const enumValues = spawnTool?.inputSchema.properties.type.enum;
     expect(enumValues?.sort()).toEqual(expectedTypes);
   });
 
   test('Swarm tools use consistent agent types', () => {
     const tools = getSwarmTools({} as any);
-    const spawnTool = tools.find(t => t.name === 'spawn_agent');
+    const spawnTool = tools.find((t) => t.name === 'spawn_agent');
     const enumValues = spawnTool?.inputSchema.properties.type.enum;
     expect(enumValues?.sort()).toEqual(expectedTypes);
   });

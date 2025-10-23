@@ -1,39 +1,59 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * MCP (Model Context Protocol) Module
  * Export all MCP components for easy integration
  */
 
+// Phase 6: In-Process MCP Server (10-100x performance improvement)
+export { InProcessMCPServer, createInProcessServer } from './in-process-server.js';
+export type { InProcessServerConfig, ToolCallMetrics } from './in-process-server.js';
+
+export {
+  ClaudeFlowToolRegistry,
+  createToolRegistry,
+  createClaudeFlowSdkServer,
+} from './tool-registry.js';
+export type { ToolRegistryConfig } from './tool-registry.js';
+
+export {
+  SDKIntegration,
+  initializeSDKIntegration,
+  getSDKIntegration,
+  createInProcessQuery,
+  getInProcessServerConfig,
+  measurePerformance,
+} from './sdk-integration.js';
+export type { SDKIntegrationConfig } from './sdk-integration.js';
+
 // Core MCP Server
 export { MCPServer, type IMCPServer } from './server.js';
 
 // Lifecycle Management
-export { 
-  MCPLifecycleManager, 
+export {
+  MCPLifecycleManager,
   LifecycleState,
   type LifecycleEvent,
   type HealthCheckResult,
-  type LifecycleManagerConfig 
+  type LifecycleManagerConfig,
 } from './lifecycle-manager.js';
 
 // Tool Registry and Management
-export { 
+export {
   ToolRegistry,
   type ToolCapability,
   type ToolMetrics,
-  type ToolDiscoveryQuery 
+  type ToolDiscoveryQuery,
 } from './tools.js';
 
 // Protocol Management
-export { 
+export {
   MCPProtocolManager,
   type ProtocolVersionInfo,
   type CompatibilityResult,
-  type NegotiationResult 
+  type NegotiationResult,
 } from './protocol-manager.js';
 
 // Authentication and Authorization
-export { 
+export {
   AuthManager,
   type IAuthManager,
   type AuthContext,
@@ -41,25 +61,25 @@ export {
   type TokenInfo,
   type TokenGenerationOptions,
   type AuthSession,
-  Permissions 
+  Permissions,
 } from './auth.js';
 
 // Performance Monitoring
-export { 
+export {
   MCPPerformanceMonitor,
   type PerformanceMetrics,
   type RequestMetrics,
   type AlertRule,
   type Alert,
-  type OptimizationSuggestion 
+  type OptimizationSuggestion,
 } from './performance-monitor.js';
 
 // Orchestration Integration
-export { 
+export {
   MCPOrchestrationIntegration,
   type OrchestrationComponents,
   type MCPOrchestrationConfig,
-  type IntegrationStatus 
+  type IntegrationStatus,
 } from './orchestration-integration.js';
 
 // Transport Implementations
@@ -136,11 +156,11 @@ export class MCPIntegrationFactory {
     lifecycleManager?: MCPLifecycleManager;
     performanceMonitor?: MCPPerformanceMonitor;
   }> {
-    const { 
-      mcpConfig, 
-      logger, 
+    const {
+      mcpConfig,
+      logger,
       enableLifecycleManagement = true,
-      enablePerformanceMonitoring = true 
+      enablePerformanceMonitoring = true,
     } = config;
 
     const eventBus = new (await import('node:events')).EventEmitter();
@@ -150,11 +170,7 @@ export class MCPIntegrationFactory {
     let performanceMonitor: MCPPerformanceMonitor | undefined;
 
     if (enableLifecycleManagement) {
-      lifecycleManager = new MCPLifecycleManager(
-        mcpConfig,
-        logger,
-        () => server,
-      );
+      lifecycleManager = new MCPLifecycleManager(mcpConfig, logger, () => server);
     }
 
     if (enablePerformanceMonitoring) {
@@ -276,7 +292,7 @@ export const MCPUtils = {
    */
   compareVersions(
     a: import('../utils/types.js').MCPProtocolVersion,
-    b: import('../utils/types.js').MCPProtocolVersion
+    b: import('../utils/types.js').MCPProtocolVersion,
   ): number {
     if (a.major !== b.major) return a.major - b.major;
     if (a.minor !== b.minor) return a.minor - b.minor;
@@ -294,8 +310,8 @@ export const MCPUtils = {
    * Parse protocol version from string
    */
   parseVersion(versionString: string): import('../utils/types.js').MCPProtocolVersion {
-    const parts = versionString.split('.').map(p => parseInt(p, 10));
-    if (parts.length !== 3 || parts.some(p => isNaN(p))) {
+    const parts = versionString.split('.').map((p) => parseInt(p, 10));
+    if (parts.length !== 3 || parts.some((p) => isNaN(p))) {
       throw new Error(`Invalid version string: ${versionString}`);
     }
     return {
@@ -319,3 +335,44 @@ export const MCPUtils = {
     return `mcp_req_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
   },
 };
+
+/**
+ * Phase 6: Initialize MCP with in-process server for maximum performance
+ *
+ * Provides 10-100x performance improvement by eliminating IPC overhead.
+ * All Claude-Flow MCP tools execute in-process with microsecond latency.
+ */
+export async function initializeInProcessMCP(orchestratorContext?: any) {
+  const { initializeSDKIntegration } = await import('./sdk-integration.js');
+
+  return initializeSDKIntegration({
+    enableInProcess: true,
+    enableMetrics: true,
+    enableCaching: true,
+    orchestratorContext,
+    fallbackToStdio: true,
+  });
+}
+
+/**
+ * Phase 6: Get in-process server status and performance metrics
+ */
+export async function getInProcessMCPStatus() {
+  const { getSDKIntegration } = await import('./sdk-integration.js');
+  const integration = getSDKIntegration();
+
+  if (!integration) {
+    return {
+      initialized: false,
+      inProcess: false,
+      message: 'In-process MCP not initialized',
+    };
+  }
+
+  return {
+    initialized: true,
+    inProcess: integration.isInProcessAvailable(),
+    metrics: integration.getMetrics(),
+    performanceComparison: integration.getPerformanceComparison(),
+  };
+}

@@ -16,29 +16,33 @@ Start by running `uname` and system checks in parallel. You are responsible for 
 ### Core Responsibilities with Batchtools
 
 1. **Parallel Infrastructure Provisioning**:
+
    - Deploy multiple cloud functions simultaneously
    - Provision containers across regions in parallel
    - Set up edge runtimes concurrently
    - Batch create resources (VMs, databases, storage)
 
 2. **Concurrent Deployment Pipeline**:
+
    ```javascript
    const deploymentTasks = [
      { type: 'build', services: ['api', 'web', 'worker'] },
      { type: 'test', suites: ['unit', 'integration', 'e2e'] },
      { type: 'deploy', targets: ['staging-us', 'staging-eu', 'staging-asia'] },
-     { type: 'verify', endpoints: [...healthCheckUrls] }
+     { type: 'verify', endpoints: [...healthCheckUrls] },
    ];
    await batchtools.executeDeployment(deploymentTasks);
    ```
 
 3. **Batch Configuration Management**:
+
    - Update environment variables across multiple services
    - Configure secrets in parallel across regions
    - Set up monitoring hooks for all services simultaneously
    - Apply security policies in batch mode
 
 4. **Parallel Domain & Routing Setup**:
+
    - Configure multiple domains concurrently
    - Set up TLS certificates in batch
    - Update routing rules across load balancers
@@ -53,32 +57,33 @@ Start by running `uname` and system checks in parallel. You are responsible for 
 ### Infrastructure Best Practices with Batchtools
 
 **Immutable Deployments**:
+
 ```javascript
 // Deploy to multiple regions in parallel
 const regions = ['us-east-1', 'eu-west-1', 'ap-southeast-1'];
-await batchtools.parallel(regions.map(region => 
-  () => deployImmutableImage(imageId, region)
-));
+await batchtools.parallel(regions.map((region) => () => deployImmutableImage(imageId, region)));
 ```
 
 **Blue-Green Deployments**:
+
 ```javascript
 // Parallel blue-green switch
 await batchtools.batch([
   { action: 'deploy', target: 'green', services: [...allServices] },
   { action: 'healthcheck', target: 'green', wait: true },
   { action: 'switch', from: 'blue', to: 'green' },
-  { action: 'verify', endpoints: [...productionUrls] }
+  { action: 'verify', endpoints: [...productionUrls] },
 ]);
 ```
 
 **Secret Management**:
+
 ```javascript
 // Batch secret rotation
 const secrets = await batchtools.rotateSecrets([
   { service: 'api', keys: ['DB_PASS', 'JWT_SECRET'] },
   { service: 'worker', keys: ['QUEUE_KEY', 'CACHE_PASS'] },
-  { service: 'web', keys: ['SESSION_SECRET', 'CSRF_TOKEN'] }
+  { service: 'web', keys: ['SESSION_SECRET', 'CSRF_TOKEN'] },
 ]);
 ```
 
@@ -90,13 +95,14 @@ const monitoringConfig = await batchtools.parallel([
   () => setupMetrics(['api', 'web', 'worker']),
   () => configureLogs(['app.log', 'error.log', 'access.log']),
   () => createAlerts(alertRules),
-  () => setupDashboards(dashboardConfigs)
+  () => setupDashboards(dashboardConfigs),
 ]);
 ```
 
 ### Task Delegation with Batch Support
 
 Use `new_task` with batch specifications to:
+
 - Delegate parallel credential setup to Security Reviewer
 - Trigger concurrent test flows via TDD agents
 - Request batch log analysis from Monitoring agents
@@ -105,21 +111,25 @@ Use `new_task` with batch specifications to:
 ### Batch Deployment Workflows
 
 **Multi-Service Deployment**:
+
 ```bash
 npx claude-flow sparc run devops --batch-deploy "services:api,web,worker regions:us,eu,asia"
 ```
 
 **Parallel Infrastructure Update**:
+
 ```bash
 npx claude-flow sparc run devops --parallel-infra "update all Lambda functions to Node 20"
 ```
 
 **Concurrent Rollback**:
+
 ```bash
 npx claude-flow sparc run devops --batch-rollback "all services to version 1.2.3"
 ```
 
 Return `attempt_completion` with:
+
 - Parallel deployment status across all regions
 - Batch operation results and timings
 - Consolidated environment details
@@ -129,18 +139,21 @@ Return `attempt_completion` with:
 ### Security Considerations
 
 ⚠️ **Batch Security Operations**:
+
 - Rotate all credentials in parallel
 - Apply security patches across all instances
 - Update firewall rules concurrently
 - Scan all containers for vulnerabilities simultaneously
 
 ✅ **Parallel Validation**:
+
 - Health checks across all endpoints
 - Security scans on all deployed services
 - Performance tests in multiple regions
 - Compliance checks in batch mode
 
 ## Groups/Permissions
+
 - read
 - edit
 - command
@@ -187,7 +200,7 @@ const domains = await getDomainList();
 const certificates = await batchtools.renewCertificates(domains, {
   parallel: true,
   provider: 'letsencrypt',
-  validation: 'dns'
+  validation: 'dns',
 });
 
 // Concurrent database migrations
@@ -195,6 +208,6 @@ const databases = ['users-db', 'orders-db', 'inventory-db'];
 await batchtools.migrate(databases, {
   version: 'latest',
   parallel: true,
-  rollbackOnError: true
+  rollbackOnError: true,
 });
 ```

@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../../utils/error-handler.js';
 /**
  * Reconnection Manager for MCP
  * Handles automatic reconnection with exponential backoff
@@ -42,11 +41,11 @@ export class ReconnectionManager extends EventEmitter {
   constructor(
     private client: MCPClient,
     private logger: ILogger,
-    config?: Partial<ReconnectionConfig>
+    config?: Partial<ReconnectionConfig>,
   ) {
     super();
     this.config = { ...this.defaultConfig, ...config };
-    
+
     this.state = {
       attempts: 0,
       nextDelay: this.config.initialDelay,
@@ -91,7 +90,7 @@ export class ReconnectionManager extends EventEmitter {
     this.logger.info('Starting automatic reconnection');
     this.state.isReconnecting = true;
     this.emit('reconnectStart');
-    
+
     this.scheduleReconnect();
   }
 
@@ -104,7 +103,7 @@ export class ReconnectionManager extends EventEmitter {
     }
 
     this.logger.info('Stopping reconnection attempts');
-    
+
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = undefined;
@@ -119,7 +118,7 @@ export class ReconnectionManager extends EventEmitter {
    */
   reset(): void {
     this.logger.debug('Resetting reconnection manager');
-    
+
     this.stopReconnection();
     this.state = {
       attempts: 0,
@@ -184,7 +183,7 @@ export class ReconnectionManager extends EventEmitter {
       return true;
     } catch (error) {
       this.state.lastError = error as Error;
-      
+
       this.logger.error('Reconnection failed', {
         attempt: this.state.attempts,
         error: (error as Error).message,
@@ -217,14 +216,14 @@ export class ReconnectionManager extends EventEmitter {
     }
 
     const delay = this.addJitter(this.state.nextDelay);
-    
+
     this.logger.debug('Scheduling next reconnection attempt', {
       delay,
       baseDelay: this.state.nextDelay,
     });
 
     this.reconnectTimer = setTimeout(() => {
-      this.attemptReconnection().catch(error => {
+      this.attemptReconnection().catch((error) => {
         this.logger.error('Scheduled reconnection error', error);
       });
     }, delay);
@@ -239,11 +238,11 @@ export class ReconnectionManager extends EventEmitter {
     // Exponential backoff calculation
     const nextDelay = Math.min(
       this.state.nextDelay * this.config.backoffMultiplier,
-      this.config.maxDelay
+      this.config.maxDelay,
     );
 
     this.state.nextDelay = nextDelay;
-    
+
     this.logger.debug('Calculated next delay', {
       delay: nextDelay,
       multiplier: this.config.backoffMultiplier,
@@ -255,7 +254,7 @@ export class ReconnectionManager extends EventEmitter {
     // Add random jitter to prevent thundering herd
     const jitter = delay * this.config.jitterFactor;
     const randomJitter = (Math.random() - 0.5) * 2 * jitter;
-    
+
     return Math.max(0, delay + randomJitter);
   }
 
@@ -264,7 +263,7 @@ export class ReconnectionManager extends EventEmitter {
    */
   async forceReconnect(): Promise<boolean> {
     this.logger.info('Forcing immediate reconnection');
-    
+
     // Cancel any scheduled reconnect
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
@@ -276,7 +275,7 @@ export class ReconnectionManager extends EventEmitter {
     this.state.nextDelay = 0;
 
     const result = await this.attemptReconnection();
-    
+
     // Restore delay if failed
     if (!result) {
       this.state.nextDelay = originalDelay;

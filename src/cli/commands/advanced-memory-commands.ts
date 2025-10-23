@@ -7,7 +7,13 @@ import { getErrorMessage } from '../../utils/error-handler.js';
 
 import { promises as fs } from 'node:fs';
 import { join, extname, basename } from 'node:path';
-import { AdvancedMemoryManager, type QueryOptions, type ExportOptions, type ImportOptions, type CleanupOptions } from '../../memory/advanced-memory-manager.js';
+import {
+  AdvancedMemoryManager,
+  type QueryOptions,
+  type ExportOptions,
+  type ImportOptions,
+  type CleanupOptions,
+} from '../../memory/advanced-memory-manager.js';
 import { Logger } from '../../core/logger.js';
 
 // Initialize logger
@@ -49,14 +55,17 @@ function formatDuration(ms: number): string {
 
 async function ensureMemoryManager(): Promise<AdvancedMemoryManager> {
   if (!memoryManager) {
-    memoryManager = new AdvancedMemoryManager({
-      maxMemorySize: 1024 * 1024 * 1024, // 1GB
-      autoCompress: true,
-      autoCleanup: true,
-      indexingEnabled: true,
-      persistenceEnabled: true
-    }, logger);
-    
+    memoryManager = new AdvancedMemoryManager(
+      {
+        maxMemorySize: 1024 * 1024 * 1024, // 1GB
+        autoCompress: true,
+        autoCleanup: true,
+        indexingEnabled: true,
+        persistenceEnabled: true,
+      },
+      logger,
+    );
+
     await memoryManager.initialize();
   }
   return memoryManager;
@@ -64,14 +73,17 @@ async function ensureMemoryManager(): Promise<AdvancedMemoryManager> {
 
 // === MAIN MEMORY COMMAND ===
 
-export async function advancedMemoryCommand(subArgs: string[], flags: Record<string, any>): Promise<void> {
+export async function advancedMemoryCommand(
+  subArgs: string[],
+  flags: Record<string, any>,
+): Promise<void> {
   const subcommand = subArgs[0];
-  
+
   if (!subcommand) {
     showAdvancedMemoryHelp();
     return;
   }
-  
+
   try {
     switch (subcommand) {
       case 'query':
@@ -127,11 +139,19 @@ export async function advancedMemoryCommand(subArgs: string[], flags: Record<str
 function showAdvancedMemoryHelp(): void {
   console.log('🧠 Advanced Memory Management System\n');
   console.log('Available commands:');
-  console.log('  memory query <search> [options]     - Flexible searching with filters and aggregation');
+  console.log(
+    '  memory query <search> [options]     - Flexible searching with filters and aggregation',
+  );
   console.log('  memory export <file> [options]      - Export memory data in multiple formats');
-  console.log('  memory import <file> [options]      - Import data with validation and transformation');
-  console.log('  memory stats [options]              - Comprehensive statistics and optimization suggestions');
-  console.log('  memory cleanup [options]            - Intelligent cleanup with archiving and retention');
+  console.log(
+    '  memory import <file> [options]      - Import data with validation and transformation',
+  );
+  console.log(
+    '  memory stats [options]              - Comprehensive statistics and optimization suggestions',
+  );
+  console.log(
+    '  memory cleanup [options]            - Intelligent cleanup with archiving and retention',
+  );
   console.log('  memory store <key> <value> [opts]   - Store data with advanced options');
   console.log('  memory get <key> [options]          - Retrieve data with caching');
   console.log('  memory delete <key> [options]       - Delete specific entries');
@@ -153,7 +173,7 @@ function showAdvancedMemoryHelp(): void {
 
 async function queryCommand(args: string[], flags: Record<string, any>): Promise<void> {
   const search = args[0];
-  
+
   if (!search) {
     printError('Usage: memory query <search> [options]');
     console.log('Options:');
@@ -174,14 +194,16 @@ async function queryCommand(args: string[], flags: Record<string, any>): Promise
     console.log('  --include-expired       Include expired entries');
     console.log('  --limit <num>           Limit results');
     console.log('  --offset <num>          Offset for pagination');
-    console.log('  --sort-by <field>       Sort by field (key|createdAt|updatedAt|lastAccessedAt|size|type)');
+    console.log(
+      '  --sort-by <field>       Sort by field (key|createdAt|updatedAt|lastAccessedAt|size|type)',
+    );
     console.log('  --sort-order <order>    Sort order (asc|desc)');
     console.log('  --aggregate-by <field>  Generate aggregations (namespace|type|owner|tags)');
     console.log('  --include-metadata      Include full metadata in results');
     console.log('  --format <format>       Output format (table|json|csv)');
     return;
   }
-  
+
   try {
     const manager = await ensureMemoryManager();
     const startTime = Date.now();
@@ -208,7 +230,7 @@ async function queryCommand(args: string[], flags: Record<string, any>): Promise
       sortBy: flags['sort-by'],
       sortOrder: flags['sort-order'] || 'asc',
       aggregateBy: flags['aggregate-by'],
-      includeMetadata: flags['include-metadata']
+      includeMetadata: flags['include-metadata'],
     };
 
     const result = await manager.query(queryOptions);
@@ -225,43 +247,56 @@ async function queryCommand(args: string[], flags: Record<string, any>): Promise
     const format = flags.format || 'table';
     switch (format) {
       case 'json':
-        console.log(JSON.stringify({
-          query: queryOptions,
-          results: result,
-          executionTime: duration
-        }, null, 2));
+        console.log(
+          JSON.stringify(
+            {
+              query: queryOptions,
+              results: result,
+              executionTime: duration,
+            },
+            null,
+            2,
+          ),
+        );
         break;
 
       case 'csv':
         console.log('key,value,type,namespace,tags,size,created,updated');
         for (const entry of result.entries) {
-          console.log([
-            entry.key,
-            JSON.stringify(entry.value).replace(/"/g, '""'),
-            entry.type,
-            entry.namespace,
-            entry.tags.join(';'),
-            entry.size,
-            entry.createdAt.toISOString(),
-            entry.updatedAt.toISOString()
-          ].join(','));
+          console.log(
+            [
+              entry.key,
+              JSON.stringify(entry.value).replace(/"/g, '""'),
+              entry.type,
+              entry.namespace,
+              entry.tags.join(';'),
+              entry.size,
+              entry.createdAt.toISOString(),
+              entry.updatedAt.toISOString(),
+            ].join(','),
+          );
         }
         break;
 
       default: // table
         console.log('\n📋 Query Results:\n');
         result.entries.forEach((entry, i) => {
-          const value = typeof entry.value === 'string' && entry.value.length > 100 
-            ? entry.value.substring(0, 100) + '...'
-            : JSON.stringify(entry.value);
+          const value =
+            typeof entry.value === 'string' && entry.value.length > 100
+              ? entry.value.substring(0, 100) + '...'
+              : JSON.stringify(entry.value);
 
           console.log(`${i + 1}. ${entry.key}`);
-          console.log(`   Type: ${entry.type} | Namespace: ${entry.namespace} | Size: ${formatBytes(entry.size)}`);
+          console.log(
+            `   Type: ${entry.type} | Namespace: ${entry.namespace} | Size: ${formatBytes(entry.size)}`,
+          );
           console.log(`   Tags: [${entry.tags.join(', ')}]`);
           console.log(`   Value: ${value}`);
-          console.log(`   Created: ${entry.createdAt.toLocaleString()} | Updated: ${entry.updatedAt.toLocaleString()}`);
+          console.log(
+            `   Created: ${entry.createdAt.toLocaleString()} | Updated: ${entry.updatedAt.toLocaleString()}`,
+          );
           console.log(`   Last Accessed: ${entry.lastAccessedAt.toLocaleString()}`);
-          
+
           if (flags['include-metadata'] && Object.keys(entry.metadata).length > 0) {
             console.log(`   Metadata: ${JSON.stringify(entry.metadata)}`);
           }
@@ -286,7 +321,6 @@ async function queryCommand(args: string[], flags: Record<string, any>): Promise
       const showing = (flags.offset ? parseInt(flags.offset) : 0) + result.entries.length;
       console.log(`Showing ${showing} of ${result.total} entries`);
     }
-
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     printError(`Query failed: ${message}`);
@@ -298,7 +332,7 @@ async function queryCommand(args: string[], flags: Record<string, any>): Promise
 
 async function exportCommand(args: string[], flags: Record<string, any>): Promise<void> {
   const file = args[0];
-  
+
   if (!file) {
     printError('Usage: memory export <file> [options]');
     console.log('Options:');
@@ -312,21 +346,30 @@ async function exportCommand(args: string[], flags: Record<string, any>): Promis
     console.log('  --filter-query <json>   Advanced filtering (JSON query options)');
     return;
   }
-  
+
   try {
     const manager = await ensureMemoryManager();
-    
+
     // Determine format from file extension if not specified
     let format = flags.format;
     if (!format) {
       const ext = extname(file).toLowerCase();
       switch (ext) {
-        case '.json': format = 'json'; break;
-        case '.csv': format = 'csv'; break;
-        case '.xml': format = 'xml'; break;
+        case '.json':
+          format = 'json';
+          break;
+        case '.csv':
+          format = 'csv';
+          break;
+        case '.xml':
+          format = 'xml';
+          break;
         case '.yaml':
-        case '.yml': format = 'yaml'; break;
-        default: format = 'json';
+        case '.yml':
+          format = 'yaml';
+          break;
+        default:
+          format = 'json';
       }
     }
 
@@ -348,11 +391,13 @@ async function exportCommand(args: string[], flags: Record<string, any>): Promis
       type: flags.type,
       includeMetadata: flags['include-metadata'],
       compression: flags.compression,
-      encryption: flags.encrypt ? {
-        enabled: true,
-        key: flags['encrypt-key']
-      } : undefined,
-      filtering
+      encryption: flags.encrypt
+        ? {
+            enabled: true,
+            key: flags['encrypt-key'],
+          }
+        : undefined,
+      filtering,
     };
 
     printInfo(`Starting export to ${file} (format: ${format})`);
@@ -372,9 +417,8 @@ async function exportCommand(args: string[], flags: Record<string, any>): Promis
     if (flags.encrypt) {
       printInfo('Data was encrypted during export');
     }
-
   } catch (error) {
-    printError(`Export failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Export failed: ${error instanceof Error ? error.message : String(error)}`);
     if (flags.debug) {
       console.error(error);
     }
@@ -383,18 +427,20 @@ async function exportCommand(args: string[], flags: Record<string, any>): Promis
 
 async function importCommand(args: string[], flags: Record<string, any>): Promise<void> {
   const file = args[0];
-  
+
   if (!file) {
     printError('Usage: memory import <file> [options]');
     console.log('Options:');
     console.log('  --format <format>           Import format (json|csv|xml|yaml)');
     console.log('  --namespace <namespace>     Target namespace for imported data');
-    console.log('  --conflict-resolution <strategy> Conflict resolution (overwrite|skip|merge|rename)');
+    console.log(
+      '  --conflict-resolution <strategy> Conflict resolution (overwrite|skip|merge|rename)',
+    );
     console.log('  --validation                Enable data validation');
     console.log('  --dry-run                   Show what would be imported without making changes');
     return;
   }
-  
+
   try {
     // Check if file exists
     try {
@@ -405,17 +451,25 @@ async function importCommand(args: string[], flags: Record<string, any>): Promis
     }
 
     const manager = await ensureMemoryManager();
-    
+
     // Determine format from file extension if not specified
     let format = flags.format;
     if (!format) {
       const ext = extname(file).toLowerCase();
       switch (ext) {
-        case '.json': format = 'json'; break;
-        case '.csv': format = 'csv'; break;
-        case '.xml': format = 'xml'; break;
+        case '.json':
+          format = 'json';
+          break;
+        case '.csv':
+          format = 'csv';
+          break;
+        case '.xml':
+          format = 'xml';
+          break;
         case '.yaml':
-        case '.yml': format = 'yaml'; break;
+        case '.yml':
+          format = 'yaml';
+          break;
         default:
           printError('Cannot determine format from file extension. Please specify --format');
           return;
@@ -428,7 +482,7 @@ async function importCommand(args: string[], flags: Record<string, any>): Promis
       namespace: flags.namespace,
       conflictResolution: flags['conflict-resolution'] || 'skip',
       validation: flags.validation,
-      dryRun: flags['dry-run']
+      dryRun: flags['dry-run'],
     };
 
     if (flags['dry-run']) {
@@ -442,7 +496,7 @@ async function importCommand(args: string[], flags: Record<string, any>): Promis
     const duration = Date.now() - startTime;
 
     printSuccess(`Import completed in ${formatDuration(duration)}`);
-    
+
     if (result.entriesImported > 0) {
       console.log(`📥 Imported: ${result.entriesImported} entries`);
     }
@@ -455,19 +509,18 @@ async function importCommand(args: string[], flags: Record<string, any>): Promis
     if (result.conflicts.length > 0) {
       console.log(`⚠️  Conflicts: ${result.conflicts.length}`);
       if (result.conflicts.length <= 10) {
-        result.conflicts.forEach(conflict => {
+        result.conflicts.forEach((conflict) => {
           console.log(`   • ${conflict}`);
         });
       } else {
-        result.conflicts.slice(0, 10).forEach(conflict => {
+        result.conflicts.slice(0, 10).forEach((conflict) => {
           console.log(`   • ${conflict}`);
         });
         console.log(`   ... and ${result.conflicts.length - 10} more`);
       }
     }
-
   } catch (error) {
-    printError(`Import failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Import failed: ${error instanceof Error ? error.message : String(error)}`);
     if (flags.debug) {
       console.error(error);
     }
@@ -486,9 +539,9 @@ async function statsCommand(args: string[], flags: Record<string, any>): Promise
       const output = {
         statistics: stats,
         generatedAt: new Date().toISOString(),
-        generationTime: duration
+        generationTime: duration,
       };
-      
+
       if (flags.export) {
         await fs.writeFile(flags.export, JSON.stringify(output, null, 2));
         printSuccess(`Statistics exported to ${flags.export}`);
@@ -505,7 +558,9 @@ async function statsCommand(args: string[], flags: Record<string, any>): Promise
     console.log('📊 Overview:');
     console.log(`   Total Entries: ${stats.overview.totalEntries.toLocaleString()}`);
     console.log(`   Total Size: ${formatBytes(stats.overview.totalSize)}`);
-    console.log(`   Compressed Entries: ${stats.overview.compressedEntries.toLocaleString()} (${(stats.overview.compressionRatio * 100).toFixed(1)}% compression)`);
+    console.log(
+      `   Compressed Entries: ${stats.overview.compressedEntries.toLocaleString()} (${(stats.overview.compressionRatio * 100).toFixed(1)}% compression)`,
+    );
     console.log(`   Index Size: ${formatBytes(stats.overview.indexSize)}`);
     console.log(`   Memory Usage: ${formatBytes(stats.overview.memoryUsage)}`);
     console.log(`   Disk Usage: ${formatBytes(stats.overview.diskUsage)}`);
@@ -513,14 +568,14 @@ async function statsCommand(args: string[], flags: Record<string, any>): Promise
 
     // Distribution
     console.log('📈 Distribution:');
-    
+
     if (Object.keys(stats.distribution.byNamespace).length > 0) {
       console.log('   By Namespace:');
       for (const [namespace, data] of Object.entries(stats.distribution.byNamespace)) {
         console.log(`     ${namespace}: ${data.count} entries, ${formatBytes(data.size)}`);
       }
     }
-    
+
     if (Object.keys(stats.distribution.byType).length > 0) {
       console.log('   By Type:');
       for (const [type, data] of Object.entries(stats.distribution.byType)) {
@@ -550,15 +605,19 @@ async function statsCommand(args: string[], flags: Record<string, any>): Promise
     // Optimization suggestions
     if (stats.optimization.suggestions.length > 0) {
       console.log('💡 Optimization Suggestions:');
-      stats.optimization.suggestions.forEach(suggestion => {
+      stats.optimization.suggestions.forEach((suggestion) => {
         console.log(`   • ${suggestion}`);
       });
       console.log();
 
       console.log('💰 Potential Savings:');
-      console.log(`   Compression: ${formatBytes(stats.optimization.potentialSavings.compression)}`);
+      console.log(
+        `   Compression: ${formatBytes(stats.optimization.potentialSavings.compression)}`,
+      );
       console.log(`   Cleanup: ${formatBytes(stats.optimization.potentialSavings.cleanup)}`);
-      console.log(`   Deduplication: ${formatBytes(stats.optimization.potentialSavings.deduplication)}`);
+      console.log(
+        `   Deduplication: ${formatBytes(stats.optimization.potentialSavings.deduplication)}`,
+      );
       console.log();
     }
 
@@ -569,14 +628,13 @@ async function statsCommand(args: string[], flags: Record<string, any>): Promise
       const output = {
         statistics: stats,
         generatedAt: new Date().toISOString(),
-        generationTime: duration
+        generationTime: duration,
       };
       await fs.writeFile(flags.export, JSON.stringify(output, null, 2));
       printSuccess(`Statistics exported to ${flags.export}`);
     }
-
   } catch (error) {
-    printError(`Stats failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Stats failed: ${error instanceof Error ? error.message : String(error)}`);
     if (flags.debug) {
       console.error(error);
     }
@@ -595,16 +653,22 @@ async function cleanupCommand(args: string[], flags: Record<string, any>): Promi
     const cleanupOptions: CleanupOptions = {
       dryRun: flags['dry-run'],
       removeExpired: flags['remove-expired'] !== false,
-      removeOlderThan: flags['remove-older-than'] ? parseInt(flags['remove-older-than']) : undefined,
-      removeUnaccessed: flags['remove-unaccessed'] ? parseInt(flags['remove-unaccessed']) : undefined,
+      removeOlderThan: flags['remove-older-than']
+        ? parseInt(flags['remove-older-than'])
+        : undefined,
+      removeUnaccessed: flags['remove-unaccessed']
+        ? parseInt(flags['remove-unaccessed'])
+        : undefined,
       removeOrphaned: flags['remove-orphaned'] !== false,
       removeDuplicates: flags['remove-duplicates'],
       compressEligible: flags['compress-eligible'] !== false,
-      archiveOld: flags['archive-old'] ? {
-        enabled: true,
-        olderThan: flags['archive-older-than'] ? parseInt(flags['archive-older-than']) : 365,
-        archivePath: flags['archive-path'] || './memory/archive'
-      } : undefined
+      archiveOld: flags['archive-old']
+        ? {
+            enabled: true,
+            olderThan: flags['archive-older-than'] ? parseInt(flags['archive-older-than']) : 365,
+            archivePath: flags['archive-path'] || './memory/archive',
+          }
+        : undefined,
     };
 
     printInfo('Starting memory cleanup...');
@@ -630,7 +694,7 @@ async function cleanupCommand(args: string[], flags: Record<string, any>): Promi
 
     if (result.actions.length > 0) {
       console.log('\n📋 Actions Performed:');
-      result.actions.forEach(action => {
+      result.actions.forEach((action) => {
         console.log(`   • ${action}`);
       });
     }
@@ -638,9 +702,8 @@ async function cleanupCommand(args: string[], flags: Record<string, any>): Promi
     if (flags['dry-run'] && (result.entriesRemoved > 0 || result.entriesArchived > 0)) {
       printInfo('Run without --dry-run to perform these actions');
     }
-
   } catch (error) {
-    printError(`Cleanup failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Cleanup failed: ${error instanceof Error ? error.message : String(error)}`);
     if (flags.debug) {
       console.error(error);
     }
@@ -650,7 +713,7 @@ async function cleanupCommand(args: string[], flags: Record<string, any>): Promi
 async function storeCommand(args: string[], flags: Record<string, any>): Promise<void> {
   const key = args[0];
   const value = args.slice(1).join(' ');
-  
+
   if (!key || !value) {
     printError('Usage: memory store <key> <value> [options]');
     console.log('Options:');
@@ -663,10 +726,10 @@ async function storeCommand(args: string[], flags: Record<string, any>): Promise
     console.log('  --compress              Force compression');
     return;
   }
-  
+
   try {
     const manager = await ensureMemoryManager();
-    
+
     // Parse value as JSON if possible
     let parsedValue;
     try {
@@ -674,7 +737,7 @@ async function storeCommand(args: string[], flags: Record<string, any>): Promise
     } catch {
       parsedValue = value;
     }
-    
+
     const entryId = await manager.store(key, parsedValue, {
       namespace: flags.namespace || 'default',
       type: flags.type,
@@ -682,15 +745,15 @@ async function storeCommand(args: string[], flags: Record<string, any>): Promise
       owner: flags.owner || 'system',
       accessLevel: flags['access-level'] || 'shared',
       ttl: flags.ttl ? parseInt(flags.ttl) : undefined,
-      compress: flags.compress
+      compress: flags.compress,
     });
-    
+
     printSuccess('Entry stored successfully');
     console.log(`📝 Entry ID: ${entryId}`);
     console.log(`🔑 Key: ${key}`);
     console.log(`📦 Namespace: ${flags.namespace || 'default'}`);
     console.log(`🏷️  Type: ${flags.type || 'auto-detected'}`);
-    
+
     if (flags.tags) {
       console.log(`🏷️  Tags: [${flags.tags}]`);
     }
@@ -698,15 +761,14 @@ async function storeCommand(args: string[], flags: Record<string, any>): Promise
       const expiresAt = new Date(Date.now() + parseInt(flags.ttl));
       console.log(`⏰ Expires: ${expiresAt.toLocaleString()}`);
     }
-
   } catch (error) {
-    printError(`Store failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Store failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
 async function getCommand(args: string[], flags: Record<string, any>): Promise<void> {
   const key = args[0];
-  
+
   if (!key) {
     printError('Usage: memory get <key> [options]');
     console.log('Options:');
@@ -714,20 +776,20 @@ async function getCommand(args: string[], flags: Record<string, any>): Promise<v
     console.log('  --format <format>       Output format (json|pretty, default: pretty)');
     return;
   }
-  
+
   try {
     const manager = await ensureMemoryManager();
-    
+
     const entry = await manager.retrieve(key, {
       namespace: flags.namespace,
-      updateLastAccessed: true
+      updateLastAccessed: true,
     });
-    
+
     if (!entry) {
       printWarning(`Entry not found: ${key}`);
       return;
     }
-    
+
     if (flags.format === 'json') {
       console.log(JSON.stringify(entry, null, 2));
     } else {
@@ -740,23 +802,23 @@ async function getCommand(args: string[], flags: Record<string, any>): Promise<v
       console.log(`📊 Version: ${entry.version}`);
       console.log(`👤 Owner: ${entry.owner}`);
       console.log(`🔒 Access: ${entry.accessLevel}`);
-      
+
       if (entry.tags.length > 0) {
         console.log(`🏷️  Tags: [${entry.tags.join(', ')}]`);
       }
-      
+
       console.log(`📅 Created: ${entry.createdAt.toLocaleString()}`);
       console.log(`📅 Updated: ${entry.updatedAt.toLocaleString()}`);
       console.log(`📅 Last Accessed: ${entry.lastAccessedAt.toLocaleString()}`);
-      
+
       if (entry.expiresAt) {
         console.log(`⏰ Expires: ${entry.expiresAt.toLocaleString()}`);
       }
-      
+
       if (entry.compressed) {
         console.log(`🗜️  Compressed: Yes`);
       }
-      
+
       console.log(`💾 Value:`);
       if (typeof entry.value === 'string' && entry.value.length > 500) {
         console.log(entry.value.substring(0, 500) + '...');
@@ -766,13 +828,13 @@ async function getCommand(args: string[], flags: Record<string, any>): Promise<v
       }
     }
   } catch (error) {
-    printError(`Retrieve failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Retrieve failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
 async function deleteCommand(args: string[], flags: Record<string, any>): Promise<void> {
   const key = args[0];
-  
+
   if (!key) {
     printError('Usage: memory delete <key> [options]');
     console.log('Options:');
@@ -780,72 +842,74 @@ async function deleteCommand(args: string[], flags: Record<string, any>): Promis
     console.log('  --confirm               Skip confirmation prompt');
     return;
   }
-  
+
   try {
     const manager = await ensureMemoryManager();
-    
+
     const entry = await manager.retrieve(key, { namespace: flags.namespace });
     if (!entry) {
       printWarning(`Entry not found: ${key}`);
       return;
     }
-    
+
     if (!flags.confirm) {
       console.log(`About to delete entry: ${key} (namespace: ${entry.namespace})`);
       console.log('Add --confirm to proceed without this prompt');
       return;
     }
-    
+
     const success = await manager.deleteEntry(entry.id);
-    
+
     if (success) {
       printSuccess(`Entry deleted: ${key}`);
     } else {
       printError(`Failed to delete entry: ${key}`);
     }
   } catch (error) {
-    printError(`Delete failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Delete failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
 async function listCommand(args: string[], flags: Record<string, any>): Promise<void> {
   try {
     const manager = await ensureMemoryManager();
-    
+
     const result = await manager.query({
       namespace: flags.namespace,
       type: flags.type,
       limit: flags.limit ? parseInt(flags.limit) : 20,
       offset: flags.offset ? parseInt(flags.offset) : 0,
       sortBy: flags['sort-by'] || 'updatedAt',
-      sortOrder: flags['sort-order'] || 'desc'
+      sortOrder: flags['sort-order'] || 'desc',
     });
-    
+
     if (result.entries.length === 0) {
       printInfo('No entries found');
       return;
     }
-    
+
     console.log(`\n📋 Memory Entries (${result.total} total):\n`);
-    
+
     result.entries.forEach((entry, i) => {
       const num = (flags.offset ? parseInt(flags.offset) : 0) + i + 1;
       console.log(`${num}. ${entry.key}`);
-      console.log(`   Namespace: ${entry.namespace} | Type: ${entry.type} | Size: ${formatBytes(entry.size)}`);
+      console.log(
+        `   Namespace: ${entry.namespace} | Type: ${entry.type} | Size: ${formatBytes(entry.size)}`,
+      );
       console.log(`   Updated: ${entry.updatedAt.toLocaleString()}`);
-      
+
       if (entry.tags.length > 0) {
         console.log(`   Tags: [${entry.tags.join(', ')}]`);
       }
       console.log();
     });
-    
+
     if (result.total > result.entries.length) {
       const showing = (flags.offset ? parseInt(flags.offset) : 0) + result.entries.length;
       console.log(`Showing ${showing} of ${result.total} entries`);
     }
   } catch (error) {
-    printError(`List failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`List failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -853,18 +917,20 @@ async function namespacesCommand(args: string[], flags: Record<string, any>): Pr
   try {
     const manager = await ensureMemoryManager();
     const namespaces = await manager.listNamespaces();
-    
+
     if (namespaces.length === 0) {
       printInfo('No namespaces found');
       return;
     }
-    
+
     console.log('\n📁 Namespaces:\n');
     namespaces.forEach((namespace, i) => {
       console.log(`${i + 1}. ${namespace}`);
     });
   } catch (error) {
-    printError(`Failed to list namespaces: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(
+      `Failed to list namespaces: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }
 
@@ -872,18 +938,18 @@ async function typesCommand(args: string[], flags: Record<string, any>): Promise
   try {
     const manager = await ensureMemoryManager();
     const types = await manager.listTypes();
-    
+
     if (types.length === 0) {
       printInfo('No types found');
       return;
     }
-    
+
     console.log('\n🏷️  Data Types:\n');
     types.forEach((type, i) => {
       console.log(`${i + 1}. ${type}`);
     });
   } catch (error) {
-    printError(`Failed to list types: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Failed to list types: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -891,25 +957,25 @@ async function tagsCommand(args: string[], flags: Record<string, any>): Promise<
   try {
     const manager = await ensureMemoryManager();
     const tags = await manager.listTags();
-    
+
     if (tags.length === 0) {
       printInfo('No tags found');
       return;
     }
-    
+
     console.log('\n🏷️  Tags:\n');
     tags.forEach((tag, i) => {
       console.log(`${i + 1}. ${tag}`);
     });
   } catch (error) {
-    printError(`Failed to list tags: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(`Failed to list tags: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
 async function configCommand(args: string[], flags: Record<string, any>): Promise<void> {
   try {
     const manager = await ensureMemoryManager();
-    
+
     if (flags.set) {
       try {
         const updates = JSON.parse(flags.set);
@@ -920,13 +986,15 @@ async function configCommand(args: string[], flags: Record<string, any>): Promis
         return;
       }
     }
-    
+
     if (flags.show || !flags.set) {
       const config = manager.getConfiguration();
       console.log('\n⚙️  Memory System Configuration:\n');
       console.log(JSON.stringify(config, null, 2));
     }
   } catch (error) {
-    printError(`Configuration operation failed: ${(error instanceof Error ? error.message : String(error))}`);
+    printError(
+      `Configuration operation failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }

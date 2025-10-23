@@ -3,7 +3,12 @@
  */
 
 import { BaseAgent } from './base-agent.js';
-import type { AgentCapabilities, AgentConfig, AgentEnvironment, TaskDefinition } from '../../swarm/types.js';
+import type {
+  AgentCapabilities,
+  AgentConfig,
+  AgentEnvironment,
+  TaskDefinition,
+} from '../../swarm/types.js';
 import type { ILogger } from '../../core/logger.js';
 import type { IEventBus } from '../../core/event-bus.js';
 import type { DistributedMemorySystem } from '../../memory/distributed-memory.js';
@@ -67,7 +72,7 @@ export class ArchitectAgent extends BaseAgent {
     environment: AgentEnvironment,
     logger: ILogger,
     eventBus: IEventBus,
-    memory: DistributedMemorySystem
+    memory: DistributedMemorySystem,
   ) {
     super(id, 'architect', config, environment, logger, eventBus, memory);
   }
@@ -84,15 +89,7 @@ export class ArchitectAgent extends BaseAgent {
       apiIntegration: true,
       fileSystem: true,
       terminalAccess: false,
-      languages: [
-        'typescript',
-        'javascript',
-        'python',
-        'java',
-        'csharp',
-        'go',
-        'rust'
-      ],
+      languages: ['typescript', 'javascript', 'python', 'java', 'csharp', 'go', 'rust'],
       frameworks: [
         'microservices',
         'kubernetes',
@@ -101,7 +98,7 @@ export class ArchitectAgent extends BaseAgent {
         'azure',
         'gcp',
         'terraform',
-        'helm'
+        'helm',
       ],
       domains: [
         'system-architecture',
@@ -113,7 +110,7 @@ export class ArchitectAgent extends BaseAgent {
         'security-architecture',
         'scalability-design',
         'infrastructure-design',
-        'enterprise-architecture'
+        'enterprise-architecture',
       ],
       tools: [
         'architecture-diagrams',
@@ -123,14 +120,14 @@ export class ArchitectAgent extends BaseAgent {
         'api-designer',
         'security-analyzer',
         'performance-modeler',
-        'cost-calculator'
+        'cost-calculator',
       ],
       maxConcurrentTasks: 2,
       maxMemoryUsage: 1024 * 1024 * 1024, // 1GB
       maxExecutionTime: 2400000, // 40 minutes
       reliability: 0.95,
-      speed: 0.70,
-      quality: 0.98
+      speed: 0.7,
+      quality: 0.98,
     };
   }
 
@@ -144,29 +141,23 @@ export class ArchitectAgent extends BaseAgent {
       timeoutThreshold: 2400000,
       reportingInterval: 90000,
       heartbeatInterval: 20000,
-      permissions: [
-        'file-read',
-        'file-write',
-        'web-access',
-        'api-access',
-        'cloud-access'
-      ],
+      permissions: ['file-read', 'file-write', 'web-access', 'api-access', 'cloud-access'],
       trustedAgents: [],
       expertise: {
         'system-design': 0.98,
         'architecture-patterns': 0.95,
-        'scalability': 0.92,
-        'security': 0.88,
-        'performance': 0.90,
-        'cloud-design': 0.87
+        scalability: 0.92,
+        security: 0.88,
+        performance: 0.9,
+        'cloud-design': 0.87,
       },
       preferences: {
         architectureStyle: 'microservices',
         cloudProvider: 'multi',
         securityFirst: true,
         scalabilityFocus: true,
-        documentationDetail: 'comprehensive'
-      }
+        documentationDetail: 'comprehensive',
+      },
     };
   }
 
@@ -174,7 +165,7 @@ export class ArchitectAgent extends BaseAgent {
     this.logger.info('Architect executing task', {
       agentId: this.id,
       taskType: task.type,
-      taskId: task.id
+      taskId: task.id,
     });
 
     try {
@@ -202,7 +193,7 @@ export class ArchitectAgent extends BaseAgent {
       this.logger.error('Architecture task failed', {
         agentId: this.id,
         taskId: task.id,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -217,7 +208,7 @@ export class ArchitectAgent extends BaseAgent {
     this.logger.info('Designing system', {
       requirements: requirements?.length || 0,
       scale,
-      style
+      style,
     });
 
     const design = {
@@ -229,7 +220,7 @@ export class ArchitectAgent extends BaseAgent {
         services: [] as any[],
         databases: [] as any[],
         queues: [] as any[],
-        caches: [] as any[]
+        caches: [] as any[],
       },
       patterns: [] as string[],
       technologies: {
@@ -237,7 +228,7 @@ export class ArchitectAgent extends BaseAgent {
         frontend: [] as string[],
         database: [] as string[],
         infrastructure: [] as string[],
-        monitoring: [] as string[]
+        monitoring: [] as string[],
       },
       diagrams: [],
       documentation: {
@@ -245,72 +236,76 @@ export class ArchitectAgent extends BaseAgent {
         components: [],
         apis: [],
         deployment: '',
-        monitoring: ''
+        monitoring: '',
       },
       constraints: constraints,
       tradeoffs: [],
       risks: [],
       recommendations: [],
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Store design progress
-    await this.memory.store(`design:${task.id}:progress`, {
-      status: 'designing',
-      startTime: new Date(),
-      requirements
-    }, {
-      type: 'design-progress',
-      tags: ['architecture', this.id, style],
-      partition: 'tasks'
-    });
+    await this.memory.store(
+      `design:${task.id}:progress`,
+      {
+        status: 'designing',
+        startTime: new Date(),
+        requirements,
+      },
+      {
+        type: 'design-progress',
+        tags: ['architecture', this.id, style],
+        partition: 'tasks',
+      },
+    );
 
     // Simulate system design
     await this.delay(5000);
-    
+
     design.architecture.components = [
       {
         name: 'API Gateway',
         type: 'gateway',
         purpose: 'Request routing and load balancing',
-        technology: 'Kong/NGINX'
+        technology: 'Kong/NGINX',
       },
       {
         name: 'User Service',
         type: 'microservice',
         purpose: 'User management and authentication',
-        technology: 'Node.js/Express'
+        technology: 'Node.js/Express',
       },
       {
         name: 'Data Service',
         type: 'microservice',
         purpose: 'Data processing and analytics',
-        technology: 'Python/FastAPI'
-      }
+        technology: 'Python/FastAPI',
+      },
     ] as any[];
-    
+
     design.patterns = [
       'Microservices Architecture',
       'API Gateway Pattern',
       'Database per Service',
       'Event Sourcing',
       'CQRS',
-      'Circuit Breaker'
+      'Circuit Breaker',
     ] as string[];
-    
+
     design.technologies = {
       backend: ['Node.js', 'Python', 'TypeScript'] as string[],
       frontend: ['React', 'TypeScript'] as string[],
       database: ['PostgreSQL', 'Redis', 'MongoDB'] as string[],
       infrastructure: ['Kubernetes', 'Docker', 'AWS'] as string[],
-      monitoring: ['Prometheus', 'Grafana', 'Jaeger'] as string[]
+      monitoring: ['Prometheus', 'Grafana', 'Jaeger'] as string[],
     };
 
     // Store final design
     await this.memory.store(`design:${task.id}:results`, design, {
       type: 'design-results',
       tags: ['architecture', 'completed', this.id, style],
-      partition: 'tasks'
+      partition: 'tasks',
     });
 
     return design;
@@ -323,7 +318,7 @@ export class ArchitectAgent extends BaseAgent {
 
     this.logger.info('Reviewing architecture', {
       focus,
-      standards
+      standards,
     });
 
     const review = {
@@ -336,20 +331,20 @@ export class ArchitectAgent extends BaseAgent {
       compliance: {
         passed: [] as any[],
         failed: [] as any[],
-        warnings: [] as any[]
+        warnings: [] as any[],
       },
       patterns: {
         identified: [] as any[],
         missing: [] as any[],
-        antipatterns: [] as any[]
+        antipatterns: [] as any[],
       },
       improvements: [] as any[],
       riskAssessment: {
         technical: [] as any[],
         security: [] as any[],
-        operational: [] as any[]
+        operational: [] as any[],
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate architecture review
@@ -360,24 +355,24 @@ export class ArchitectAgent extends BaseAgent {
       security: 0.78,
       maintainability: 0.92,
       performance: 0.88,
-      reliability: 0.90
+      reliability: 0.9,
     };
-    
+
     review.issues = [
       {
         category: 'security',
         severity: 'high',
         description: 'Missing API rate limiting',
         component: 'API Gateway',
-        recommendation: 'Implement rate limiting and throttling'
+        recommendation: 'Implement rate limiting and throttling',
       },
       {
         category: 'scalability',
         severity: 'medium',
         description: 'Single point of failure in auth service',
         component: 'Authentication Service',
-        recommendation: 'Add redundancy and load balancing'
-      }
+        recommendation: 'Add redundancy and load balancing',
+      },
     ];
 
     return review;
@@ -393,7 +388,7 @@ export class ArchitectAgent extends BaseAgent {
       domain,
       style,
       version,
-      auth
+      auth,
     });
 
     const apiDesign = {
@@ -408,30 +403,30 @@ export class ArchitectAgent extends BaseAgent {
         authorization: 'RBAC',
         rateLimiting: true,
         cors: true,
-        validation: true
+        validation: true,
       },
       documentation: {
         openapi: '3.0.0',
         interactive: true,
-        examples: true
+        examples: true,
       },
       standards: {
         naming: 'kebab-case',
         versioning: 'url-path',
         errorHandling: 'RFC7807',
-        pagination: 'cursor-based'
+        pagination: 'cursor-based',
       },
       performance: {
         caching: 'Redis',
         compression: 'gzip',
-        cdn: true
+        cdn: true,
       },
       monitoring: {
         logging: true,
         metrics: true,
-        tracing: true
+        tracing: true,
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate API design
@@ -443,15 +438,15 @@ export class ArchitectAgent extends BaseAgent {
         path: '/api/v1/users',
         description: 'List users with pagination',
         auth: true,
-        rateLimit: '1000/hour'
+        rateLimit: '1000/hour',
       },
       {
         method: 'POST',
         path: '/api/v1/users',
         description: 'Create new user',
         auth: true,
-        rateLimit: '100/hour'
-      }
+        rateLimit: '100/hour',
+      },
     ];
 
     return apiDesign;
@@ -466,7 +461,7 @@ export class ArchitectAgent extends BaseAgent {
     this.logger.info('Designing cloud architecture', {
       provider,
       regions,
-      compliance
+      compliance,
     });
 
     const cloudDesign = {
@@ -479,32 +474,32 @@ export class ArchitectAgent extends BaseAgent {
         storage: [] as any[],
         network: [] as any[],
         database: [] as any[],
-        security: [] as any[]
+        security: [] as any[],
       },
       services: [] as any[],
       deployment: {
         strategy: 'blue-green',
         automation: 'terraform',
-        ci_cd: 'github-actions'
+        ci_cd: 'github-actions',
       },
       monitoring: {
         logging: 'cloudwatch',
         metrics: 'cloudwatch',
         alerting: 'sns',
-        tracing: 'x-ray'
+        tracing: 'x-ray',
       },
       security: {
         iam: 'principle-of-least-privilege',
         network: 'vpc-with-private-subnets',
         encryption: 'at-rest-and-in-transit',
-        secrets: 'parameter-store'
+        secrets: 'parameter-store',
       },
       cost: {
         estimated: 0,
         optimization: [],
-        monitoring: true
+        monitoring: true,
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate cloud architecture design
@@ -513,9 +508,9 @@ export class ArchitectAgent extends BaseAgent {
     cloudDesign.infrastructure.compute = [
       { service: 'EKS', purpose: 'Container orchestration' },
       { service: 'Lambda', purpose: 'Serverless functions' },
-      { service: 'EC2', purpose: 'Virtual machines' }
+      { service: 'EC2', purpose: 'Virtual machines' },
     ];
-    
+
     cloudDesign.cost.estimated = 2500; // monthly USD
 
     return cloudDesign;
@@ -531,7 +526,7 @@ export class ArchitectAgent extends BaseAgent {
       domain,
       servicesCount: services.length,
       communication,
-      dataConsistency
+      dataConsistency,
     });
 
     const microservicesDesign = {
@@ -543,23 +538,23 @@ export class ArchitectAgent extends BaseAgent {
         communication: ['API Gateway', 'Service Mesh', 'Event Bus'],
         data: ['Database per Service', 'Saga Pattern', 'CQRS'],
         resilience: ['Circuit Breaker', 'Retry', 'Timeout'],
-        observability: ['Distributed Tracing', 'Centralized Logging']
+        observability: ['Distributed Tracing', 'Centralized Logging'],
       },
       infrastructure: {
         serviceDiscovery: 'consul',
         loadBalancing: 'nginx',
         messaging: 'kafka',
-        monitoring: 'prometheus'
+        monitoring: 'prometheus',
       },
       deployment: {
         containerization: 'docker',
         orchestration: 'kubernetes',
         ci_cd: 'jenkins',
-        configuration: 'helm'
+        configuration: 'helm',
       },
       challenges: [] as any[],
       solutions: [] as any[],
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate microservices design
@@ -571,15 +566,15 @@ export class ArchitectAgent extends BaseAgent {
         responsibility: 'User management',
         database: 'PostgreSQL',
         api: 'REST',
-        dependencies: [] as string[]
+        dependencies: [] as string[],
       },
       {
         name: 'Order Service',
         responsibility: 'Order processing',
         database: 'MongoDB',
         api: 'REST + Events',
-        dependencies: ['User Service', 'Payment Service'] as string[]
-      }
+        dependencies: ['User Service', 'Payment Service'] as string[],
+      },
     ];
 
     return microservicesDesign;
@@ -594,7 +589,7 @@ export class ArchitectAgent extends BaseAgent {
     this.logger.info('Designing security architecture', {
       threats: threats.length,
       compliance,
-      sensitivity
+      sensitivity,
     });
 
     const securityDesign = {
@@ -605,31 +600,31 @@ export class ArchitectAgent extends BaseAgent {
         assets: [] as any[],
         threats: [] as any[],
         vulnerabilities: [] as any[],
-        risks: [] as any[]
+        risks: [] as any[],
       },
       controls: {
         preventive: [] as any[],
         detective: [] as any[],
-        corrective: [] as any[]
+        corrective: [] as any[],
       },
       architecture: {
         authentication: 'OAuth2 + JWT',
         authorization: 'RBAC + ABAC',
         encryption: 'AES-256',
-        network: 'Zero Trust'
+        network: 'Zero Trust',
       },
       monitoring: {
         siem: true,
         ids: true,
         logging: 'centralized',
-        alerting: 'real-time'
+        alerting: 'real-time',
       },
       incidents: {
         response: 'automated',
         recovery: 'backup-restore',
-        communication: 'stakeholder-notification'
+        communication: 'stakeholder-notification',
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate security design
@@ -640,7 +635,7 @@ export class ArchitectAgent extends BaseAgent {
       'API Rate Limiting',
       'Input Validation',
       'Access Controls',
-      'Encryption at Rest'
+      'Encryption at Rest',
     ];
 
     return securityDesign;
@@ -655,7 +650,7 @@ export class ArchitectAgent extends BaseAgent {
     this.logger.info('Designing scalability', {
       currentLoad,
       targetLoad,
-      constraints
+      constraints,
     });
 
     const scalabilityDesign = {
@@ -667,31 +662,31 @@ export class ArchitectAgent extends BaseAgent {
         horizontal: [] as any[],
         vertical: [] as any[],
         caching: [] as any[],
-        database: [] as any[]
+        database: [] as any[],
       },
       implementation: {
         autoScaling: true,
         loadBalancing: 'application',
         caching: 'multi-tier',
-        cdn: 'global'
+        cdn: 'global',
       },
       metrics: {
         latency: 'p99 < 100ms',
         throughput: '10000 rps',
         availability: '99.99%',
-        errorRate: '< 0.1%'
+        errorRate: '< 0.1%',
       },
       testing: {
         loadTesting: true,
         stressTesting: true,
-        chaosEngineering: true
+        chaosEngineering: true,
       },
       monitoring: {
         realTime: true,
         predictive: true,
-        alerting: 'proactive'
+        alerting: 'proactive',
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate scalability design
@@ -700,7 +695,7 @@ export class ArchitectAgent extends BaseAgent {
     scalabilityDesign.strategies.horizontal = [
       'Kubernetes HPA',
       'Database Sharding',
-      'Microservices Decomposition'
+      'Microservices Decomposition',
     ];
 
     return scalabilityDesign;
@@ -715,7 +710,7 @@ export class ArchitectAgent extends BaseAgent {
     this.logger.info('Designing database architecture', {
       dataTypes,
       scale,
-      consistency
+      consistency,
     });
 
     const databaseDesign = {
@@ -727,27 +722,27 @@ export class ArchitectAgent extends BaseAgent {
       patterns: {
         data: ['Database per Service', 'Shared Database', 'Data Lake'],
         consistency: ['ACID', 'BASE', 'Eventual Consistency'],
-        scaling: ['Read Replicas', 'Sharding', 'Partitioning']
+        scaling: ['Read Replicas', 'Sharding', 'Partitioning'],
       },
       technologies: {
         relational: ['PostgreSQL', 'MySQL'],
         document: ['MongoDB', 'DynamoDB'],
         cache: ['Redis', 'Memcached'],
-        search: ['Elasticsearch', 'Solr']
+        search: ['Elasticsearch', 'Solr'],
       },
       performance: {
         indexing: 'optimized',
         caching: 'multi-layer',
         partitioning: 'horizontal',
-        replication: 'master-slave'
+        replication: 'master-slave',
       },
       backup: {
         strategy: 'incremental',
         frequency: 'hourly',
         retention: '30-days',
-        testing: 'monthly'
+        testing: 'monthly',
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate database design
@@ -758,14 +753,14 @@ export class ArchitectAgent extends BaseAgent {
         name: 'Primary DB',
         type: 'PostgreSQL',
         purpose: 'Transactional data',
-        size: '500GB'
+        size: '500GB',
       },
       {
         name: 'Cache',
         type: 'Redis',
         purpose: 'Session and application cache',
-        size: '50GB'
-      }
+        size: '50GB',
+      },
     ];
 
     return databaseDesign;
@@ -773,7 +768,7 @@ export class ArchitectAgent extends BaseAgent {
 
   private async performGeneralDesign(task: TaskDefinition): Promise<any> {
     this.logger.info('Performing general design', {
-      description: task.description
+      description: task.description,
     });
 
     // Default to system design
@@ -781,7 +776,7 @@ export class ArchitectAgent extends BaseAgent {
   }
 
   private async delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   override getAgentStatus(): any {
@@ -794,7 +789,7 @@ export class ArchitectAgent extends BaseAgent {
       currentDesigns: this.getCurrentTasks().length,
       averageDesignTime: '30-60 minutes',
       lastDesignCompleted: this.getLastTaskCompletedTime(),
-      specializations: ['Cloud Architecture', 'Security Design', 'Scalability Planning']
+      specializations: ['Cloud Architecture', 'Security Design', 'Scalability Planning'],
     };
   }
 }
@@ -805,7 +800,7 @@ export const createArchitectAgent = (
   environment: Partial<AgentEnvironment>,
   logger: ILogger,
   eventBus: IEventBus,
-  memory: DistributedMemorySystem
+  memory: DistributedMemorySystem,
 ): ArchitectAgent => {
   const defaultConfig = {
     autonomyLevel: 0.8,
@@ -821,23 +816,23 @@ export const createArchitectAgent = (
       'file-write',
       'system-analysis',
       'architecture-design',
-      'api-access'
+      'api-access',
     ],
     trustedAgents: [],
     expertise: {
       'system-architecture': 0.95,
-      'cloud-architecture': 0.90,
+      'cloud-architecture': 0.9,
       'microservices-design': 0.92,
       'api-design': 0.88,
       'database-architecture': 0.85,
-      'security-architecture': 0.87
+      'security-architecture': 0.87,
     },
     preferences: {
       designMethodology: 'domain-driven',
       architecturalStyle: 'microservices',
       documentationLevel: 'comprehensive',
-      reviewThoroughness: 'detailed'
-    }
+      reviewThoroughness: 'detailed',
+    },
   };
   const defaultEnv = {
     runtime: 'deno' as const,
@@ -851,12 +846,12 @@ export const createArchitectAgent = (
       'architecture-diagrams',
       'system-modeler',
       'design-patterns',
-      'cloud-designer'
+      'cloud-designer',
     ],
     toolConfigs: {
       diagramTool: { format: 'svg', style: 'professional' },
-      cloudDesigner: { provider: 'multi', compliance: true }
-    }
+      cloudDesigner: { provider: 'multi', compliance: true },
+    },
   };
 
   return new ArchitectAgent(
@@ -865,6 +860,6 @@ export const createArchitectAgent = (
     { ...defaultEnv, ...environment } as AgentEnvironment,
     logger,
     eventBus,
-    memory
+    memory,
   );
 };

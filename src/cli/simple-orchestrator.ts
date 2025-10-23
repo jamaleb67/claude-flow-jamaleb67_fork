@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Simple orchestrator implementation for Node.js compatibility
  */
@@ -31,7 +30,7 @@ const componentStatus = {
   terminalPool: false,
   mcpServer: false,
   coordinationManager: false,
-  webUI: false
+  webUI: false,
 };
 
 // Simple MCP server
@@ -47,37 +46,39 @@ function startWebUI(host: string, port: number) {
   const app = express();
   const server = createServer(app);
   const wss = new WebSocketServer({ server });
-  
+
   // Add CORS middleware for cross-origin support
-  app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
-  }));
-  
+  app.use(
+    cors({
+      origin: '*',
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      credentials: true,
+    }),
+  );
+
   // Global error handler middleware
   app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error('Global error handler:', err);
     res.status(err.status || 500).json({
       error: err.message || 'Internal server error',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   });
-  
+
   // Request logging middleware
   app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
     next();
   });
-  
+
   // Store CLI output history and active connections
   const outputHistory: string[] = [];
   const activeConnections: Set<any> = new Set();
-  
+
   // CLI output capture system
   let cliProcess: any = null;
-  
+
   const consoleHTML = `
     <!DOCTYPE html>
     <html lang="en">
@@ -459,74 +460,75 @@ function startWebUI(host: string, port: number) {
         agents: agents.size,
         tasks: tasks.size,
         memory: memory.size,
-        connectedClients: activeConnections.size
-      }
+        connectedClients: activeConnections.size,
+      },
     });
   });
-  
+
   app.get('/api/history', (req, res) => {
     const limit = parseInt(req.query.limit as string) || 100;
     res.json({
       history: outputHistory.slice(-limit),
-      total: outputHistory.length
+      total: outputHistory.length,
     });
   });
-  
+
   app.post('/api/command', express.json(), (req, res) => {
     const { command } = req.body;
     if (!command) {
-      return res.status(400).json({ error: 'Command is required' });
+      res.status(400).json({ error: 'Command is required' });
+      return;
     }
-    
+
     // Execute command and return immediately
     // Output will be sent via WebSocket
     try {
       broadcastToClients({
         type: 'output',
-        data: `<span class="prompt">API> </span>${command}\\n`
+        data: `<span class="prompt">API> </span>${command}\\n`,
       });
-      
+
       executeCliCommand(command, null);
-      
+
       res.json({ success: true, message: 'Command executed' });
     } catch (error) {
-      res.status(500).json({ error: (error instanceof Error ? error.message : String(error)) });
+      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
     }
   });
-  
+
   app.get('/api/agents', (req, res) => {
     const agentList = Array.from(agents.entries()).map(([id, agent]) => ({
       id,
-      ...agent
+      ...agent,
     }));
     res.json(agentList);
   });
-  
+
   app.get('/api/tasks', (req, res) => {
     const taskList = Array.from(tasks.entries()).map(([id, task]) => ({
       id,
-      ...task
+      ...task,
     }));
     res.json(taskList);
   });
-  
+
   app.get('/api/memory', (req, res) => {
     const memoryList = Array.from(memory.entries()).map(([key, value]) => ({
       key,
       value,
       type: typeof value,
-      size: JSON.stringify(value).length
+      size: JSON.stringify(value).length,
     }));
     res.json(memoryList);
   });
-  
+
   // Health check endpoint
   app.get('/health', (req, res) => {
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      components: componentStatus
+      components: componentStatus,
     });
   });
 
@@ -535,19 +537,23 @@ function startWebUI(host: string, port: number) {
     const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     console.log(`🔌 WebSocket client connected from ${clientIp}`);
     activeConnections.add(ws);
-    
+
     // Send initial status and history
-    ws.send(JSON.stringify({
-      type: 'status',
-      data: { ...componentStatus, cliActive: true }
-    }));
-    
+    ws.send(
+      JSON.stringify({
+        type: 'status',
+        data: { ...componentStatus, cliActive: true },
+      }),
+    );
+
     // Send recent output history
-    outputHistory.slice(-50).forEach(line => {
-      ws.send(JSON.stringify({
-        type: 'output',
-        data: line
-      }));
+    outputHistory.slice(-50).forEach((line) => {
+      ws.send(
+        JSON.stringify({
+          type: 'output',
+          data: line,
+        }),
+      );
     });
 
     // Handle incoming commands
@@ -555,7 +561,7 @@ function startWebUI(host: string, port: number) {
       try {
         const data = JSON.parse(message.toString());
         console.log(`Received command from client: ${data.type}`);
-        
+
         if (data.type === 'command') {
           handleCliCommand(data.data, ws);
         } else if (data.type === 'ping') {
@@ -564,11 +570,13 @@ function startWebUI(host: string, port: number) {
         }
       } catch (error) {
         console.error('Failed to handle WebSocket message:', error);
-        ws.send(JSON.stringify({
-          type: 'error',
-          data: `Invalid message format: ${(error instanceof Error ? error.message : String(error))}`,
-          timestamp: new Date().toISOString()
-        }));
+        ws.send(
+          JSON.stringify({
+            type: 'error',
+            data: `Invalid message format: ${error instanceof Error ? error.message : String(error)}`,
+            timestamp: new Date().toISOString(),
+          }),
+        );
       }
     });
 
@@ -576,23 +584,25 @@ function startWebUI(host: string, port: number) {
       console.log('🔌 WebSocket client disconnected');
       activeConnections.delete(ws);
     });
-    
+
     ws.on('error', (error) => {
       console.error('WebSocket client error:', error);
       // Send detailed error information to client before closing
       try {
-        ws.send(JSON.stringify({
-          type: 'error',
-          data: `Server WebSocket error: ${(error instanceof Error ? error.message : String(error)) || 'Unknown error'}`,
-          timestamp: new Date().toISOString()
-        }));
+        ws.send(
+          JSON.stringify({
+            type: 'error',
+            data: `Server WebSocket error: ${(error instanceof Error ? error.message : String(error)) || 'Unknown error'}`,
+            timestamp: new Date().toISOString(),
+          }),
+        );
       } catch (sendError) {
         console.error('Failed to send error to client:', sendError);
       }
       activeConnections.delete(ws);
     });
   });
-  
+
   // Helper function to send response to specific client or broadcast
   function sendResponse(ws: any, data: any) {
     if (ws) {
@@ -601,7 +611,7 @@ function startWebUI(host: string, port: number) {
       broadcastToClients(data);
     }
   }
-  
+
   // CLI command execution handler
   function handleCliCommand(command: string, ws: any) {
     try {
@@ -609,26 +619,25 @@ function startWebUI(host: string, port: number) {
       const timestamp = new Date().toLocaleTimeString();
       const logEntry = `[${timestamp}] Executing: ${command}`;
       outputHistory.push(logEntry);
-      
+
       // Broadcast to all connected clients
       broadcastToClients({
         type: 'output',
-        data: `<span class="dim">[${timestamp}]</span> <span class="info">Executing:</span> ${command}\\n`
+        data: `<span class="dim">[${timestamp}]</span> <span class="info">Executing:</span> ${command}\\n`,
       });
-      
+
       // Execute the command
       executeCliCommand(command, ws);
-      
     } catch (error) {
-      const errorMsg = `Error executing command: ${(error instanceof Error ? error.message : String(error))}`;
+      const errorMsg = `Error executing command: ${error instanceof Error ? error.message : String(error)}`;
       outputHistory.push(errorMsg);
       sendResponse(ws, {
         type: 'error',
-        data: errorMsg
+        data: errorMsg,
       });
     }
   }
-  
+
   // Execute CLI commands and capture output
   function executeCliCommand(command: string, ws: any) {
     // Handle built-in commands first
@@ -648,21 +657,21 @@ function startWebUI(host: string, port: number) {
 `;
       sendResponse(ws, {
         type: 'output',
-        data: helpText
+        data: helpText,
       });
       sendResponse(ws, { type: 'command_complete' });
       return;
     }
-    
+
     if (command === 'clear') {
       sendResponse(ws, {
         type: 'output',
-        data: '\\x1b[2J\\x1b[H' // ANSI clear screen
+        data: '\\x1b[2J\\x1b[H', // ANSI clear screen
       });
       sendResponse(ws, { type: 'command_complete' });
       return;
     }
-    
+
     if (command === 'status') {
       const statusText = `<span class="success">System Status:</span>
 • Event Bus: <span class="${componentStatus.eventBus ? 'success' : 'error'}">${componentStatus.eventBus ? 'Active' : 'Inactive'}</span>
@@ -680,89 +689,91 @@ function startWebUI(host: string, port: number) {
 `;
       sendResponse(ws, {
         type: 'output',
-        data: statusText
+        data: statusText,
       });
       sendResponse(ws, { type: 'command_complete' });
       return;
     }
-    
+
     // For other commands, spawn a subprocess
     const args = command.split(' ');
     const cmd = args[0];
     const cmdArgs = args.slice(1);
-    
+
     // Determine the correct claude-flow executable path
     const rootDir = path.resolve(__dirname, '../..');
     const cliPath = path.join(rootDir, 'bin', 'claude-flow');
-    
+
     // Spawn the command
     const child = spawn('node', [path.join(rootDir, 'src/cli/simple-cli.js'), ...cmdArgs], {
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: { ...process.env, CLAUDE_FLOW_WEB_MODE: 'true' }
+      env: { ...process.env, CLAUDE_FLOW_WEB_MODE: 'true' },
     });
-    
+
     // Handle stdout
     child.stdout.on('data', (data) => {
       const output = data.toString();
       outputHistory.push(output);
-      
+
       // Convert ANSI colors to HTML spans
       const htmlOutput = convertAnsiToHtml(output);
-      
+
       broadcastToClients({
         type: 'output',
-        data: htmlOutput
+        data: htmlOutput,
       });
     });
-    
+
     // Handle stderr
     child.stderr.on('data', (data) => {
       const error = data.toString();
       outputHistory.push(error);
-      
+
       broadcastToClients({
         type: 'error',
-        data: convertAnsiToHtml(error)
+        data: convertAnsiToHtml(error),
       });
     });
-    
+
     // Handle process exit
     child.on('close', (code) => {
-      const exitMsg = code === 0 ? 
-        `<span class="success">Command completed successfully</span>` :
-        `<span class="error">Command failed with exit code ${code}</span>`;
-      
+      const exitMsg =
+        code === 0
+          ? `<span class="success">Command completed successfully</span>`
+          : `<span class="error">Command failed with exit code ${code}</span>`;
+
       broadcastToClients({
         type: 'output',
-        data: `\\n${exitMsg}\\n`
+        data: `\\n${exitMsg}\\n`,
       });
-      
+
       sendResponse(ws, { type: 'command_complete' });
     });
-    
+
     child.on('error', (error) => {
-      const errorMsg = `<span class="error">Failed to execute command: ${(error instanceof Error ? error.message : String(error))}</span>`;
+      const errorMsg = `<span class="error">Failed to execute command: ${error instanceof Error ? error.message : String(error)}</span>`;
       outputHistory.push(errorMsg);
-      
+
       sendResponse(ws, {
         type: 'error',
-        data: errorMsg
+        data: errorMsg,
       });
-      
+
       sendResponse(ws, { type: 'command_complete' });
     });
   }
-  
+
   // Broadcast message to all connected clients
   function broadcastToClients(message: any) {
     const messageStr = JSON.stringify(message);
-    activeConnections.forEach(client => {
-      if (client.readyState === 1) { // WebSocket.OPEN
+    activeConnections.forEach((client) => {
+      if (client.readyState === 1) {
+        // WebSocket.OPEN
         client.send(messageStr);
       }
     });
   }
-  
+
   // Convert ANSI escape codes to HTML
   function convertAnsiToHtml(text: string): string {
     return text
@@ -866,16 +877,18 @@ export async function startOrchestrator(options: any) {
   console.log('   • MCP Server: Active');
   console.log('   • Coordination Manager: Active');
   if (options.ui && !options.noUi) {
-    console.log(`   • Web UI: Active at http://${options.host || 'localhost'}:${options.port || 3000}`);
+    console.log(
+      `   • Web UI: Active at http://${options.host || 'localhost'}:${options.port || 3000}`,
+    );
   }
 
   console.log('\n💡 Use "claude-flow status" to check system status');
   console.log('💡 Use "claude-flow stop" to stop the orchestrator');
-  
+
   // Keep the process running
   if (!options.daemon) {
     console.log('\n📌 Press Ctrl+C to stop the orchestrator...\n');
-    
+
     // Handle graceful shutdown
     process.on('SIGINT', () => {
       console.log('\n\n🛑 Shutting down orchestrator...');

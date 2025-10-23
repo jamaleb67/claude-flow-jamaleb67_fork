@@ -29,6 +29,12 @@ For the REST API task:
 - **Agent 4 (Tester)**: Write tests as features complete
 - **Agent 5 (Documenter)**: Update docs continuously
 
+## CLI Usage
+```bash
+# Execute parallel tasks via CLI
+npx claude-flow parallel "Build REST API" --max-agents 8
+```
+
 ## Performance Gains
 - 🚀 2.8-4.4x faster execution
 - 💪 Optimal CPU utilization
@@ -38,7 +44,7 @@ For the REST API task:
 ## Monitoring
 ```
 Tool: mcp__claude-flow__swarm_monitor
-Parameters: {"interval": 1, "duration": 10}
+Parameters: {"interval": 1000, "swarmId": "current"}
 ```
 
 Watch real-time parallel execution progress!

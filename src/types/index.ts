@@ -27,7 +27,7 @@ export enum ComponentStatus {
   HEALTHY = 'healthy',
   WARNING = 'warning',
   ERROR = 'error',
-  UNKNOWN = 'unknown'
+  UNKNOWN = 'unknown',
 }
 
 // Alert types for monitoring

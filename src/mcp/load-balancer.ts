@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Load balancer and rate limiting for MCP
  */
@@ -145,7 +144,10 @@ class CircuitBreaker {
 
     if (this.state === CircuitBreakerState.HALF_OPEN) {
       this.state = CircuitBreakerState.OPEN;
-    } else if (this.state === CircuitBreakerState.CLOSED && this.failureCount >= this.failureThreshold) {
+    } else if (
+      this.state === CircuitBreakerState.CLOSED &&
+      this.failureCount >= this.failureThreshold
+    ) {
       this.state = CircuitBreakerState.OPEN;
     }
   }
@@ -179,10 +181,7 @@ export class LoadBalancer implements ILoadBalancer {
     private config: MCPLoadBalancerConfig,
     private logger: ILogger,
   ) {
-    this.rateLimiter = new RateLimiter(
-      config.maxRequestsPerSecond,
-      config.maxRequestsPerSecond,
-    );
+    this.rateLimiter = new RateLimiter(config.maxRequestsPerSecond, config.maxRequestsPerSecond);
 
     this.circuitBreaker = new CircuitBreaker(
       config.circuitBreakerThreshold,
@@ -322,7 +321,7 @@ export class LoadBalancer implements ILoadBalancer {
       lastReset: new Date(),
     };
     this.requestTimes = [];
-    
+
     this.logger.info('Load balancer metrics reset');
   }
 
@@ -349,7 +348,7 @@ export class LoadBalancer implements ILoadBalancer {
 
   private getSessionRateLimiter(sessionId: string): RateLimiter {
     let rateLimiter = this.sessionRateLimiters.get(sessionId);
-    
+
     if (!rateLimiter) {
       // Create a per-session rate limiter (more restrictive than global)
       const sessionLimit = Math.max(1, Math.floor(this.config.maxRequestsPerSecond / 10));
@@ -371,7 +370,7 @@ export class LoadBalancer implements ILoadBalancer {
 
   private updateRequestsPerSecond(): void {
     const now = Math.floor(Date.now() / 1000);
-    
+
     if (now !== this.lastSecondTimestamp) {
       this.metrics.requestsPerSecond = this.requestsInLastSecond;
       this.requestsInLastSecond = 1;
@@ -411,7 +410,7 @@ export class RequestQueue {
     reject: (error: Error) => void;
     timestamp: number;
   }> = [];
-  
+
   private processing = false;
   private maxQueueSize: number;
   private requestTimeout: number;

@@ -1,6 +1,6 @@
 /**
  * MCPToolWrapper Class
- * 
+ *
  * Wraps all MCP tools for use within the Hive Mind system,
  * providing a unified interface for swarm coordination, neural processing,
  * and memory management.
@@ -63,14 +63,13 @@ export class MCPToolWrapper extends EventEmitter {
     try {
       const command = `npx ruv-swarm mcp-execute ${toolName} '${JSON.stringify(params)}'`;
       const { stdout, stderr } = await execAsync(command);
-      
+
       if (stderr) {
         return { success: false, error: stderr };
       }
-      
+
       const result = JSON.parse(stdout);
       return { success: true, data: result };
-      
     } catch (error) {
       return { success: false, error: getErrorMessage(error) };
     }
@@ -108,10 +107,7 @@ export class MCPToolWrapper extends EventEmitter {
     return this.executeTool('swarm_status', { swarmId });
   }
 
-  async monitorSwarm(params: {
-    swarmId?: string;
-    interval?: number;
-  }): Promise<any> {
+  async monitorSwarm(params: { swarmId?: string; interval?: number }): Promise<any> {
     return this.executeTool('swarm_monitor', params);
   }
 
@@ -133,10 +129,7 @@ export class MCPToolWrapper extends EventEmitter {
     return this.executeTool('neural_train', params);
   }
 
-  async predict(params: {
-    modelId: string;
-    input: string;
-  }): Promise<any> {
+  async predict(params: { modelId: string; input: string }): Promise<any> {
     return this.executeTool('neural_predict', params);
   }
 
@@ -173,41 +166,25 @@ export class MCPToolWrapper extends EventEmitter {
     return this.executeTool('memory_search', params);
   }
 
-  async deleteMemory(params: {
-    action: 'delete';
-    key: string;
-    namespace?: string;
-  }): Promise<any> {
+  async deleteMemory(params: { action: 'delete'; key: string; namespace?: string }): Promise<any> {
     return this.executeTool('memory_usage', params);
   }
 
-  async listMemory(params: {
-    action: 'list';
-    namespace?: string;
-  }): Promise<any> {
+  async listMemory(params: { action: 'list'; namespace?: string }): Promise<any> {
     return this.executeTool('memory_usage', params);
   }
 
   // Performance and monitoring tools
 
-  async getPerformanceReport(params?: {
-    format?: string;
-    timeframe?: string;
-  }): Promise<any> {
+  async getPerformanceReport(params?: { format?: string; timeframe?: string }): Promise<any> {
     return this.executeTool('performance_report', params || {});
   }
 
-  async analyzeBottlenecks(params?: {
-    component?: string;
-    metrics?: string[];
-  }): Promise<any> {
+  async analyzeBottlenecks(params?: { component?: string; metrics?: string[] }): Promise<any> {
     return this.executeTool('bottleneck_analyze', params || {});
   }
 
-  async getTokenUsage(params?: {
-    operation?: string;
-    timeframe?: string;
-  }): Promise<any> {
+  async getTokenUsage(params?: { operation?: string; timeframe?: string }): Promise<any> {
     return this.executeTool('token_usage', params || {});
   }
 
@@ -237,10 +214,7 @@ export class MCPToolWrapper extends EventEmitter {
     return this.executeTool('topology_optimize', { swarmId });
   }
 
-  async loadBalance(params: {
-    swarmId?: string;
-    tasks: any[];
-  }): Promise<any> {
+  async loadBalance(params: { swarmId?: string; tasks: any[] }): Promise<any> {
     return this.executeTool('load_balance', params);
   }
 
@@ -248,10 +222,7 @@ export class MCPToolWrapper extends EventEmitter {
     return this.executeTool('coordination_sync', { swarmId });
   }
 
-  async scaleSwarm(params: {
-    swarmId?: string;
-    targetSize: number;
-  }): Promise<any> {
+  async scaleSwarm(params: { swarmId?: string; targetSize: number }): Promise<any> {
     return this.executeTool('swarm_scale', params);
   }
 
@@ -267,35 +238,21 @@ export class MCPToolWrapper extends EventEmitter {
 
   // Workflow tools
 
-  async createWorkflow(params: {
-    name: string;
-    steps: any[];
-    triggers?: any[];
-  }): Promise<any> {
+  async createWorkflow(params: { name: string; steps: any[]; triggers?: any[] }): Promise<any> {
     return this.executeTool('workflow_create', params);
   }
 
-  async executeWorkflow(params: {
-    workflowId: string;
-    params?: any;
-  }): Promise<any> {
+  async executeWorkflow(params: { workflowId: string; params?: any }): Promise<any> {
     return this.executeTool('workflow_execute', params);
   }
 
   // GitHub integration tools
 
-  async analyzeRepository(params: {
-    repo: string;
-    analysis_type?: string;
-  }): Promise<any> {
+  async analyzeRepository(params: { repo: string; analysis_type?: string }): Promise<any> {
     return this.executeTool('github_repo_analyze', params);
   }
 
-  async manageGitHubPR(params: {
-    repo: string;
-    action: string;
-    pr_number?: number;
-  }): Promise<any> {
+  async manageGitHubPR(params: { repo: string; action: string; pr_number?: number }): Promise<any> {
     return this.executeTool('github_pr_manage', params);
   }
 
@@ -326,10 +283,7 @@ export class MCPToolWrapper extends EventEmitter {
     return this.executeTool('metrics_collect', { components });
   }
 
-  async analyzeTrends(params: {
-    metric: string;
-    period?: string;
-  }): Promise<any> {
+  async analyzeTrends(params: { metric: string; period?: string }): Promise<any> {
     return this.executeTool('trend_analysis', params);
   }
 
@@ -337,10 +291,7 @@ export class MCPToolWrapper extends EventEmitter {
     return this.executeTool('cost_analysis', { timeframe });
   }
 
-  async assessQuality(params: {
-    target: string;
-    criteria?: string[];
-  }): Promise<any> {
+  async assessQuality(params: { target: string; criteria?: string[] }): Promise<any> {
     return this.executeTool('quality_assess', params);
   }
 
@@ -350,10 +301,7 @@ export class MCPToolWrapper extends EventEmitter {
 
   // Batch operations
 
-  async batchProcess(params: {
-    items: any[];
-    operation: string;
-  }): Promise<any> {
+  async batchProcess(params: { items: any[]; operation: string }): Promise<any> {
     return this.executeTool('batch_process', params);
   }
 

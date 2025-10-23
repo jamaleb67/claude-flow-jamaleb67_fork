@@ -12,7 +12,7 @@ export class EnhancedMemory extends FallbackMemoryStore {
 
   async initialize() {
     await super.initialize();
-    
+
     // If using SQLite, try to apply enhanced schema
     if (!this.isUsingFallback() && this.primaryStore?.db) {
       try {
@@ -20,15 +20,20 @@ export class EnhancedMemory extends FallbackMemoryStore {
         const schemaPath = new URL('./enhanced-schema.sql', import.meta.url);
         const schema = readFileSync(schemaPath, 'utf-8');
         this.primaryStore.db.exec(schema);
-        console.error(`[${new Date().toISOString()}] INFO [enhanced-memory] Applied enhanced schema to SQLite`);
+        console.error(
+          `[${new Date().toISOString()}] INFO [enhanced-memory] Applied enhanced schema to SQLite`,
+        );
       } catch (error) {
-        console.error(`[${new Date().toISOString()}] WARN [enhanced-memory] Could not apply enhanced schema:`, error.message);
+        console.error(
+          `[${new Date().toISOString()}] WARN [enhanced-memory] Could not apply enhanced schema:`,
+          error.message,
+        );
       }
     }
   }
 
   // === SESSION MANAGEMENT ===
-  
+
   async saveSessionState(sessionId, state) {
     const sessionData = {
       sessionId,
@@ -38,12 +43,12 @@ export class EnhancedMemory extends FallbackMemoryStore {
       lastActivity: Date.now(),
       state: state.state || 'active',
       context: state.context || {},
-      environment: state.environment || process.env
+      environment: state.environment || process.env,
     };
 
     return this.store(`session:${sessionId}`, sessionData, {
       namespace: 'sessions',
-      metadata: { type: 'session_state' }
+      metadata: { type: 'session_state' },
     });
   }
 
@@ -53,13 +58,11 @@ export class EnhancedMemory extends FallbackMemoryStore {
 
   async getActiveSessions() {
     const sessions = await this.list({ namespace: 'sessions', limit: 100 });
-    return sessions
-      .map(item => item.value)
-      .filter(session => session.state === 'active');
+    return sessions.map((item) => item.value).filter((session) => session.state === 'active');
   }
 
   // === WORKFLOW TRACKING ===
-  
+
   async trackWorkflow(workflowId, data) {
     const workflowData = {
       workflowId,
@@ -69,12 +72,12 @@ export class EnhancedMemory extends FallbackMemoryStore {
       progress: data.progress || 0,
       startTime: data.startTime || Date.now(),
       endTime: data.endTime,
-      results: data.results || {}
+      results: data.results || {},
     };
 
     return this.store(`workflow:${workflowId}`, workflowData, {
       namespace: 'workflows',
-      metadata: { type: 'workflow' }
+      metadata: { type: 'workflow' },
     });
   }
 
@@ -83,37 +86,42 @@ export class EnhancedMemory extends FallbackMemoryStore {
   }
 
   // === METRICS COLLECTION ===
-  
+
   async recordMetric(metricName, value, metadata = {}) {
     const timestamp = Date.now();
     const metricKey = `metric:${metricName}:${timestamp}`;
-    
-    return this.store(metricKey, {
-      name: metricName,
-      value,
-      timestamp,
-      metadata
-    }, {
-      namespace: 'metrics',
-      ttl: 86400 // 24 hours
-    });
+
+    return this.store(
+      metricKey,
+      {
+        name: metricName,
+        value,
+        timestamp,
+        metadata,
+      },
+      {
+        namespace: 'metrics',
+        ttl: 86400, // 24 hours
+      },
+    );
   }
 
-  async getMetrics(metricName, timeRange = 3600000) { // Default 1 hour
+  async getMetrics(metricName, timeRange = 3600000) {
+    // Default 1 hour
     const cutoff = Date.now() - timeRange;
     const metrics = await this.search(`metric:${metricName}`, {
       namespace: 'metrics',
-      limit: 1000
+      limit: 1000,
     });
-    
+
     return metrics
-      .map(item => item.value)
-      .filter(metric => metric.timestamp >= cutoff)
+      .map((item) => item.value)
+      .filter((metric) => metric.timestamp >= cutoff)
       .sort((a, b) => a.timestamp - b.timestamp);
   }
 
   // === AGENT COORDINATION ===
-  
+
   async registerAgent(agentId, config) {
     const agentData = {
       agentId,
@@ -125,13 +133,13 @@ export class EnhancedMemory extends FallbackMemoryStore {
       metrics: {
         tasksCompleted: 0,
         successRate: 1.0,
-        avgResponseTime: 0
-      }
+        avgResponseTime: 0,
+      },
     };
 
     return this.store(`agent:${agentId}`, agentData, {
       namespace: 'agents',
-      metadata: { type: 'agent_registration' }
+      metadata: { type: 'agent_registration' },
     });
   }
 
@@ -141,40 +149,44 @@ export class EnhancedMemory extends FallbackMemoryStore {
 
     agent.status = status;
     agent.lastHeartbeat = Date.now();
-    
+
     if (metrics) {
       Object.assign(agent.metrics, metrics);
     }
 
     return this.store(`agent:${agentId}`, agent, {
       namespace: 'agents',
-      metadata: { type: 'agent_update' }
+      metadata: { type: 'agent_update' },
     });
   }
 
   async getActiveAgents() {
     const agents = await this.list({ namespace: 'agents', limit: 100 });
     const cutoff = Date.now() - 300000; // 5 minutes
-    
+
     return agents
-      .map(item => item.value)
-      .filter(agent => agent.lastHeartbeat > cutoff && agent.status === 'active');
+      .map((item) => item.value)
+      .filter((agent) => agent.lastHeartbeat > cutoff && agent.status === 'active');
   }
 
   // === KNOWLEDGE MANAGEMENT ===
-  
+
   async storeKnowledge(domain, key, value, metadata = {}) {
-    return this.store(`knowledge:${domain}:${key}`, {
-      domain,
-      key,
-      value,
-      metadata,
-      createdAt: Date.now(),
-      updatedAt: Date.now()
-    }, {
-      namespace: 'knowledge',
-      metadata: { domain }
-    });
+    return this.store(
+      `knowledge:${domain}:${key}`,
+      {
+        domain,
+        key,
+        value,
+        metadata,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      },
+      {
+        namespace: 'knowledge',
+        metadata: { domain },
+      },
+    );
   }
 
   async retrieveKnowledge(domain, key) {
@@ -184,14 +196,14 @@ export class EnhancedMemory extends FallbackMemoryStore {
   async searchKnowledge(domain, pattern) {
     const results = await this.search(`knowledge:${domain}:${pattern}`, {
       namespace: 'knowledge',
-      limit: 50
+      limit: 50,
     });
-    
-    return results.map(item => item.value);
+
+    return results.map((item) => item.value);
   }
 
   // === LEARNING & ADAPTATION ===
-  
+
   async recordLearning(agentId, learning) {
     const learningData = {
       agentId,
@@ -200,52 +212,50 @@ export class EnhancedMemory extends FallbackMemoryStore {
       input: learning.input,
       output: learning.output,
       feedback: learning.feedback,
-      improvement: learning.improvement
+      improvement: learning.improvement,
     };
 
     return this.store(`learning:${agentId}:${Date.now()}`, learningData, {
       namespace: 'learning',
-      ttl: 604800 // 7 days
+      ttl: 604800, // 7 days
     });
   }
 
   async getLearnings(agentId, limit = 100) {
     const learnings = await this.search(`learning:${agentId}`, {
       namespace: 'learning',
-      limit
+      limit,
     });
-    
-    return learnings
-      .map(item => item.value)
-      .sort((a, b) => b.timestamp - a.timestamp);
+
+    return learnings.map((item) => item.value).sort((a, b) => b.timestamp - a.timestamp);
   }
 
   // === PERFORMANCE TRACKING ===
-  
+
   async trackPerformance(operation, duration, success = true, metadata = {}) {
     const perfData = {
       operation,
       duration,
       success,
       timestamp: Date.now(),
-      metadata
+      metadata,
     };
 
     // Store individual performance record
     await this.store(`perf:${operation}:${Date.now()}`, perfData, {
       namespace: 'performance',
-      ttl: 86400 // 24 hours
+      ttl: 86400, // 24 hours
     });
 
     // Update aggregated stats
     const statsKey = `stats:${operation}`;
-    const stats = await this.retrieve(statsKey, { namespace: 'performance' }) || {
+    const stats = (await this.retrieve(statsKey, { namespace: 'performance' })) || {
       count: 0,
       successCount: 0,
       totalDuration: 0,
       avgDuration: 0,
       minDuration: Infinity,
-      maxDuration: 0
+      maxDuration: 0,
     };
 
     stats.count++;
@@ -264,11 +274,12 @@ export class EnhancedMemory extends FallbackMemoryStore {
   }
 
   // === COORDINATION CACHE ===
-  
-  async cacheCoordination(key, value, ttl = 300) { // 5 minutes default
+
+  async cacheCoordination(key, value, ttl = 300) {
+    // 5 minutes default
     return this.store(`cache:${key}`, value, {
       namespace: 'coordination',
-      ttl
+      ttl,
     });
   }
 
@@ -277,31 +288,39 @@ export class EnhancedMemory extends FallbackMemoryStore {
   }
 
   // === UTILITY METHODS ===
-  
+
   async cleanupExpired() {
     // Base cleanup handles TTL expiration
     const cleaned = await this.cleanup();
-    
+
     // Additional cleanup for old performance data
     if (!this.isUsingFallback()) {
       // SQLite-specific cleanup can be added here
     }
-    
+
     return cleaned;
   }
 
   async exportData(namespace = null) {
-    const namespaces = namespace ? [namespace] : [
-      'sessions', 'workflows', 'metrics', 'agents', 
-      'knowledge', 'learning', 'performance', 'coordination'
-    ];
-    
+    const namespaces = namespace
+      ? [namespace]
+      : [
+          'sessions',
+          'workflows',
+          'metrics',
+          'agents',
+          'knowledge',
+          'learning',
+          'performance',
+          'coordination',
+        ];
+
     const exportData = {};
-    
+
     for (const ns of namespaces) {
       exportData[ns] = await this.list({ namespace: ns, limit: 10000 });
     }
-    
+
     return exportData;
   }
 
@@ -310,7 +329,7 @@ export class EnhancedMemory extends FallbackMemoryStore {
       for (const item of items) {
         await this.store(item.key, item.value, {
           namespace,
-          metadata: item.metadata
+          metadata: item.metadata,
         });
       }
     }

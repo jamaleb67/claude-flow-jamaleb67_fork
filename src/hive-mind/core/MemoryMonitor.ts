@@ -1,6 +1,6 @@
 /**
  * Memory Monitor and Optimization System
- * 
+ *
  * Provides real-time monitoring, analysis, and optimization
  * recommendations for the Hive Mind memory subsystem.
  */
@@ -62,7 +62,7 @@ export class MemoryMonitor extends EventEmitter {
     cacheHitRate: { warning: 50, critical: 30 },
     avgQueryTime: { warning: 100, critical: 500 },
     memoryUtilization: { warning: 80, critical: 95 },
-    poolReuseRate: { warning: 30, critical: 10 }
+    poolReuseRate: { warning: 30, critical: 10 },
   };
   private alerts: MemoryAlert[] = [];
   private maxHistorySize = 1000;
@@ -111,7 +111,7 @@ export class MemoryMonitor extends EventEmitter {
       healthTimer,
       trendTimer,
       optimizationTimer,
-      cleanupTimer
+      cleanupTimer,
     );
 
     // Initial baseline collection
@@ -126,7 +126,7 @@ export class MemoryMonitor extends EventEmitter {
   stop(): void {
     this.isActive = false;
 
-    this.monitoringTimers.forEach(timer => clearInterval(timer));
+    this.monitoringTimers.forEach((timer) => clearInterval(timer));
     this.monitoringTimers.length = 0;
 
     this.emit('monitoring:stopped');
@@ -153,7 +153,7 @@ export class MemoryMonitor extends EventEmitter {
         poolEfficiency: this.calculatePoolEfficiency(memoryAnalytics.pools),
         dbFragmentation: dbAnalytics.fragmentation || 0,
         activeConnections: 1, // Simplified for now
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       // Store historical data
@@ -164,7 +164,6 @@ export class MemoryMonitor extends EventEmitter {
 
       const duration = performance.now() - startTime;
       this.emit('metrics:collected', { metrics, duration });
-
     } catch (error) {
       this.emit('error', error);
     }
@@ -175,10 +174,10 @@ export class MemoryMonitor extends EventEmitter {
    */
   private async establishBaseline(): Promise<void> {
     const samples = [];
-    
+
     for (let i = 0; i < 10; i++) {
       await this.collectMetrics();
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     this.emit('baseline:established', { samples: samples.length });
@@ -224,8 +223,8 @@ export class MemoryMonitor extends EventEmitter {
         recommendations: [
           'Increase cache size immediately',
           'Review access patterns',
-          'Consider cache warming strategies'
-        ]
+          'Consider cache warming strategies',
+        ],
       });
     } else if (cacheHitRate < this.alertThresholds.cacheHitRate.warning) {
       newAlerts.push({
@@ -238,8 +237,8 @@ export class MemoryMonitor extends EventEmitter {
         recommendations: [
           'Monitor cache patterns',
           'Consider increasing cache size',
-          'Review cache eviction policy'
-        ]
+          'Review cache eviction policy',
+        ],
       });
     }
 
@@ -256,8 +255,8 @@ export class MemoryMonitor extends EventEmitter {
         recommendations: [
           'Immediate database optimization required',
           'Review query plans and indexes',
-          'Consider query result caching'
-        ]
+          'Consider query result caching',
+        ],
       });
     } else if (avgQueryTime > this.alertThresholds.avgQueryTime.warning) {
       newAlerts.push({
@@ -270,8 +269,8 @@ export class MemoryMonitor extends EventEmitter {
         recommendations: [
           'Monitor query performance trends',
           'Consider database maintenance',
-          'Review recent schema changes'
-        ]
+          'Review recent schema changes',
+        ],
       });
     }
 
@@ -288,8 +287,8 @@ export class MemoryMonitor extends EventEmitter {
         recommendations: [
           'Immediate memory cleanup required',
           'Increase memory limits',
-          'Enable aggressive garbage collection'
-        ]
+          'Enable aggressive garbage collection',
+        ],
       });
     } else if (memoryUtilization > this.alertThresholds.memoryUtilization.warning) {
       newAlerts.push({
@@ -302,15 +301,15 @@ export class MemoryMonitor extends EventEmitter {
         recommendations: [
           'Monitor memory usage trends',
           'Consider memory optimization',
-          'Review cache sizes'
-        ]
+          'Review cache sizes',
+        ],
       });
     }
 
     // Add new alerts and emit events
     if (newAlerts.length > 0) {
       this.alerts.push(...newAlerts);
-      newAlerts.forEach(alert => {
+      newAlerts.forEach((alert) => {
         this.emit('alert', alert);
       });
     }
@@ -328,18 +327,18 @@ export class MemoryMonitor extends EventEmitter {
       overall: {
         score: this.calculateOverallScore(memoryHealth, dbHealth, analytics),
         status: 'good',
-        summary: ''
+        summary: '',
       },
       metrics: {
         cacheHitRate: analytics.cache.hitRate || 0,
         avgQueryTime: this.getAverageFromHistory('avgQueryTime'),
         memoryUtilization: analytics.cache.utilizationPercent || 0,
         compressionRatio: 0.7, // Simplified
-        poolEfficiency: this.calculatePoolEfficiency(analytics.pools)
+        poolEfficiency: this.calculatePoolEfficiency(analytics.pools),
       },
       alerts: this.getActiveAlerts(),
       suggestions: this.generateHealthSuggestions(analytics),
-      trends: this.calculateTrends()
+      trends: this.calculateTrends(),
     };
 
     // Determine status
@@ -377,7 +376,7 @@ export class MemoryMonitor extends EventEmitter {
         description: 'Cache hit rate is below optimal threshold',
         estimatedImpact: 'Reduce database queries by 20-40%',
         implementation: 'Increase cache size and adjust eviction policy',
-        effort: 'minimal'
+        effort: 'minimal',
       });
     }
 
@@ -391,7 +390,7 @@ export class MemoryMonitor extends EventEmitter {
         description: 'Query execution times are above optimal range',
         estimatedImpact: 'Improve query performance by 30-50%',
         implementation: 'Add indexes, optimize queries, run ANALYZE',
-        effort: 'moderate'
+        effort: 'moderate',
       });
     }
 
@@ -405,7 +404,7 @@ export class MemoryMonitor extends EventEmitter {
         description: 'Object pools have low reuse rates',
         estimatedImpact: 'Reduce garbage collection pressure',
         implementation: 'Increase pool sizes and improve object lifecycle',
-        effort: 'minimal'
+        effort: 'minimal',
       });
     }
 
@@ -419,8 +418,8 @@ export class MemoryMonitor extends EventEmitter {
     if (!pools) return 0;
 
     const efficiencies = Object.values(pools).map((pool: any) => pool.reuseRate || 0);
-    return efficiencies.length > 0 
-      ? efficiencies.reduce((a, b) => a + b, 0) / efficiencies.length 
+    return efficiencies.length > 0
+      ? efficiencies.reduce((a, b) => a + b, 0) / efficiencies.length
       : 0;
   }
 
@@ -457,8 +456,8 @@ export class MemoryMonitor extends EventEmitter {
     }
 
     // Active alerts impact (15%)
-    const criticalAlerts = this.alerts.filter(a => a.level === 'critical').length;
-    const warningAlerts = this.alerts.filter(a => a.level === 'warning').length;
+    const criticalAlerts = this.alerts.filter((a) => a.level === 'critical').length;
+    const warningAlerts = this.alerts.filter((a) => a.level === 'warning').length;
     score -= criticalAlerts * 10 + warningAlerts * 5;
 
     // Pool efficiency impact (10%)
@@ -473,7 +472,7 @@ export class MemoryMonitor extends EventEmitter {
    */
   private getActiveAlerts(): MemoryAlert[] {
     const oneHourAgo = Date.now() - 3600000;
-    return this.alerts.filter(alert => alert.timestamp.getTime() > oneHourAgo);
+    return this.alerts.filter((alert) => alert.timestamp.getTime() > oneHourAgo);
   }
 
   /**
@@ -491,7 +490,7 @@ export class MemoryMonitor extends EventEmitter {
         description: 'Cache memory utilization is critically high',
         estimatedImpact: 'Prevent system instability',
         implementation: 'Increase cache memory limit or enable aggressive cleanup',
-        effort: 'minimal'
+        effort: 'minimal',
       });
     }
 
@@ -505,7 +504,7 @@ export class MemoryMonitor extends EventEmitter {
     const trends = {
       performance: 'stable' as 'improving' | 'stable' | 'degrading',
       memoryUsage: 'stable' as 'increasing' | 'stable' | 'decreasing',
-      cacheEfficiency: 'stable' as 'improving' | 'stable' | 'degrading'
+      cacheEfficiency: 'stable' as 'improving' | 'stable' | 'degrading',
     };
 
     // Analyze query time trend
@@ -579,7 +578,7 @@ export class MemoryMonitor extends EventEmitter {
     } else if (overall.status === 'poor') {
       return `Memory systems require optimization. Cache hit rate: ${metrics.cacheHitRate.toFixed(1)}%, Avg query time: ${metrics.avgQueryTime.toFixed(1)}ms.`;
     } else {
-      return `Critical memory issues detected. Immediate intervention required. ${alerts.filter(a => a.level === 'critical').length} critical alert(s) active.`;
+      return `Critical memory issues detected. Immediate intervention required. ${alerts.filter((a) => a.level === 'critical').length} critical alert(s) active.`;
     }
   }
 
@@ -589,9 +588,9 @@ export class MemoryMonitor extends EventEmitter {
   private cleanupOldAlerts(): void {
     const cutoff = Date.now() - 86400000; // 24 hours
     const initialCount = this.alerts.length;
-    
-    this.alerts = this.alerts.filter(alert => alert.timestamp.getTime() > cutoff);
-    
+
+    this.alerts = this.alerts.filter((alert) => alert.timestamp.getTime() > cutoff);
+
     const cleaned = initialCount - this.alerts.length;
     if (cleaned > 0) {
       this.emit('alerts:cleaned', { cleaned });
@@ -605,12 +604,12 @@ export class MemoryMonitor extends EventEmitter {
     return {
       isActive: this.isActive,
       alertCount: this.alerts.length,
-      criticalAlerts: this.alerts.filter(a => a.level === 'critical').length,
-      warningAlerts: this.alerts.filter(a => a.level === 'warning').length,
+      criticalAlerts: this.alerts.filter((a) => a.level === 'critical').length,
+      warningAlerts: this.alerts.filter((a) => a.level === 'warning').length,
       historicalDataPoints: Array.from(this.historicalData.entries()).map(([key, values]) => ({
         metric: key,
-        samples: values.length
-      }))
+        samples: values.length,
+      })),
     };
   }
 
@@ -626,18 +625,18 @@ export class MemoryMonitor extends EventEmitter {
       overall: {
         score: this.calculateOverallScore(memoryHealth, dbHealth, analytics),
         status: 'good',
-        summary: ''
+        summary: '',
       },
       metrics: {
         cacheHitRate: analytics.cache.hitRate || 0,
         avgQueryTime: this.getAverageFromHistory('avgQueryTime'),
         memoryUtilization: analytics.cache.utilizationPercent || 0,
         compressionRatio: 0.7,
-        poolEfficiency: this.calculatePoolEfficiency(analytics.pools)
+        poolEfficiency: this.calculatePoolEfficiency(analytics.pools),
       },
       alerts: this.getActiveAlerts(),
       suggestions: this.generateHealthSuggestions(analytics),
-      trends: this.calculateTrends()
+      trends: this.calculateTrends(),
     };
   }
 
@@ -649,7 +648,7 @@ export class MemoryMonitor extends EventEmitter {
       historicalData: Object.fromEntries(this.historicalData),
       alerts: this.alerts,
       thresholds: this.alertThresholds,
-      status: this.getStatus()
+      status: this.getStatus(),
     };
   }
 }

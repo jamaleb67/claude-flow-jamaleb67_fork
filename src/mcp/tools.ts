@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Enhanced Tool registry for MCP with capability negotiation and discovery
  */
@@ -121,7 +120,7 @@ export class ToolRegistry extends EventEmitter {
    * Lists all registered tools
    */
   listTools(): Array<{ name: string; description: string }> {
-    return Array.from(this.tools.values()).map(tool => ({
+    return Array.from(this.tools.values()).map((tool) => ({
       name: tool.name,
       description: tool.description,
     }));
@@ -168,9 +167,12 @@ export class ToolRegistry extends EventEmitter {
         metrics.lastInvoked = new Date();
       }
 
-      this.logger.debug('Tool executed successfully', { name, executionTime: Date.now() - startTime });
+      this.logger.debug('Tool executed successfully', {
+        name,
+        executionTime: Date.now() - startTime,
+      });
       this.emit('toolExecuted', { name, success: true, executionTime: Date.now() - startTime });
-      
+
       return result;
     } catch (error) {
       // Update failure metrics
@@ -183,8 +185,17 @@ export class ToolRegistry extends EventEmitter {
         metrics.lastInvoked = new Date();
       }
 
-      this.logger.error('Tool execution failed', { name, error, executionTime: Date.now() - startTime });
-      this.emit('toolExecuted', { name, success: false, error, executionTime: Date.now() - startTime });
+      this.logger.error('Tool execution failed', {
+        name,
+        error,
+        executionTime: Date.now() - startTime,
+      });
+      this.emit('toolExecuted', {
+        name,
+        success: false,
+        error,
+        executionTime: Date.now() - startTime,
+      });
       throw error;
     }
   }
@@ -245,9 +256,7 @@ export class ToolRegistry extends EventEmitter {
           const expectedType = (propSchema as any).type;
 
           if (expectedType && !this.checkType(value, expectedType)) {
-            throw new MCPError(
-              `Invalid type for property ${prop}: expected ${expectedType}`,
-            );
+            throw new MCPError(`Invalid type for property ${prop}: expected ${expectedType}`);
           }
         }
       }
@@ -282,7 +291,7 @@ export class ToolRegistry extends EventEmitter {
   private registerCapability(toolName: string, capability: ToolCapability): void {
     this.capabilities.set(toolName, capability);
     this.categories.add(capability.category);
-    capability.tags.forEach(tag => this.tags.add(tag));
+    capability.tags.forEach((tag) => this.tags.add(tag));
   }
 
   /**
@@ -298,14 +307,14 @@ export class ToolRegistry extends EventEmitter {
    */
   private extractTags(tool: MCPTool): string[] {
     const tags: string[] = [];
-    
+
     // Extract from description
     if (tool.description.toLowerCase().includes('file')) tags.push('filesystem');
     if (tool.description.toLowerCase().includes('search')) tags.push('search');
     if (tool.description.toLowerCase().includes('memory')) tags.push('memory');
     if (tool.description.toLowerCase().includes('swarm')) tags.push('swarm');
     if (tool.description.toLowerCase().includes('task')) tags.push('orchestration');
-    
+
     return tags.length > 0 ? tags : ['general'];
   }
 
@@ -320,34 +329,34 @@ export class ToolRegistry extends EventEmitter {
 
     // Check if tool is deprecated
     if (capability.deprecated) {
-      this.logger.warn('Using deprecated tool', { 
-        name: toolName, 
+      this.logger.warn('Using deprecated tool', {
+        name: toolName,
         message: capability.deprecationMessage,
       });
     }
 
     // Check required permissions
     if (capability.requiredPermissions && context?.permissions) {
-      const hasAllPermissions = capability.requiredPermissions.every(
-        permission => context.permissions.includes(permission)
+      const hasAllPermissions = capability.requiredPermissions.every((permission) =>
+        context.permissions.includes(permission),
       );
-      
+
       if (!hasAllPermissions) {
         throw new MCPError(
-          `Insufficient permissions for tool ${toolName}. Required: ${capability.requiredPermissions.join(', ')}`
+          `Insufficient permissions for tool ${toolName}. Required: ${capability.requiredPermissions.join(', ')}`,
         );
       }
     }
 
     // Check protocol version compatibility
     if (context?.protocolVersion) {
-      const isCompatible = capability.supportedProtocolVersions.some(
-        version => this.isProtocolVersionCompatible(context.protocolVersion, version)
+      const isCompatible = capability.supportedProtocolVersions.some((version) =>
+        this.isProtocolVersionCompatible(context.protocolVersion, version),
       );
-      
+
       if (!isCompatible) {
         throw new MCPError(
-          `Tool ${toolName} is not compatible with protocol version ${context.protocolVersion.major}.${context.protocolVersion.minor}.${context.protocolVersion.patch}`
+          `Tool ${toolName} is not compatible with protocol version ${context.protocolVersion.major}.${context.protocolVersion.minor}.${context.protocolVersion.patch}`,
         );
       }
     }
@@ -356,22 +365,27 @@ export class ToolRegistry extends EventEmitter {
   /**
    * Check protocol version compatibility
    */
-  private isProtocolVersionCompatible(client: MCPProtocolVersion, supported: MCPProtocolVersion): boolean {
+  private isProtocolVersionCompatible(
+    client: MCPProtocolVersion,
+    supported: MCPProtocolVersion,
+  ): boolean {
     if (client.major !== supported.major) {
       return false;
     }
-    
+
     if (client.minor > supported.minor) {
       return false;
     }
-    
+
     return true;
   }
 
   /**
    * Discover tools based on query criteria
    */
-  discoverTools(query: ToolDiscoveryQuery = {}): Array<{ tool: MCPTool; capability: ToolCapability }> {
+  discoverTools(
+    query: ToolDiscoveryQuery = {},
+  ): Array<{ tool: MCPTool; capability: ToolCapability }> {
     const results: Array<{ tool: MCPTool; capability: ToolCapability }> = [];
 
     for (const [name, tool] of this.tools) {
@@ -384,19 +398,19 @@ export class ToolRegistry extends EventEmitter {
       }
 
       // Filter by tags
-      if (query.tags && !query.tags.some(tag => capability.tags.includes(tag))) {
+      if (query.tags && !query.tags.some((tag) => capability.tags.includes(tag))) {
         continue;
       }
 
       // Filter by capabilities
-      if (query.capabilities && !query.capabilities.every(cap => capability.tags.includes(cap))) {
+      if (query.capabilities && !query.capabilities.every((cap) => capability.tags.includes(cap))) {
         continue;
       }
 
       // Filter by protocol version
       if (query.protocolVersion) {
-        const isCompatible = capability.supportedProtocolVersions.some(
-          version => this.isProtocolVersionCompatible(query.protocolVersion!, version)
+        const isCompatible = capability.supportedProtocolVersions.some((version) =>
+          this.isProtocolVersionCompatible(query.protocolVersion!, version),
         );
         if (!isCompatible) continue;
       }
@@ -408,8 +422,8 @@ export class ToolRegistry extends EventEmitter {
 
       // Filter by permissions
       if (query.permissions && capability.requiredPermissions) {
-        const hasAllPermissions = capability.requiredPermissions.every(
-          permission => query.permissions!.includes(permission)
+        const hasAllPermissions = capability.requiredPermissions.every((permission) =>
+          query.permissions!.includes(permission),
         );
         if (!hasAllPermissions) continue;
       }
@@ -438,7 +452,7 @@ export class ToolRegistry extends EventEmitter {
       }
       return metrics;
     }
-    
+
     return Array.from(this.metrics.values());
   }
 
@@ -484,7 +498,7 @@ export class ToolRegistry extends EventEmitter {
         });
       }
     }
-    
+
     this.emit('metricsReset', { toolName });
   }
 
@@ -510,8 +524,9 @@ export class ToolRegistry extends EventEmitter {
 
     // Count by category
     for (const capability of this.capabilities.values()) {
-      stats.toolsByCategory[capability.category] = (stats.toolsByCategory[capability.category] || 0) + 1;
-      
+      stats.toolsByCategory[capability.category] =
+        (stats.toolsByCategory[capability.category] || 0) + 1;
+
       for (const tag of capability.tags) {
         stats.toolsByTag[tag] = (stats.toolsByTag[tag] || 0) + 1;
       }
@@ -520,7 +535,7 @@ export class ToolRegistry extends EventEmitter {
     // Calculate execution stats
     let totalExecutionTime = 0;
     let totalSuccessful = 0;
-    
+
     for (const metrics of this.metrics.values()) {
       stats.totalInvocations += metrics.totalInvocations;
       totalSuccessful += metrics.successfulInvocations;

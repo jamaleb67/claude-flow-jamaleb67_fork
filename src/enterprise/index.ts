@@ -12,7 +12,7 @@ export type {
   ProjectMilestone,
   ProjectResource,
   ProjectMetrics,
-  ProjectReport
+  ProjectReport,
 } from './project-manager.js';
 
 export type {
@@ -21,7 +21,7 @@ export type {
   DeploymentStrategy,
   DeploymentStage,
   DeploymentMetrics,
-  DeploymentPipeline
+  DeploymentPipeline,
 } from './deployment-manager.js';
 
 export type {
@@ -29,7 +29,7 @@ export type {
   CloudResource,
   CloudInfrastructure,
   CloudMetrics,
-  CostOptimization
+  CostOptimization,
 } from './cloud-manager.js';
 
 export type {
@@ -38,7 +38,7 @@ export type {
   SecurityIncident,
   SecurityPolicy,
   SecurityMetrics,
-  ComplianceCheck
+  ComplianceCheck,
 } from './security-manager.js';
 
 export type {
@@ -48,7 +48,7 @@ export type {
   PerformanceMetrics,
   UsageMetrics,
   BusinessMetrics,
-  PredictiveModel
+  PredictiveModel,
 } from './analytics-manager.js';
 
 export type {
@@ -56,5 +56,5 @@ export type {
   ComplianceFramework,
   AuditReport,
   AuditMetrics,
-  AuditConfiguration
+  AuditConfiguration,
 } from './audit-manager.js';

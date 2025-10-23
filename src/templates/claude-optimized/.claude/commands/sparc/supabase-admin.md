@@ -24,6 +24,7 @@ Review supabase using @/mcp-instructions.txt. Never use the CLI, only the MCP se
 ### Parallel Database Operations
 
 #### Schema Creation:
+
 ```bash
 # Create multiple tables concurrently
 parallel --jobs 4 ::: \
@@ -34,6 +35,7 @@ parallel --jobs 4 ::: \
 ```
 
 #### RLS Policy Implementation:
+
 ```bash
 # Apply multiple RLS policies in parallel
 <use_mcp_tool>
@@ -65,6 +67,7 @@ parallel --jobs 4 ::: \
 ### Concurrent Resource Management
 
 #### Batch Table Analysis:
+
 ```bash
 # Analyze multiple schemas simultaneously
 <use_mcp_tool>
@@ -78,6 +81,7 @@ parallel --jobs 4 ::: \
 ```
 
 #### Parallel Migration Application:
+
 ```bash
 # Apply independent migrations concurrently
 migrations=("create_users" "create_profiles" "create_posts" "create_indexes")
@@ -90,6 +94,7 @@ wait
 ### Batch Performance Optimization
 
 #### Index Creation:
+
 ```bash
 # Create multiple indexes in parallel
 parallel --jobs 6 ::: \
@@ -102,6 +107,7 @@ parallel --jobs 6 ::: \
 ```
 
 #### Concurrent Function Creation:
+
 ```bash
 # Create multiple database functions simultaneously
 create_function "handle_new_user" &
@@ -114,18 +120,21 @@ wait
 ## Optimized Tool Usage Guidelines
 
 ### For Project Management:
+
 • List all projects and organizations concurrently
 • Batch cost checks for multiple resources
 • Create development branches in parallel when needed
 • Monitor multiple project statuses simultaneously
 
 ### For Database Operations:
+
 • Execute independent DDL operations in parallel
 • Batch similar DML operations together
 • Apply non-conflicting migrations concurrently
 • Generate TypeScript types for multiple tables at once
 
 ### For Security Implementation:
+
 • Apply RLS policies to multiple tables concurrently
 • Create authentication flows with parallel policy setup
 • Batch permission checks across tables
@@ -134,6 +143,7 @@ wait
 ## Workflow Optimization Examples
 
 ### Complete Database Setup:
+
 ```bash
 # 1. Parallel schema creation
 npx claude-flow sparc run supabase-admin-optimized "create all tables"
@@ -149,6 +159,7 @@ npx claude-flow sparc run supabase-admin-optimized "deploy all functions"
 ```
 
 ### Monitoring and Maintenance:
+
 ```bash
 # Check multiple services concurrently
 parallel --jobs 4 ::: \
@@ -161,23 +172,25 @@ parallel --jobs 4 ::: \
 ## Batch Operations Reference
 
 ### Parallel Table Operations:
+
 ```javascript
 // Create multiple tables with relationships
 const tableDefinitions = [
   { name: 'users', deps: [] },
   { name: 'profiles', deps: ['users'] },
   { name: 'posts', deps: ['users'] },
-  { name: 'comments', deps: ['posts', 'users'] }
+  { name: 'comments', deps: ['posts', 'users'] },
 ];
 
 // Sort by dependencies and create in parallel batches
 const batches = topologicalSort(tableDefinitions);
 for (const batch of batches) {
-  await Promise.all(batch.map(table => createTable(table)));
+  await Promise.all(batch.map((table) => createTable(table)));
 }
 ```
 
 ### Concurrent Policy Application:
+
 ```sql
 -- Apply multiple policies in a single transaction
 BEGIN;
@@ -185,7 +198,7 @@ BEGIN;
   ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
   ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
   ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
-  
+
   CREATE POLICY "Users can view own profile" ON users FOR SELECT USING (auth.uid() = id);
   CREATE POLICY "Users can update own profile" ON users FOR UPDATE USING (auth.uid() = id);
   CREATE POLICY "Profiles are viewable by everyone" ON profiles FOR SELECT USING (true);
@@ -202,6 +215,7 @@ COMMIT;
 • **Better resource utilization** with parallel index creation
 
 ## Groups/Permissions
+
 - read
 - edit
 - mcp

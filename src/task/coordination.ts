@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Task Coordination Layer - Integrates with TodoWrite/TodoRead and Memory for orchestration
  * Provides seamless coordination between task management and Claude Code batch tools
@@ -18,7 +17,7 @@ export class TaskCoordinator extends EventEmitter {
 
   constructor(
     private taskEngine: TaskEngine,
-    private memoryManager?: any
+    private memoryManager?: any,
   ) {
     super();
     this.setupCoordinationHandlers();
@@ -39,12 +38,18 @@ export class TaskCoordinator extends EventEmitter {
     objective: string,
     context: CoordinationContext,
     options: {
-      strategy?: 'research' | 'development' | 'analysis' | 'testing' | 'optimization' | 'maintenance';
+      strategy?:
+        | 'research'
+        | 'development'
+        | 'analysis'
+        | 'testing'
+        | 'optimization'
+        | 'maintenance';
       maxTasks?: number;
       batchOptimized?: boolean;
       parallelExecution?: boolean;
       memoryCoordination?: boolean;
-    } = {}
+    } = {},
   ): Promise<TodoItem[]> {
     const sessionId = context.sessionId;
     this.coordinationSessions.set(sessionId, context);
@@ -55,12 +60,12 @@ export class TaskCoordinator extends EventEmitter {
     // Store todos in coordination system
     for (const todo of todos) {
       this.todoItems.set(todo.id, todo);
-      
+
       // Store in memory for cross-agent coordination
       if (options.memoryCoordination && this.memoryManager) {
         await this.storeInMemory(`todo:${todo.id}`, todo, {
           namespace: 'task_coordination',
-          tags: ['todo', 'task_breakdown', sessionId]
+          tags: ['todo', 'task_breakdown', sessionId],
         });
       }
     }
@@ -77,7 +82,7 @@ export class TaskCoordinator extends EventEmitter {
   async updateTodoProgress(
     todoId: string,
     status: 'pending' | 'in_progress' | 'completed',
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
   ): Promise<void> {
     const todo = this.todoItems.get(todoId);
     if (!todo) {
@@ -92,7 +97,7 @@ export class TaskCoordinator extends EventEmitter {
     if (this.memoryManager) {
       await this.storeInMemory(`todo:${todoId}`, todo, {
         namespace: 'task_coordination',
-        tags: ['todo', 'progress_update']
+        tags: ['todo', 'progress_update'],
       });
     }
 
@@ -115,34 +120,32 @@ export class TaskCoordinator extends EventEmitter {
       assignedAgent?: string;
       tags?: string[];
       batchOptimized?: boolean;
-    }
+    },
   ): Promise<TodoItem[]> {
     let todos = Array.from(this.todoItems.values());
 
     // Filter by session if provided
     if (sessionId) {
       const sessionTodos = await this.getSessionTodos(sessionId);
-      todos = todos.filter(todo => sessionTodos.some(st => st.id === todo.id));
+      todos = todos.filter((todo) => sessionTodos.some((st) => st.id === todo.id));
     }
 
     // Apply filters
     if (filter) {
       if (filter.status) {
-        todos = todos.filter(todo => filter.status!.includes(todo.status));
+        todos = todos.filter((todo) => filter.status!.includes(todo.status));
       }
       if (filter.priority) {
-        todos = todos.filter(todo => filter.priority!.includes(todo.priority));
+        todos = todos.filter((todo) => filter.priority!.includes(todo.priority));
       }
       if (filter.assignedAgent) {
-        todos = todos.filter(todo => todo.assignedAgent === filter.assignedAgent);
+        todos = todos.filter((todo) => todo.assignedAgent === filter.assignedAgent);
       }
       if (filter.tags) {
-        todos = todos.filter(todo => 
-          todo.tags?.some(tag => filter.tags!.includes(tag))
-        );
+        todos = todos.filter((todo) => todo.tags?.some((tag) => filter.tags!.includes(tag)));
       }
       if (filter.batchOptimized !== undefined) {
-        todos = todos.filter(todo => todo.batchOptimized === filter.batchOptimized);
+        todos = todos.filter((todo) => todo.batchOptimized === filter.batchOptimized);
       }
     }
 
@@ -159,7 +162,7 @@ export class TaskCoordinator extends EventEmitter {
       namespace?: string;
       tags?: string[];
       expiresAt?: Date;
-    } = {}
+    } = {},
   ): Promise<void> {
     const entry: MemoryEntry = {
       key,
@@ -167,7 +170,7 @@ export class TaskCoordinator extends EventEmitter {
       timestamp: new Date(),
       namespace: options.namespace,
       tags: options.tags,
-      expiresAt: options.expiresAt
+      expiresAt: options.expiresAt,
     };
 
     this.memoryStore.set(key, entry);
@@ -177,7 +180,7 @@ export class TaskCoordinator extends EventEmitter {
       const memoryKey = options.namespace ? `${options.namespace}:${key}` : key;
       await this.memoryManager.store(memoryKey, value, {
         tags: options.tags,
-        expiresAt: options.expiresAt
+        expiresAt: options.expiresAt,
       });
     }
 
@@ -187,12 +190,9 @@ export class TaskCoordinator extends EventEmitter {
   /**
    * Retrieve data from Memory for coordination
    */
-  async retrieveFromMemory(
-    key: string,
-    namespace?: string
-  ): Promise<any | null> {
+  async retrieveFromMemory(key: string, namespace?: string): Promise<any | null> {
     const memoryKey = namespace ? `${namespace}:${key}` : key;
-    
+
     // Try external memory manager first
     if (this.memoryManager) {
       try {
@@ -230,19 +230,17 @@ export class TaskCoordinator extends EventEmitter {
 
     // Apply filters
     if (query.namespace) {
-      entries = entries.filter(entry => entry.namespace === query.namespace);
+      entries = entries.filter((entry) => entry.namespace === query.namespace);
     }
     if (query.tags) {
-      entries = entries.filter(entry => 
-        entry.tags?.some(tag => query.tags!.includes(tag))
-      );
+      entries = entries.filter((entry) => entry.tags?.some((tag) => query.tags!.includes(tag)));
     }
     if (query.keyPattern) {
       const pattern = new RegExp(query.keyPattern);
-      entries = entries.filter(entry => pattern.test(entry.key));
+      entries = entries.filter((entry) => pattern.test(entry.key));
     }
     if (query.since) {
-      entries = entries.filter(entry => entry.timestamp >= query.since!);
+      entries = entries.filter((entry) => entry.timestamp >= query.since!);
     }
 
     // Sort by timestamp (newest first)
@@ -268,7 +266,7 @@ export class TaskCoordinator extends EventEmitter {
       memoryKey?: string;
       batchOptimized?: boolean;
     }>,
-    coordinationContext: CoordinationContext
+    coordinationContext: CoordinationContext,
   ): Promise<string[]> {
     const batchId = generateId('batch');
     const agentIds: string[] = [];
@@ -280,7 +278,7 @@ export class TaskCoordinator extends EventEmitter {
       startedAt: new Date(),
       status: 'running',
       results: new Map(),
-      errors: new Map()
+      errors: new Map(),
     };
 
     this.batchOperations.set(batchId, batchOperation);
@@ -288,7 +286,7 @@ export class TaskCoordinator extends EventEmitter {
     // Store batch operation in memory for coordination
     await this.storeInMemory(`batch:${batchId}`, batchOperation, {
       namespace: 'coordination',
-      tags: ['batch_operation', 'parallel_agents']
+      tags: ['batch_operation', 'parallel_agents'],
     });
 
     // Launch each agent
@@ -296,7 +294,7 @@ export class TaskCoordinator extends EventEmitter {
       try {
         const agentId = await this.launchAgent(task, coordinationContext, batchId);
         agentIds.push(agentId);
-        
+
         // Store agent coordination state
         this.agentCoordination.set(agentId, {
           agentId,
@@ -305,9 +303,8 @@ export class TaskCoordinator extends EventEmitter {
           status: 'running',
           startedAt: new Date(),
           memoryKey: task.memoryKey,
-          coordinationContext
+          coordinationContext,
         });
-
       } catch (error) {
         batchOperation.errors.set(task.agentType, error as Error);
       }
@@ -327,14 +324,14 @@ export class TaskCoordinator extends EventEmitter {
       targets: string[];
       configuration?: Record<string, unknown>;
     }>,
-    context: CoordinationContext
+    context: CoordinationContext,
   ): Promise<Map<string, any>> {
     const batchId = generateId('batch_ops');
     const results = new Map<string, any>();
 
     // Group operations by type for maximum efficiency
     const groupedOps = new Map<string, Array<any>>();
-    
+
     for (const op of operations) {
       if (!groupedOps.has(op.type)) {
         groupedOps.set(op.type, []);
@@ -343,15 +340,19 @@ export class TaskCoordinator extends EventEmitter {
     }
 
     // Store batch coordination info
-    await this.storeInMemory(`batch_ops:${batchId}`, {
-      operations,
-      groupedOps: Object.fromEntries(groupedOps),
-      context,
-      startedAt: new Date()
-    }, {
-      namespace: 'coordination',
-      tags: ['batch_operations', 'efficiency']
-    });
+    await this.storeInMemory(
+      `batch_ops:${batchId}`,
+      {
+        operations,
+        groupedOps: Object.fromEntries(groupedOps),
+        context,
+        startedAt: new Date(),
+      },
+      {
+        namespace: 'coordination',
+        tags: ['batch_operations', 'efficiency'],
+      },
+    );
 
     // Execute operations in parallel by type
     const promises: Promise<void>[] = [];
@@ -377,21 +378,25 @@ export class TaskCoordinator extends EventEmitter {
       type: string;
       role: string;
       capabilities: string[];
-    }>
+    }>,
   ): Promise<void> {
     const swarmId = generateId('swarm');
-    
+
     // Store swarm configuration
-    await this.storeInMemory(`swarm:${swarmId}`, {
-      objective,
-      context,
-      agents,
-      startedAt: new Date(),
-      coordinationPattern: context.coordinationMode
-    }, {
-      namespace: 'swarm_coordination',
-      tags: ['swarm', context.coordinationMode]
-    });
+    await this.storeInMemory(
+      `swarm:${swarmId}`,
+      {
+        objective,
+        context,
+        agents,
+        startedAt: new Date(),
+        coordinationPattern: context.coordinationMode,
+      },
+      {
+        namespace: 'swarm_coordination',
+        tags: ['swarm', context.coordinationMode],
+      },
+    );
 
     switch (context.coordinationMode) {
       case 'centralized':
@@ -414,10 +419,7 @@ export class TaskCoordinator extends EventEmitter {
 
   // Private helper methods
 
-  private async generateTaskBreakdown(
-    objective: string,
-    options: any
-  ): Promise<TodoItem[]> {
+  private async generateTaskBreakdown(objective: string, options: any): Promise<TodoItem[]> {
     // AI-powered task breakdown based on strategy
     const strategy = options.strategy || 'development';
     const todos: TodoItem[] = [];
@@ -436,7 +438,7 @@ export class TaskCoordinator extends EventEmitter {
             memoryKey: 'research_sources',
             tags: ['research', 'information_gathering'],
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
           },
           {
             id: generateId('todo'),
@@ -448,8 +450,8 @@ export class TaskCoordinator extends EventEmitter {
             memoryKey: 'research_analysis',
             tags: ['research', 'analysis'],
             createdAt: new Date(),
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         );
         break;
 
@@ -463,7 +465,7 @@ export class TaskCoordinator extends EventEmitter {
             memoryKey: 'system_architecture',
             tags: ['development', 'architecture'],
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
           },
           {
             id: generateId('todo'),
@@ -476,7 +478,7 @@ export class TaskCoordinator extends EventEmitter {
             memoryKey: 'core_implementation',
             tags: ['development', 'implementation'],
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
           },
           {
             id: generateId('todo'),
@@ -488,8 +490,8 @@ export class TaskCoordinator extends EventEmitter {
             memoryKey: 'test_suite',
             tags: ['development', 'testing'],
             createdAt: new Date(),
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         );
         break;
 
@@ -505,7 +507,7 @@ export class TaskCoordinator extends EventEmitter {
             memoryKey: 'analysis_data',
             tags: ['analysis', 'data_collection'],
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
           },
           {
             id: generateId('todo'),
@@ -517,7 +519,7 @@ export class TaskCoordinator extends EventEmitter {
             memoryKey: 'statistical_results',
             tags: ['analysis', 'statistics'],
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
           },
           {
             id: generateId('todo'),
@@ -528,8 +530,8 @@ export class TaskCoordinator extends EventEmitter {
             memoryKey: 'analysis_insights',
             tags: ['analysis', 'reporting'],
             createdAt: new Date(),
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         );
         break;
 
@@ -544,7 +546,7 @@ export class TaskCoordinator extends EventEmitter {
             memoryKey: 'requirements_analysis',
             tags: ['generic', 'requirements'],
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
           },
           {
             id: generateId('todo'),
@@ -557,7 +559,7 @@ export class TaskCoordinator extends EventEmitter {
             memoryKey: 'main_execution',
             tags: ['generic', 'execution'],
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
           },
           {
             id: generateId('todo'),
@@ -568,8 +570,8 @@ export class TaskCoordinator extends EventEmitter {
             memoryKey: 'validation_results',
             tags: ['generic', 'validation'],
             createdAt: new Date(),
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         );
     }
 
@@ -587,8 +589,8 @@ export class TaskCoordinator extends EventEmitter {
         todoId: todo.id,
         batchOptimized: todo.batchOptimized,
         parallelExecution: todo.parallelExecution,
-        memoryKey: todo.memoryKey
-      }
+        memoryKey: todo.memoryKey,
+      },
     };
 
     return await this.taskEngine.createTask(taskData);
@@ -596,32 +598,41 @@ export class TaskCoordinator extends EventEmitter {
 
   private priorityToNumber(priority: 'high' | 'medium' | 'low' | 'critical'): number {
     switch (priority) {
-      case 'critical': return 90;
-      case 'high': return 80;
-      case 'medium': return 50;
-      case 'low': return 20;
-      default: return 50;
+      case 'critical':
+        return 90;
+      case 'high':
+        return 80;
+      case 'medium':
+        return 50;
+      case 'low':
+        return 20;
+      default:
+        return 50;
     }
   }
 
   private async launchAgent(
     task: any,
     context: CoordinationContext,
-    batchId: string
+    batchId: string,
   ): Promise<string> {
     const agentId = generateId('agent');
-    
+
     // Store agent launch info in memory
-    await this.storeInMemory(`agent:${agentId}`, {
-      ...task,
-      agentId,
-      batchId,
-      context,
-      launchedAt: new Date()
-    }, {
-      namespace: 'agent_coordination',
-      tags: ['agent_launch', task.agentType]
-    });
+    await this.storeInMemory(
+      `agent:${agentId}`,
+      {
+        ...task,
+        agentId,
+        batchId,
+        context,
+        launchedAt: new Date(),
+      },
+      {
+        namespace: 'agent_coordination',
+        tags: ['agent_launch', task.agentType],
+      },
+    );
 
     return agentId;
   }
@@ -630,11 +641,11 @@ export class TaskCoordinator extends EventEmitter {
     type: string,
     operations: any[],
     batchId: string,
-    results: Map<string, any>
+    results: Map<string, any>,
   ): Promise<void> {
     // Simulate batch operation execution
     // In real implementation, this would use actual tools
-    
+
     for (const op of operations) {
       try {
         const result = await this.simulateBatchOperation(type, op);
@@ -647,47 +658,59 @@ export class TaskCoordinator extends EventEmitter {
 
   private async simulateBatchOperation(type: string, operation: any): Promise<any> {
     // Simulate operation based on type
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     return {
       type,
       targets: operation.targets,
       result: `Simulated ${type} operation completed`,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 
   // Swarm coordination patterns
 
-  private async coordinateCentralizedSwarm(swarmId: string, objective: string, agents: any[]): Promise<void> {
+  private async coordinateCentralizedSwarm(
+    swarmId: string,
+    objective: string,
+    agents: any[],
+  ): Promise<void> {
     // Single coordinator manages all agents
     await this.storeInMemory(`swarm:${swarmId}:pattern`, {
       type: 'centralized',
       coordinator: 'main',
-      agentAssignments: agents.map(agent => ({
+      agentAssignments: agents.map((agent) => ({
         agentId: agent.type,
         role: agent.role,
-        coordinator: 'main'
-      }))
+        coordinator: 'main',
+      })),
     });
   }
 
-  private async coordinateDistributedSwarm(swarmId: string, objective: string, agents: any[]): Promise<void> {
+  private async coordinateDistributedSwarm(
+    swarmId: string,
+    objective: string,
+    agents: any[],
+  ): Promise<void> {
     // Multiple coordinators for different aspects
     const coordinators = ['research_coord', 'impl_coord', 'test_coord'];
-    
+
     await this.storeInMemory(`swarm:${swarmId}:pattern`, {
       type: 'distributed',
       coordinators,
       agentAssignments: agents.map((agent, index) => ({
         agentId: agent.type,
         role: agent.role,
-        coordinator: coordinators[index % coordinators.length]
-      }))
+        coordinator: coordinators[index % coordinators.length],
+      })),
     });
   }
 
-  private async coordinateHierarchicalSwarm(swarmId: string, objective: string, agents: any[]): Promise<void> {
+  private async coordinateHierarchicalSwarm(
+    swarmId: string,
+    objective: string,
+    agents: any[],
+  ): Promise<void> {
     // Tree structure with team leads
     await this.storeInMemory(`swarm:${swarmId}:pattern`, {
       type: 'hierarchical',
@@ -695,44 +718,52 @@ export class TaskCoordinator extends EventEmitter {
         master: 'main_coordinator',
         teamLeads: ['frontend_lead', 'backend_lead', 'devops_lead'],
         teams: {
-          frontend_lead: agents.filter(a => a.type.includes('frontend')),
-          backend_lead: agents.filter(a => a.type.includes('backend')),
-          devops_lead: agents.filter(a => a.type.includes('devops'))
-        }
-      }
+          frontend_lead: agents.filter((a) => a.type.includes('frontend')),
+          backend_lead: agents.filter((a) => a.type.includes('backend')),
+          devops_lead: agents.filter((a) => a.type.includes('devops')),
+        },
+      },
     });
   }
 
-  private async coordinateMeshSwarm(swarmId: string, objective: string, agents: any[]): Promise<void> {
+  private async coordinateMeshSwarm(
+    swarmId: string,
+    objective: string,
+    agents: any[],
+  ): Promise<void> {
     // Peer-to-peer coordination
     await this.storeInMemory(`swarm:${swarmId}:pattern`, {
       type: 'mesh',
-      peerConnections: agents.map(agent => ({
+      peerConnections: agents.map((agent) => ({
         agentId: agent.type,
-        peers: agents.filter(a => a.type !== agent.type).map(a => a.type)
-      }))
+        peers: agents.filter((a) => a.type !== agent.type).map((a) => a.type),
+      })),
     });
   }
 
-  private async coordinateHybridSwarm(swarmId: string, objective: string, agents: any[]): Promise<void> {
+  private async coordinateHybridSwarm(
+    swarmId: string,
+    objective: string,
+    agents: any[],
+  ): Promise<void> {
     // Mixed patterns based on requirements
     await this.storeInMemory(`swarm:${swarmId}:pattern`, {
       type: 'hybrid',
       phases: [
         { phase: 'planning', pattern: 'centralized' },
         { phase: 'execution', pattern: 'distributed' },
-        { phase: 'integration', pattern: 'hierarchical' }
-      ]
+        { phase: 'integration', pattern: 'hierarchical' },
+      ],
     });
   }
 
   private async getSessionTodos(sessionId: string): Promise<TodoItem[]> {
     const entries = await this.queryMemory({
       namespace: 'task_coordination',
-      tags: ['todo', sessionId]
+      tags: ['todo', sessionId],
     });
 
-    return entries.map(entry => entry.value as TodoItem);
+    return entries.map((entry) => entry.value as TodoItem);
   }
 
   // Event handlers
@@ -743,68 +774,84 @@ export class TaskCoordinator extends EventEmitter {
     if (todoId) {
       await this.updateTodoProgress(todoId as string, 'in_progress', {
         taskId: data.task.id,
-        createdAt: data.task.createdAt
+        createdAt: data.task.createdAt,
       });
     }
   }
 
   private async handleTaskStarted(data: { taskId: string; agentId: string }): Promise<void> {
     // Store task start in memory for coordination
-    await this.storeInMemory(`task_execution:${data.taskId}`, {
-      status: 'started',
-      agentId: data.agentId,
-      startedAt: new Date()
-    }, {
-      namespace: 'task_execution',
-      tags: ['task_start', data.agentId]
-    });
+    await this.storeInMemory(
+      `task_execution:${data.taskId}`,
+      {
+        status: 'started',
+        agentId: data.agentId,
+        startedAt: new Date(),
+      },
+      {
+        namespace: 'task_execution',
+        tags: ['task_start', data.agentId],
+      },
+    );
   }
 
   private async handleTaskCompleted(data: { taskId: string; result: unknown }): Promise<void> {
     // Update todo and store results
     const task = (await this.taskEngine.getTaskStatus(data.taskId))?.task;
     const todoId = task?.metadata?.todoId;
-    
+
     if (todoId) {
       await this.updateTodoProgress(todoId as string, 'completed', {
         completedAt: new Date(),
-        result: data.result
+        result: data.result,
       });
     }
 
     // Store completion in memory
-    await this.storeInMemory(`task_execution:${data.taskId}`, {
-      status: 'completed',
-      result: data.result,
-      completedAt: new Date()
-    }, {
-      namespace: 'task_execution',
-      tags: ['task_completion']
-    });
+    await this.storeInMemory(
+      `task_execution:${data.taskId}`,
+      {
+        status: 'completed',
+        result: data.result,
+        completedAt: new Date(),
+      },
+      {
+        namespace: 'task_execution',
+        tags: ['task_completion'],
+      },
+    );
   }
 
   private async handleTaskFailed(data: { taskId: string; error: Error }): Promise<void> {
     // Store failure info
-    await this.storeInMemory(`task_execution:${data.taskId}`, {
-      status: 'failed',
-      error: data.error.message,
-      failedAt: new Date()
-    }, {
-      namespace: 'task_execution',
-      tags: ['task_failure']
-    });
+    await this.storeInMemory(
+      `task_execution:${data.taskId}`,
+      {
+        status: 'failed',
+        error: data.error.message,
+        failedAt: new Date(),
+      },
+      {
+        namespace: 'task_execution',
+        tags: ['task_failure'],
+      },
+    );
   }
 
   private async handleTaskCancelled(data: { taskId: string; reason: string }): Promise<void> {
     // Store cancellation info
-    await this.storeInMemory(`task_execution:${data.taskId}`, {
-      status: 'cancelled',
-      reason: data.reason,
-      cancelledAt: new Date()
-    }, {
-      namespace: 'task_execution',
-      tags: ['task_cancellation']
-    });
+    await this.storeInMemory(
+      `task_execution:${data.taskId}`,
+      {
+        status: 'cancelled',
+        reason: data.reason,
+        cancelledAt: new Date(),
+      },
+      {
+        namespace: 'task_execution',
+        tags: ['task_cancellation'],
+      },
+    );
   }
 }
 

@@ -1,10 +1,10 @@
 /**
  * Memory Optimization Command
- * 
+ *
  * Provides comprehensive memory optimization tools for the Hive Mind system.
  */
 
-import { Command } from 'commander';
+import { Command } from '../commander-fix.js';
 import { CollectiveMemory, MemoryOptimizer } from '../../simple-commands/hive-mind/memory.js';
 import { MemoryMonitor } from '../../../hive-mind/core/MemoryMonitor.js';
 import { Memory } from '../../../hive-mind/core/Memory.js';
@@ -46,10 +46,15 @@ export function createOptimizeMemoryCommand(): Command {
           await performMemoryCleanup();
         }
 
-        if (!options.analyze && !options.optimize && !options.monitor && !options.report && !options.cleanup) {
+        if (
+          !options.analyze &&
+          !options.optimize &&
+          !options.monitor &&
+          !options.report &&
+          !options.cleanup
+        ) {
           await showMemoryOverview();
         }
-
       } catch (error) {
         console.error(chalk.red('❌ Memory optimization failed:'), (error as Error).message);
         process.exit(1);
@@ -71,7 +76,7 @@ async function analyzeMemoryPerformance(): Promise<void> {
       cacheSize: 10000,
       cacheMemoryMB: 100,
       enablePooling: true,
-      compressionThreshold: 10000
+      compressionThreshold: 10000,
     });
 
     await memory.initialize();
@@ -86,15 +91,21 @@ async function analyzeMemoryPerformance(): Promise<void> {
     // Cache Performance
     console.log(chalk.cyan('🗄️ Cache Performance:'));
     console.log(`   Hit Rate: ${chalk.bold(analytics.cache.hitRate?.toFixed(1) || '0')}%`);
-    console.log(`   Memory Usage: ${chalk.bold(analytics.cache.memoryUsage?.toFixed(1) || '0')} MB`);
-    console.log(`   Utilization: ${chalk.bold(analytics.cache.utilizationPercent?.toFixed(1) || '0')}%`);
+    console.log(
+      `   Memory Usage: ${chalk.bold(analytics.cache.memoryUsage?.toFixed(1) || '0')} MB`,
+    );
+    console.log(
+      `   Utilization: ${chalk.bold(analytics.cache.utilizationPercent?.toFixed(1) || '0')}%`,
+    );
     console.log(`   Evictions: ${chalk.bold(analytics.cache.evictions || 0)}\n`);
 
     // Performance Metrics
     console.log(chalk.cyan('⚡ Performance Metrics:'));
     for (const [operation, stats] of Object.entries(analytics.performance)) {
       if (typeof stats === 'object' && stats.avg) {
-        console.log(`   ${operation}: ${chalk.bold(stats.avg.toFixed(2))}ms avg (${stats.count} samples)`);
+        console.log(
+          `   ${operation}: ${chalk.bold(stats.avg.toFixed(2))}ms avg (${stats.count} samples)`,
+        );
       }
     }
     console.log('');
@@ -112,27 +123,30 @@ async function analyzeMemoryPerformance(): Promise<void> {
 
     // Health Status
     console.log(chalk.cyan('🏥 Health Status:'));
-    const statusColor = healthCheck.status === 'healthy' ? 'green' : 
-                       healthCheck.status === 'warning' ? 'yellow' : 'red';
+    const statusColor =
+      healthCheck.status === 'healthy'
+        ? 'green'
+        : healthCheck.status === 'warning'
+          ? 'yellow'
+          : 'red';
     console.log(`   Overall: ${chalk[statusColor].bold(healthCheck.status.toUpperCase())}`);
     console.log(`   Score: ${chalk.bold(healthCheck.score)}/100`);
 
     if (healthCheck.issues.length > 0) {
       console.log(`   Issues: ${chalk.red(healthCheck.issues.length)}`);
-      healthCheck.issues.forEach(issue => {
+      healthCheck.issues.forEach((issue) => {
         console.log(`     • ${chalk.red(issue)}`);
       });
     }
 
     if (healthCheck.recommendations.length > 0) {
       console.log(`   Recommendations:`);
-      healthCheck.recommendations.forEach(rec => {
+      healthCheck.recommendations.forEach((rec) => {
         console.log(`     • ${chalk.blue(rec)}`);
       });
     }
 
     await memory.shutdown();
-
   } catch (error) {
     console.error(chalk.red('❌ Analysis failed:'), (error as Error).message);
   }
@@ -151,7 +165,7 @@ async function runMemoryOptimization(options: any): Promise<void> {
       cacheMemoryMB: parseInt(options.cacheMemory),
       enablePooling: true,
       compressionThreshold: parseInt(options.compressionThreshold),
-      batchSize: 100
+      batchSize: 100,
     });
 
     await memory.initialize();
@@ -176,7 +190,7 @@ async function runMemoryOptimization(options: any): Promise<void> {
     console.log(chalk.blue('2. Optimizing database performance...'));
     const db = await DatabaseManager.getInstance();
     const dbAnalytics = db.getDatabaseAnalytics();
-    
+
     if (dbAnalytics.fragmentation > 20) {
       console.log(chalk.yellow('   ⚠️ High database fragmentation detected'));
       console.log(chalk.blue('   Running database optimization...'));
@@ -200,13 +214,18 @@ async function runMemoryOptimization(options: any): Promise<void> {
 
     // Show improvement
     console.log(chalk.green.bold('📈 Optimization Results:\n'));
-    
-    const hitRateImprovement = (finalAnalytics.cache.hitRate || 0) - (baselineAnalytics.cache.hitRate || 0);
+
+    const hitRateImprovement =
+      (finalAnalytics.cache.hitRate || 0) - (baselineAnalytics.cache.hitRate || 0);
     const healthImprovement = finalHealth.score - baselineHealth.score;
 
     console.log(chalk.cyan('Performance Improvements:'));
-    console.log(`   Cache Hit Rate: ${hitRateImprovement >= 0 ? '+' : ''}${hitRateImprovement.toFixed(1)}%`);
-    console.log(`   Health Score: ${healthImprovement >= 0 ? '+' : ''}${healthImprovement.toFixed(1)} points`);
+    console.log(
+      `   Cache Hit Rate: ${hitRateImprovement >= 0 ? '+' : ''}${hitRateImprovement.toFixed(1)}%`,
+    );
+    console.log(
+      `   Health Score: ${healthImprovement >= 0 ? '+' : ''}${healthImprovement.toFixed(1)} points`,
+    );
 
     if (hitRateImprovement > 0 || healthImprovement > 0) {
       console.log(chalk.green('\n✅ Memory optimization completed successfully!'));
@@ -215,7 +234,6 @@ async function runMemoryOptimization(options: any): Promise<void> {
     }
 
     await memory.shutdown();
-
   } catch (error) {
     console.error(chalk.red('❌ Optimization failed:'), (error as Error).message);
   }
@@ -237,8 +255,8 @@ async function startMemoryMonitoring(): Promise<void> {
 
     // Set up event listeners
     monitor.on('alert', (alert) => {
-      const color = alert.level === 'critical' ? 'red' : 
-                   alert.level === 'warning' ? 'yellow' : 'blue';
+      const color =
+        alert.level === 'critical' ? 'red' : alert.level === 'warning' ? 'yellow' : 'blue';
       console.log(chalk[color](`🚨 ${alert.level.toUpperCase()}: ${alert.message}`));
     });
 
@@ -246,7 +264,7 @@ async function startMemoryMonitoring(): Promise<void> {
       // Clear screen and show current metrics
       console.clear();
       console.log(chalk.blue.bold('🧠 Hive Mind Memory Monitor\n'));
-      
+
       const { metrics } = data;
       console.log(chalk.cyan('📊 Real-time Metrics:'));
       console.log(`   Cache Hit Rate: ${chalk.bold(metrics.cacheHitRate.toFixed(1))}%`);
@@ -279,7 +297,6 @@ async function startMemoryMonitoring(): Promise<void> {
 
     console.log(chalk.green('✅ Memory monitoring started!'));
     console.log(chalk.gray('Real-time metrics will appear below...\n'));
-
   } catch (error) {
     console.error(chalk.red('❌ Monitoring startup failed:'), (error as Error).message);
   }
@@ -298,7 +315,7 @@ async function generateMemoryReport(): Promise<void> {
     await memory.initialize();
 
     const monitor = new MemoryMonitor(memory, db);
-    
+
     // Generate comprehensive report
     const report = await monitor.generateDetailedReport();
     const analytics = memory.getAdvancedAnalytics();
@@ -314,10 +331,16 @@ async function generateMemoryReport(): Promise<void> {
     // Key Metrics
     console.log(chalk.cyan.bold('📈 Key Performance Metrics:'));
     console.log(`   Cache Hit Rate: ${formatMetric(report.metrics.cacheHitRate, '%', 70)}`);
-    console.log(`   Average Query Time: ${formatMetric(report.metrics.avgQueryTime, 'ms', 50, true)}`);
-    console.log(`   Memory Utilization: ${formatMetric(report.metrics.memoryUtilization, '%', 80)}`);
+    console.log(
+      `   Average Query Time: ${formatMetric(report.metrics.avgQueryTime, 'ms', 50, true)}`,
+    );
+    console.log(
+      `   Memory Utilization: ${formatMetric(report.metrics.memoryUtilization, '%', 80)}`,
+    );
     console.log(`   Pool Efficiency: ${formatMetric(report.metrics.poolEfficiency, '%', 50)}`);
-    console.log(`   Compression Ratio: ${formatMetric(report.metrics.compressionRatio * 100, '%', 60)}\n`);
+    console.log(
+      `   Compression Ratio: ${formatMetric(report.metrics.compressionRatio * 100, '%', 60)}\n`,
+    );
 
     // Trends Analysis
     console.log(chalk.cyan.bold('📊 Performance Trends:'));
@@ -328,9 +351,9 @@ async function generateMemoryReport(): Promise<void> {
     // Active Alerts
     if (report.alerts.length > 0) {
       console.log(chalk.cyan.bold('🚨 Active Alerts:'));
-      report.alerts.forEach(alert => {
-        const color = alert.level === 'critical' ? 'red' : 
-                     alert.level === 'warning' ? 'yellow' : 'blue';
+      report.alerts.forEach((alert) => {
+        const color =
+          alert.level === 'critical' ? 'red' : alert.level === 'warning' ? 'yellow' : 'blue';
         console.log(`   ${chalk[color]('●')} ${alert.message}`);
       });
       console.log('');
@@ -340,9 +363,14 @@ async function generateMemoryReport(): Promise<void> {
     if (report.suggestions.length > 0) {
       console.log(chalk.cyan.bold('💡 Optimization Suggestions:'));
       report.suggestions.forEach((suggestion, index) => {
-        const priorityColor = suggestion.priority === 'critical' ? 'red' :
-                             suggestion.priority === 'high' ? 'yellow' :
-                             suggestion.priority === 'medium' ? 'blue' : 'gray';
+        const priorityColor =
+          suggestion.priority === 'critical'
+            ? 'red'
+            : suggestion.priority === 'high'
+              ? 'yellow'
+              : suggestion.priority === 'medium'
+                ? 'blue'
+                : 'gray';
         console.log(`   ${index + 1}. ${chalk[priorityColor].bold(suggestion.title)}`);
         console.log(`      ${suggestion.description}`);
         console.log(`      Impact: ${chalk.green(suggestion.estimatedImpact)}`);
@@ -367,14 +395,13 @@ async function generateMemoryReport(): Promise<void> {
     if (report.metrics.avgQueryTime > 100) {
       console.log(`   • ${chalk.yellow('Optimize database queries')}`);
     }
-    if (report.alerts.filter(a => a.level === 'critical').length > 0) {
+    if (report.alerts.filter((a) => a.level === 'critical').length > 0) {
       console.log(`   • ${chalk.red('Address critical alerts immediately')}`);
     }
 
     console.log(chalk.green('\n✅ Report generation completed!'));
 
     await memory.shutdown();
-
   } catch (error) {
     console.error(chalk.red('❌ Report generation failed:'), (error as Error).message);
   }
@@ -392,13 +419,13 @@ async function performMemoryCleanup(): Promise<void> {
 
     console.log(chalk.blue('1. Cleaning expired entries...'));
     // Cleanup would happen automatically through memory management
-    
+
     console.log(chalk.blue('2. Compressing old data...'));
     await memory.compress();
-    
+
     console.log(chalk.blue('3. Optimizing cache...'));
     // Cache optimization happens automatically
-    
+
     console.log(chalk.blue('4. Analyzing patterns...'));
     const patterns = await memory.learnPatterns();
 
@@ -408,7 +435,6 @@ async function performMemoryCleanup(): Promise<void> {
     console.log(`   • Memory compressed\n`);
 
     await memory.shutdown();
-
   } catch (error) {
     console.error(chalk.red('❌ Cleanup failed:'), (error as Error).message);
   }
@@ -419,7 +445,7 @@ async function performMemoryCleanup(): Promise<void> {
  */
 async function showMemoryOverview(): Promise<void> {
   console.log(chalk.cyan('Welcome to the Hive Mind Memory Optimization System!\n'));
-  
+
   console.log('Available commands:');
   console.log(`  ${chalk.green('--analyze')}     Analyze current memory performance`);
   console.log(`  ${chalk.green('--optimize')}    Run comprehensive optimization`);
@@ -429,8 +455,12 @@ async function showMemoryOverview(): Promise<void> {
 
   console.log('Configuration options:');
   console.log(`  ${chalk.blue('--cache-size')}         Set cache size (default: 10000)`);
-  console.log(`  ${chalk.blue('--cache-memory')}       Set cache memory limit in MB (default: 100)`);
-  console.log(`  ${chalk.blue('--compression-threshold')} Set compression threshold in bytes (default: 10000)\n`);
+  console.log(
+    `  ${chalk.blue('--cache-memory')}       Set cache memory limit in MB (default: 100)`,
+  );
+  console.log(
+    `  ${chalk.blue('--compression-threshold')} Set compression threshold in bytes (default: 10000)\n`,
+  );
 
   console.log(chalk.yellow('💡 Quick start: Run with --analyze to see current performance'));
 }
@@ -441,11 +471,11 @@ async function showMemoryOverview(): Promise<void> {
 
 function getStatusBadge(status: string): string {
   const colors: Record<string, string> = {
-    'excellent': 'green',
-    'good': 'cyan',
-    'fair': 'yellow',
-    'poor': 'red',
-    'critical': 'red'
+    excellent: 'green',
+    good: 'cyan',
+    fair: 'yellow',
+    poor: 'red',
+    critical: 'red',
   };
   const color = colors[status] || 'gray';
   return (chalk as any)[color].bold(status.toUpperCase());
@@ -459,11 +489,11 @@ function formatMetric(value: number, unit: string, threshold: number, inverse = 
 
 function getTrendIndicator(trend: string): string {
   const indicators: Record<string, string> = {
-    'improving': chalk.green('📈 Improving'),
-    'stable': chalk.blue('➡️ Stable'),
-    'degrading': chalk.red('📉 Degrading'),
-    'increasing': chalk.red('📈 Increasing'),
-    'decreasing': chalk.green('📉 Decreasing')
+    improving: chalk.green('📈 Improving'),
+    stable: chalk.blue('➡️ Stable'),
+    degrading: chalk.red('📉 Degrading'),
+    increasing: chalk.red('📈 Increasing'),
+    decreasing: chalk.green('📉 Decreasing'),
   };
   return indicators[trend] || chalk.gray('❓ Unknown');
 }

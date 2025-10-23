@@ -16,6 +16,7 @@ Audit files for clarity, modularity, and size using parallel operations. Break l
 ### Parallel File Analysis
 
 #### Concurrent Size Checking:
+
 ```bash
 # Check all files for size violations in parallel
 find . -name "*.ts" -o -name "*.js" | \
@@ -23,6 +24,7 @@ find . -name "*.ts" -o -name "*.js" | \
 ```
 
 #### Batch Complexity Analysis:
+
 ```bash
 # Analyze multiple files for complexity metrics
 parallel --jobs 8 ::: \
@@ -35,21 +37,21 @@ parallel --jobs 8 ::: \
 ### Concurrent Refactoring Operations
 
 #### Parallel Module Extraction:
+
 ```javascript
 // Identify and extract modules concurrently
 const largeFiles = await findLargeFiles();
-const extractionTasks = largeFiles.map(file => ({
+const extractionTasks = largeFiles.map((file) => ({
   file,
-  modules: identifyExtractableModules(file)
+  modules: identifyExtractableModules(file),
 }));
 
 // Process extractions in parallel
-await Promise.all(
-  extractionTasks.map(task => extractModules(task))
-);
+await Promise.all(extractionTasks.map((task) => extractModules(task)));
 ```
 
 #### Batch Import Optimization:
+
 ```bash
 # Optimize imports across multiple files
 parallel --jobs 6 ::: \
@@ -64,6 +66,7 @@ parallel --jobs 6 ::: \
 ### Performance Optimization Batches
 
 #### Concurrent Bundle Analysis:
+
 ```bash
 # Analyze multiple bundles simultaneously
 parallel --jobs 4 ::: \
@@ -74,22 +77,22 @@ parallel --jobs 4 ::: \
 ```
 
 #### Parallel Code Splitting:
+
 ```javascript
 // Split code into chunks concurrently
 const splitPoints = [
   { route: '/dashboard', components: ['Dashboard', 'Charts'] },
   { route: '/profile', components: ['Profile', 'Settings'] },
-  { route: '/admin', components: ['Admin', 'Users'] }
+  { route: '/admin', components: ['Admin', 'Users'] },
 ];
 
-await Promise.all(
-  splitPoints.map(point => createLazyChunk(point))
-);
+await Promise.all(splitPoints.map((point) => createLazyChunk(point)));
 ```
 
 ### Configuration Optimization
 
 #### Batch Environment Variable Extraction:
+
 ```bash
 # Extract inline configs from multiple files
 find . -name "*.ts" -o -name "*.js" | \
@@ -100,6 +103,7 @@ cat *.env | sort | uniq > .env.consolidated
 ```
 
 #### Parallel Dependency Analysis:
+
 ```bash
 # Analyze dependencies across modules
 parallel --jobs 6 ::: \
@@ -114,6 +118,7 @@ parallel --jobs 6 ::: \
 ## Optimized Refactoring Workflows
 
 ### Large File Breakdown:
+
 ```bash
 # 1. Find all large files in parallel
 find_large_files() {
@@ -142,6 +147,7 @@ execute_refactoring() {
 ```
 
 ### Performance Optimization Pipeline:
+
 ```bash
 # Run all optimizations concurrently
 optimize_all() {
@@ -151,10 +157,10 @@ optimize_all() {
   optimize_styles &
   optimize_scripts &
   optimize_fonts &
-  
+
   # Wait for all to complete
   wait
-  
+
   # Generate optimization report
   generate_optimization_report
 }
@@ -166,7 +172,7 @@ optimize_all() {
 # Run tests for refactored modules in parallel
 test_refactored_modules() {
   local modules=("auth" "user" "dashboard" "api" "utils")
-  
+
   printf '%s\n' "${modules[@]}" | \
     parallel --jobs 5 'npm test -- --testPathPattern={}'
 }
@@ -184,18 +190,21 @@ verify_refactoring() {
 ## Tool Usage Guidelines (Optimized)
 
 ### For Analysis:
+
 • Use parallel file reading for large codebases
 • Batch similar analysis operations together
 • Run independent metrics calculations concurrently
 • Generate reports from multiple sources simultaneously
 
 ### For Refactoring:
+
 • Extract modules from multiple files in parallel
 • Apply similar transformations in batches
 • Update imports across files concurrently
 • Test refactored code in parallel
 
 ### For Optimization:
+
 • Analyze multiple performance metrics simultaneously
 • Apply optimizations to independent modules concurrently
 • Batch configuration updates together
@@ -210,6 +219,7 @@ verify_refactoring() {
 • **Better resource utilization** during large-scale refactoring
 
 ## Groups/Permissions
+
 - read
 - edit
 - browser

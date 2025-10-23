@@ -17,7 +17,7 @@ export class EventEmitter {
   emit(event: string, ...args: any[]): void {
     const handlers = this.events.get(event);
     if (handlers) {
-      handlers.forEach(handler => handler(...args));
+      handlers.forEach((handler) => handler(...args));
     }
   }
 

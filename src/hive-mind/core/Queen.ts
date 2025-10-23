@@ -1,6 +1,6 @@
 /**
  * Queen Coordinator Class
- * 
+ *
  * The Queen manages high-level coordination, decision-making,
  * and strategic planning for the Hive Mind swarm.
  */
@@ -17,7 +17,7 @@ import {
   QueenMode,
   ConsensusProposal,
   QueenDecision,
-  CoordinationStrategy
+  CoordinationStrategy,
 } from '../types.js';
 
 interface QueenConfig {
@@ -52,7 +52,7 @@ export class Queen extends EventEmitter {
   async initialize(): Promise<void> {
     this.db = await DatabaseManager.getInstance();
     this.mcpWrapper = new MCPToolWrapper();
-    
+
     // Create Queen as a special coordinator agent
     await this.db.createAgent({
       id: this.id,
@@ -64,18 +64,18 @@ export class Queen extends EventEmitter {
         'task_allocation',
         'consensus_coordination',
         'performance_optimization',
-        'swarm_governance'
+        'swarm_governance',
       ]),
       status: 'active',
-      metadata: JSON.stringify({ role: 'queen', mode: this.config.mode })
+      metadata: JSON.stringify({ role: 'queen', mode: this.config.mode }),
     });
-    
+
     this.isActive = true;
-    
+
     // Start coordination loops
     this.startCoordinationLoop();
     this.startOptimizationLoop();
-    
+
     this.emit('initialized');
   }
 
@@ -84,15 +84,15 @@ export class Queen extends EventEmitter {
    */
   async registerAgent(agent: Agent): Promise<void> {
     this.agents.set(agent.id, agent);
-    
+
     // Analyze agent capabilities and update strategies
     await this.analyzeAgentCapabilities(agent);
-    
+
     // Notify other agents in distributed mode
     if (this.config.mode === 'distributed') {
       await this.broadcastAgentRegistration(agent);
     }
-    
+
     this.emit('agentRegistered', { agent });
   }
 
@@ -101,23 +101,23 @@ export class Queen extends EventEmitter {
    */
   async onTaskSubmitted(task: Task): Promise<QueenDecision> {
     this.taskQueue.set(task.id, task);
-    
+
     // Analyze task requirements
     const analysis = await this.analyzeTask(task);
-    
+
     // Make strategic decision
     const decision = await this.makeStrategicDecision(task, analysis);
-    
+
     // If consensus required, initiate consensus process
     if (task.requireConsensus) {
       await this.initiateConsensus(task, decision);
     }
-    
+
     // Apply decision
     await this.applyDecision(decision);
-    
+
     this.emit('taskDecision', { task, decision });
-    
+
     return decision;
   }
 
@@ -133,57 +133,61 @@ export class Queen extends EventEmitter {
         task: task.description,
         priority: task.priority,
         topology: this.config.topology,
-        availableAgents: this.getAvailableAgents().length
-      }
+        availableAgents: this.getAvailableAgents().length,
+      },
     });
-    
+
     // Select optimal strategy
     const strategy = this.selectOptimalStrategy(task, analysis, neuralAnalysis);
-    
+
     // Identify best agents for the task
     const selectedAgents = await this.selectAgentsForTask(task, strategy);
-    
+
     // Create execution plan
     const executionPlan = this.createExecutionPlan(task, selectedAgents, strategy);
-    
+
     return {
       id: uuidv4(),
       taskId: task.id,
       strategy,
-      selectedAgents: selectedAgents.map(a => a.id),
+      selectedAgents: selectedAgents.map((a) => a.id),
       executionPlan,
       confidence: analysis.confidence || 0.85,
       rationale: analysis.rationale || 'Strategic analysis completed',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 
   /**
    * Select optimal coordination strategy
    */
-  private selectOptimalStrategy(task: Task, analysis: any, neuralAnalysis: any): CoordinationStrategy {
+  private selectOptimalStrategy(
+    task: Task,
+    analysis: any,
+    neuralAnalysis: any,
+  ): CoordinationStrategy {
     // Strategy selection based on multiple factors
     const factors = {
       taskComplexity: analysis.complexity || 'medium',
       agentAvailability: this.getAvailableAgents().length,
       topology: this.config.topology,
       priority: task.priority,
-      consensusRequired: task.requireConsensus
+      consensusRequired: task.requireConsensus,
     };
-    
+
     // Use topology-specific strategies
     if (this.config.topology === 'hierarchical' && factors.taskComplexity === 'high') {
       return this.strategies.get('hierarchical-cascade')!;
     }
-    
+
     if (this.config.topology === 'mesh' && factors.consensusRequired) {
       return this.strategies.get('mesh-consensus')!;
     }
-    
+
     if (factors.priority === 'critical') {
       return this.strategies.get('priority-fast-track')!;
     }
-    
+
     // Default adaptive strategy
     return this.strategies.get('adaptive-default')!;
   }
@@ -194,53 +198,57 @@ export class Queen extends EventEmitter {
   private async selectAgentsForTask(task: Task, strategy: CoordinationStrategy): Promise<Agent[]> {
     const availableAgents = this.getAvailableAgents();
     const requiredCapabilities = task.requiredCapabilities || [];
-    
+
     // Score agents based on capabilities and current load
     const scoredAgents = await Promise.all(
       availableAgents.map(async (agent) => {
         const score = await this.scoreAgentForTask(agent, task, requiredCapabilities);
         return { agent, score };
-      })
+      }),
     );
-    
+
     // Sort by score and select top agents
     scoredAgents.sort((a, b) => b.score - a.score);
-    
+
     const maxAgents = Math.min(task.maxAgents, strategy.maxAgents || 3);
-    return scoredAgents.slice(0, maxAgents).map(sa => sa.agent);
+    return scoredAgents.slice(0, maxAgents).map((sa) => sa.agent);
   }
 
   /**
    * Score an agent for a specific task
    */
-  private async scoreAgentForTask(agent: Agent, task: Task, requiredCapabilities: string[]): Promise<number> {
+  private async scoreAgentForTask(
+    agent: Agent,
+    task: Task,
+    requiredCapabilities: string[],
+  ): Promise<number> {
     let score = 0;
-    
+
     // Capability match
-    const capabilityMatches = requiredCapabilities.filter(cap => 
-      agent.capabilities.includes(cap)
+    const capabilityMatches = requiredCapabilities.filter((cap) =>
+      agent.capabilities.includes(cap),
     ).length;
     score += capabilityMatches * 10;
-    
+
     // Agent type suitability
     const typeSuitability = this.getTypeSuitabilityForTask(agent.type, task);
     score += typeSuitability * 5;
-    
+
     // Current workload (prefer less busy agents)
     if (agent.status === 'idle') score += 8;
     else if (agent.status === 'active') score += 4;
-    
+
     // Historical performance (from database)
     const performance = await this.db.getAgentPerformance(agent.id);
     if (performance) {
       score += performance.successRate * 10;
     }
-    
+
     // Specialty bonus
     if (agent.type === 'specialist' && requiredCapabilities.length > 0) {
       score += 5;
     }
-    
+
     return score;
   }
 
@@ -249,13 +257,73 @@ export class Queen extends EventEmitter {
    */
   private getTypeSuitabilityForTask(agentType: AgentType, task: Task): number {
     const suitabilityMap: Record<string, Record<AgentType, number>> = {
-      research: { researcher: 10, analyst: 8, specialist: 6, coder: 4, coordinator: 5, architect: 5, tester: 3, reviewer: 4, optimizer: 4, documenter: 6, monitor: 3 },
-      development: { coder: 10, architect: 8, tester: 7, reviewer: 6, coordinator: 5, specialist: 6, researcher: 4, analyst: 4, optimizer: 5, documenter: 4, monitor: 3 },
-      analysis: { analyst: 10, researcher: 8, specialist: 6, reviewer: 5, coordinator: 5, architect: 4, coder: 4, tester: 3, optimizer: 5, documenter: 4, monitor: 4 },
-      testing: { tester: 10, reviewer: 8, analyst: 6, coder: 5, coordinator: 4, specialist: 5, researcher: 3, architect: 4, optimizer: 4, documenter: 3, monitor: 4 },
-      optimization: { optimizer: 10, analyst: 8, coder: 7, architect: 6, coordinator: 5, specialist: 6, researcher: 4, tester: 4, reviewer: 5, documenter: 3, monitor: 4 }
+      research: {
+        researcher: 10,
+        analyst: 8,
+        specialist: 6,
+        coder: 4,
+        coordinator: 5,
+        architect: 5,
+        tester: 3,
+        reviewer: 4,
+        optimizer: 4,
+        documenter: 6,
+        monitor: 3,
+      },
+      development: {
+        coder: 10,
+        architect: 8,
+        tester: 7,
+        reviewer: 6,
+        coordinator: 5,
+        specialist: 6,
+        researcher: 4,
+        analyst: 4,
+        optimizer: 5,
+        documenter: 4,
+        monitor: 3,
+      },
+      analysis: {
+        analyst: 10,
+        researcher: 8,
+        specialist: 6,
+        reviewer: 5,
+        coordinator: 5,
+        architect: 4,
+        coder: 4,
+        tester: 3,
+        optimizer: 5,
+        documenter: 4,
+        monitor: 4,
+      },
+      testing: {
+        tester: 10,
+        reviewer: 8,
+        analyst: 6,
+        coder: 5,
+        coordinator: 4,
+        specialist: 5,
+        researcher: 3,
+        architect: 4,
+        optimizer: 4,
+        documenter: 3,
+        monitor: 4,
+      },
+      optimization: {
+        optimizer: 10,
+        analyst: 8,
+        coder: 7,
+        architect: 6,
+        coordinator: 5,
+        specialist: 6,
+        researcher: 4,
+        tester: 4,
+        reviewer: 5,
+        documenter: 3,
+        monitor: 4,
+      },
     };
-    
+
     // Detect task type from description
     const taskType = this.detectTaskType(task.description);
     return suitabilityMap[taskType]?.[agentType] || 5;
@@ -266,11 +334,16 @@ export class Queen extends EventEmitter {
    */
   private detectTaskType(description: string): string {
     const lower = description.toLowerCase();
-    
+
     if (lower.includes('research') || lower.includes('investigate') || lower.includes('explore')) {
       return 'research';
     }
-    if (lower.includes('develop') || lower.includes('implement') || lower.includes('build') || lower.includes('create')) {
+    if (
+      lower.includes('develop') ||
+      lower.includes('implement') ||
+      lower.includes('build') ||
+      lower.includes('create')
+    ) {
       return 'development';
     }
     if (lower.includes('analyze') || lower.includes('review') || lower.includes('assess')) {
@@ -282,7 +355,7 @@ export class Queen extends EventEmitter {
     if (lower.includes('optimize') || lower.includes('improve') || lower.includes('enhance')) {
       return 'optimization';
     }
-    
+
     return 'general';
   }
 
@@ -292,14 +365,14 @@ export class Queen extends EventEmitter {
   private createExecutionPlan(task: Task, agents: Agent[], strategy: CoordinationStrategy): any {
     return {
       phases: strategy.phases || ['preparation', 'execution', 'validation'],
-      agentAssignments: agents.map(agent => ({
+      agentAssignments: agents.map((agent) => ({
         agentId: agent.id,
         role: this.determineAgentRole(agent, task),
-        responsibilities: this.getAgentResponsibilities(agent, task)
+        responsibilities: this.getAgentResponsibilities(agent, task),
       })),
       coordinationPoints: strategy.coordinationPoints || ['start', 'midpoint', 'completion'],
       checkpoints: this.createCheckpoints(task, strategy),
-      fallbackPlan: this.createFallbackPlan(task, agents)
+      fallbackPlan: this.createFallbackPlan(task, agents),
     };
   }
 
@@ -314,14 +387,14 @@ export class Queen extends EventEmitter {
       proposal: {
         decision,
         task: task.description,
-        rationale: decision.rationale
+        rationale: decision.rationale,
       },
       requiredThreshold: 0.66,
-      deadline: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes
+      deadline: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
     };
-    
+
     await this.db.createConsensusProposal(proposal);
-    
+
     // Notify all agents to vote
     await this.broadcastConsensusRequest(proposal);
   }
@@ -334,9 +407,9 @@ export class Queen extends EventEmitter {
     await this.db.updateTask(decision.taskId, {
       assigned_agents: JSON.stringify(decision.selectedAgents),
       status: 'assigned',
-      assigned_at: new Date()
+      assigned_at: new Date(),
     });
-    
+
     // Notify selected agents
     for (const agentId of decision.selectedAgents) {
       const agent = this.agents.get(agentId);
@@ -344,14 +417,14 @@ export class Queen extends EventEmitter {
         await agent.assignTask(decision.taskId, decision.executionPlan);
       }
     }
-    
+
     // Store decision in memory for learning
     await this.mcpWrapper.storeMemory({
       action: 'store',
       key: `decision/${decision.taskId}`,
       value: JSON.stringify(decision),
       namespace: 'queen-decisions',
-      ttl: 86400 * 7 // 7 days
+      ttl: 86400 * 7, // 7 days
     });
   }
 
@@ -361,17 +434,16 @@ export class Queen extends EventEmitter {
   private startCoordinationLoop(): void {
     setInterval(async () => {
       if (!this.isActive) return;
-      
+
       try {
         // Monitor agent health
         await this.monitorAgentHealth();
-        
+
         // Check task progress
         await this.checkTaskProgress();
-        
+
         // Rebalance if needed
         await this.checkRebalancing();
-        
       } catch (error) {
         this.emit('error', error);
       }
@@ -384,17 +456,16 @@ export class Queen extends EventEmitter {
   private startOptimizationLoop(): void {
     setInterval(async () => {
       if (!this.isActive) return;
-      
+
       try {
         // Analyze performance patterns
         await this.analyzePerformancePatterns();
-        
+
         // Optimize strategies
         await this.optimizeStrategies();
-        
+
         // Train neural patterns
         await this.trainNeuralPatterns();
-        
       } catch (error) {
         this.emit('error', error);
       }
@@ -412,9 +483,9 @@ export class Queen extends EventEmitter {
       phases: ['planning', 'delegation', 'execution', 'aggregation'],
       maxAgents: 5,
       coordinationPoints: ['phase-transition', 'milestone', 'completion'],
-      suitable_for: ['complex-tasks', 'multi-phase-projects']
+      suitable_for: ['complex-tasks', 'multi-phase-projects'],
     });
-    
+
     // Mesh consensus strategy
     this.strategies.set('mesh-consensus', {
       name: 'Mesh Consensus',
@@ -422,9 +493,9 @@ export class Queen extends EventEmitter {
       phases: ['proposal', 'discussion', 'consensus', 'execution'],
       maxAgents: 7,
       coordinationPoints: ['consensus-check', 'progress-sync', 'final-vote'],
-      suitable_for: ['critical-decisions', 'collaborative-tasks']
+      suitable_for: ['critical-decisions', 'collaborative-tasks'],
     });
-    
+
     // Priority fast-track strategy
     this.strategies.set('priority-fast-track', {
       name: 'Priority Fast Track',
@@ -432,9 +503,9 @@ export class Queen extends EventEmitter {
       phases: ['immediate-assignment', 'parallel-execution', 'quick-validation'],
       maxAgents: 3,
       coordinationPoints: ['start', 'critical-path', 'completion'],
-      suitable_for: ['urgent-tasks', 'critical-fixes']
+      suitable_for: ['urgent-tasks', 'critical-fixes'],
     });
-    
+
     // Adaptive default strategy
     this.strategies.set('adaptive-default', {
       name: 'Adaptive Default',
@@ -442,17 +513,17 @@ export class Queen extends EventEmitter {
       phases: ['analysis', 'planning', 'execution', 'review'],
       maxAgents: 4,
       coordinationPoints: ['checkpoint', 'adaptation-point', 'completion'],
-      suitable_for: ['general-tasks', 'unknown-complexity']
+      suitable_for: ['general-tasks', 'unknown-complexity'],
     });
   }
 
   /**
    * Helper methods
    */
-  
+
   private getAvailableAgents(): Agent[] {
     return Array.from(this.agents.values()).filter(
-      agent => agent.status === 'idle' || agent.status === 'active'
+      (agent) => agent.status === 'idle' || agent.status === 'active',
     );
   }
 
@@ -464,8 +535,8 @@ export class Queen extends EventEmitter {
       metadata: {
         description: task.description,
         priority: task.priority,
-        dependencies: task.dependencies
-      }
+        dependencies: task.dependencies,
+      },
     });
   }
 
@@ -477,9 +548,9 @@ export class Queen extends EventEmitter {
       value: JSON.stringify({
         type: agent.type,
         capabilities: agent.capabilities,
-        registeredAt: new Date()
+        registeredAt: new Date(),
       }),
-      namespace: 'agent-registry'
+      namespace: 'agent-registry',
     });
   }
 
@@ -495,10 +566,10 @@ export class Queen extends EventEmitter {
         agent: {
           id: agent.id,
           type: agent.type,
-          capabilities: agent.capabilities
-        }
+          capabilities: agent.capabilities,
+        },
       }),
-      priority: 'high'
+      priority: 'high',
     });
   }
 
@@ -510,7 +581,7 @@ export class Queen extends EventEmitter {
       message_type: 'consensus',
       content: JSON.stringify(proposal),
       priority: 'urgent',
-      requires_response: true
+      requires_response: true,
     });
   }
 
@@ -527,9 +598,9 @@ export class Queen extends EventEmitter {
       optimizer: 'enhancer',
       documenter: 'recorder',
       monitor: 'observer',
-      specialist: 'expert'
+      specialist: 'expert',
     };
-    
+
     return roleMap[agent.type] || 'contributor';
   }
 
@@ -546,17 +617,17 @@ export class Queen extends EventEmitter {
       optimizer: ['improve performance', 'reduce complexity', 'optimize resources'],
       documenter: ['create documentation', 'update guides', 'maintain clarity'],
       monitor: ['track metrics', 'alert on issues', 'ensure health'],
-      specialist: ['provide expertise', 'solve complex problems', 'guide implementation']
+      specialist: ['provide expertise', 'solve complex problems', 'guide implementation'],
     };
-    
+
     return responsibilityMap[agent.type] || ['contribute to task'];
   }
 
   private createCheckpoints(task: Task, strategy: CoordinationStrategy): any[] {
     return strategy.coordinationPoints.map((point, index) => ({
       name: point,
-      expectedProgress: Math.round((index + 1) / strategy.coordinationPoints.length * 100),
-      actions: ['status_check', 'sync_progress', 'adjust_strategy']
+      expectedProgress: Math.round(((index + 1) / strategy.coordinationPoints.length) * 100),
+      actions: ['status_check', 'sync_progress', 'adjust_strategy'],
     }));
   }
 
@@ -567,9 +638,9 @@ export class Queen extends EventEmitter {
         'reassign_to_available_agents',
         'escalate_to_queen',
         'activate_backup_agents',
-        'simplify_task_requirements'
+        'simplify_task_requirements',
       ],
-      escalation_path: ['team_lead', 'queen', 'human_operator']
+      escalation_path: ['team_lead', 'queen', 'human_operator'],
     };
   }
 
@@ -583,7 +654,7 @@ export class Queen extends EventEmitter {
 
   private async checkTaskProgress(): Promise<void> {
     const activeTasks = await this.db.getActiveTasks(this.config.swarmId);
-    
+
     for (const task of activeTasks) {
       if (this.isTaskStalled(task)) {
         await this.handleStalledTask(task);
@@ -593,7 +664,7 @@ export class Queen extends EventEmitter {
 
   private async checkRebalancing(): Promise<void> {
     const stats = await this.db.getSwarmStats(this.config.swarmId);
-    
+
     if (stats.agentUtilization > 0.9 || stats.taskBacklog > stats.agentCount * 2) {
       this.emit('rebalanceNeeded', stats);
     }
@@ -605,10 +676,10 @@ export class Queen extends EventEmitter {
       operation: 'performance_patterns',
       metadata: {
         swarmId: this.config.swarmId,
-        timeframe: '1h'
-      }
+        timeframe: '1h',
+      },
     });
-    
+
     if (patterns.recommendations) {
       await this.applyPerformanceRecommendations(patterns.recommendations);
     }
@@ -617,7 +688,7 @@ export class Queen extends EventEmitter {
   private async optimizeStrategies(): Promise<void> {
     // Analyze strategy effectiveness and adjust
     const strategyPerformance = await this.db.getStrategyPerformance(this.config.swarmId);
-    
+
     for (const [strategyName, performance] of Object.entries(strategyPerformance)) {
       if (performance.successRate < 0.7) {
         await this.adjustStrategy(strategyName, performance);
@@ -628,12 +699,12 @@ export class Queen extends EventEmitter {
   private async trainNeuralPatterns(): Promise<void> {
     // Train neural network on successful patterns
     const successfulDecisions = await this.db.getSuccessfulDecisions(this.config.swarmId);
-    
+
     if (successfulDecisions.length > 10) {
       await this.mcpWrapper.trainNeural({
         pattern_type: 'coordination',
         training_data: JSON.stringify(successfulDecisions),
-        epochs: 50
+        epochs: 50,
       });
     }
   }
@@ -643,10 +714,10 @@ export class Queen extends EventEmitter {
     if (agent.currentTask) {
       await this.reassignTask(agent.currentTask, agent.id);
     }
-    
+
     // Mark agent as offline
     await this.db.updateAgentStatus(agent.id, 'offline');
-    
+
     this.emit('agentFailed', { agent });
   }
 
@@ -658,13 +729,15 @@ export class Queen extends EventEmitter {
   private isTaskStalled(task: any): boolean {
     // Check if task hasn't progressed in reasonable time
     const stalledThreshold = 10 * 60 * 1000; // 10 minutes
-    return task.last_progress_update && 
-           Date.now() - new Date(task.last_progress_update).getTime() > stalledThreshold;
+    return (
+      task.last_progress_update &&
+      Date.now() - new Date(task.last_progress_update).getTime() > stalledThreshold
+    );
   }
 
   private async reassignTask(taskId: string, fromAgentId: string): Promise<void> {
-    const availableAgents = this.getAvailableAgents().filter(a => a.id !== fromAgentId);
-    
+    const availableAgents = this.getAvailableAgents().filter((a) => a.id !== fromAgentId);
+
     if (availableAgents.length > 0) {
       const newAgent = availableAgents[0]; // Simple selection, could be more sophisticated
       await this.db.reassignTask(taskId, newAgent.id);
@@ -686,7 +759,7 @@ export class Queen extends EventEmitter {
       if (performance.avgCompletionTime > performance.targetTime) {
         strategy.maxAgents = Math.min(strategy.maxAgents + 1, 10);
       }
-      
+
       this.emit('strategyAdjusted', { strategyName, performance });
     }
   }

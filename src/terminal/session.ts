@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Terminal session management
  */
@@ -39,7 +38,7 @@ export class TerminalSession {
       return;
     }
 
-    this.logger.debug('Initializing terminal session', { 
+    this.logger.debug('Initializing terminal session', {
       sessionId: this.id,
       agentId: this.profile.id,
     });
@@ -52,8 +51,8 @@ export class TerminalSession {
       await this.runInitializationCommands();
 
       this.initialized = true;
-      
-      this.logger.info('Terminal session initialized', { 
+
+      this.logger.info('Terminal session initialized', {
         sessionId: this.id,
         agentId: this.profile.id,
       });
@@ -72,7 +71,7 @@ export class TerminalSession {
       throw new TerminalCommandError('Terminal is not alive');
     }
 
-    this.logger.debug('Executing command', { 
+    this.logger.debug('Executing command', {
       sessionId: this.id,
       command: command.substring(0, 100),
     });
@@ -95,19 +94,19 @@ export class TerminalSession {
       this.commandHistory.push(command);
       this.lastCommandTime = new Date();
 
-      this.logger.debug('Command executed successfully', { 
+      this.logger.debug('Command executed successfully', {
         sessionId: this.id,
         outputLength: result.length,
       });
 
       return result;
     } catch (error) {
-      this.logger.error('Command execution failed', { 
+      this.logger.error('Command execution failed', {
         sessionId: this.id,
         command,
         error,
       });
-      throw new TerminalCommandError('Command execution failed', { 
+      throw new TerminalCommandError('Command execution failed', {
         command,
         error,
       });
@@ -121,7 +120,7 @@ export class TerminalSession {
       // Run cleanup commands
       await this.runCleanupCommands();
     } catch (error) {
-      this.logger.warn('Error during session cleanup', { 
+      this.logger.warn('Error during session cleanup', {
         sessionId: this.id,
         error,
       });
@@ -136,7 +135,8 @@ export class TerminalSession {
     // Check if terminal is responsive
     if (this.lastCommandTime) {
       const timeSinceLastCommand = Date.now() - this.lastCommandTime.getTime();
-      if (timeSinceLastCommand > 300000) { // 5 minutes
+      if (timeSinceLastCommand > 300000) {
+        // 5 minutes
         // Terminal might be stale, do a health check
         this.performHealthCheck().catch((error) => {
           this.logger.warn('Health check failed', { sessionId: this.id, error });
@@ -165,9 +165,7 @@ export class TerminalSession {
 
     // Set working directory if specified
     if (this.profile.metadata?.workingDirectory) {
-      await this.terminal.executeCommand(
-        `cd "${this.profile.metadata.workingDirectory}"`,
-      );
+      await this.terminal.executeCommand(`cd "${this.profile.metadata.workingDirectory}"`);
     }
   }
 
@@ -212,7 +210,9 @@ export class TerminalSession {
 
       this.lastCommandTime = new Date();
     } catch (error) {
-      throw new Error(`Health check failed: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Health check failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -221,12 +221,12 @@ export class TerminalSession {
    */
   streamOutput(callback: (output: string) => void): () => void {
     this.outputListeners.add(callback);
-    
+
     // Set up terminal output listener if supported
     if (this.terminal.addOutputListener) {
       this.terminal.addOutputListener(callback);
     }
-    
+
     // Return unsubscribe function
     return () => {
       this.outputListeners.delete(callback);
@@ -240,7 +240,7 @@ export class TerminalSession {
    * Notify output listeners
    */
   private notifyOutputListeners(output: string): void {
-    this.outputListeners.forEach(listener => {
+    this.outputListeners.forEach((listener) => {
       try {
         listener(output);
       } catch (error) {

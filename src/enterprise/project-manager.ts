@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 import { EventEmitter } from 'events';
 import { writeFile, readFile, mkdir, readdir, stat } from 'fs/promises';
 import { join } from 'path';
@@ -203,11 +202,7 @@ export class ProjectManager extends EventEmitter {
   private logger: Logger;
   private config: ConfigManager;
 
-  constructor(
-    projectsPath: string = './projects',
-    logger?: Logger,
-    config?: ConfigManager
-  ) {
+  constructor(projectsPath: string = './projects', logger?: Logger, config?: ConfigManager) {
     super();
     this.projectsPath = projectsPath;
     this.logger = logger || new Logger({ level: 'info', format: 'text', destination: 'console' });
@@ -240,13 +235,14 @@ export class ProjectManager extends EventEmitter {
         total: 0,
         spent: 0,
         remaining: 0,
-        currency: 'USD'
+        currency: 'USD',
       },
       timeline: {
         plannedStart: projectData.timeline?.plannedStart || new Date(),
-        plannedEnd: projectData.timeline?.plannedEnd || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        plannedEnd:
+          projectData.timeline?.plannedEnd || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
         actualStart: projectData.timeline?.actualStart,
-        actualEnd: projectData.timeline?.actualEnd
+        actualEnd: projectData.timeline?.actualEnd,
       },
       tags: projectData.tags || [],
       metadata: projectData.metadata || {},
@@ -256,16 +252,16 @@ export class ProjectManager extends EventEmitter {
       collaboration: {
         teamMembers: [],
         communication: [],
-        sharedResources: []
+        sharedResources: [],
       },
       qualityGates: [],
-      complianceRequirements: []
+      complianceRequirements: [],
     };
 
     // Add initial audit entry
     this.addAuditEntry(project, 'system', 'project_created', 'project', {
       projectId: project.id,
-      projectName: project.name
+      projectName: project.name,
     });
 
     this.projects.set(project.id, project);
@@ -288,7 +284,7 @@ export class ProjectManager extends EventEmitter {
     // Add audit entry
     this.addAuditEntry(updatedProject, 'system', 'project_updated', 'project', {
       projectId,
-      changes: Object.keys(updates)
+      changes: Object.keys(updates),
     });
 
     this.projects.set(projectId, updatedProject);
@@ -309,18 +305,15 @@ export class ProjectManager extends EventEmitter {
     // Add audit entry before deletion
     this.addAuditEntry(project, userId, 'project_deleted', 'project', {
       projectId,
-      projectName: project.name
+      projectName: project.name,
     });
 
     this.projects.delete(projectId);
-    
+
     // Archive project instead of deleting
     const archivePath = join(this.projectsPath, 'archived');
     await mkdir(archivePath, { recursive: true });
-    await writeFile(
-      join(archivePath, `${projectId}.json`),
-      JSON.stringify(project, null, 2)
-    );
+    await writeFile(join(archivePath, `${projectId}.json`), JSON.stringify(project, null, 2));
 
     this.emit('project:deleted', { projectId, project });
     this.logger.info(`Project archived: ${project.name} (${projectId})`);
@@ -341,26 +334,24 @@ export class ProjectManager extends EventEmitter {
 
     if (filters) {
       if (filters.status) {
-        projects = projects.filter(p => p.status === filters.status);
+        projects = projects.filter((p) => p.status === filters.status);
       }
       if (filters.type) {
-        projects = projects.filter(p => p.type === filters.type);
+        projects = projects.filter((p) => p.type === filters.type);
       }
       if (filters.priority) {
-        projects = projects.filter(p => p.priority === filters.priority);
+        projects = projects.filter((p) => p.priority === filters.priority);
       }
       if (filters.owner) {
-        projects = projects.filter(p => p.owner === filters.owner);
+        projects = projects.filter((p) => p.owner === filters.owner);
       }
       if (filters.tags && filters.tags.length > 0) {
-        projects = projects.filter(p => 
-          filters.tags!.some(tag => p.tags.includes(tag))
-        );
+        projects = projects.filter((p) => filters.tags!.some((tag) => p.tags.includes(tag)));
       }
     }
 
-    return projects.sort((a, b) => 
-      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    return projects.sort(
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     );
   }
 
@@ -372,7 +363,7 @@ export class ProjectManager extends EventEmitter {
 
     const newPhase: ProjectPhase = {
       id: `phase-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      ...phase
+      ...phase,
     };
 
     project.phases.push(newPhase);
@@ -381,7 +372,7 @@ export class ProjectManager extends EventEmitter {
     this.addAuditEntry(project, 'system', 'phase_added', 'phase', {
       projectId,
       phaseId: newPhase.id,
-      phaseName: newPhase.name
+      phaseName: newPhase.name,
     });
 
     await this.saveProject(project);
@@ -390,13 +381,17 @@ export class ProjectManager extends EventEmitter {
     return newPhase;
   }
 
-  async updatePhase(projectId: string, phaseId: string, updates: Partial<ProjectPhase>): Promise<ProjectPhase> {
+  async updatePhase(
+    projectId: string,
+    phaseId: string,
+    updates: Partial<ProjectPhase>,
+  ): Promise<ProjectPhase> {
     const project = this.projects.get(projectId);
     if (!project) {
       throw new Error(`Project not found: ${projectId}`);
     }
 
-    const phaseIndex = project.phases.findIndex(p => p.id === phaseId);
+    const phaseIndex = project.phases.findIndex((p) => p.id === phaseId);
     if (phaseIndex === -1) {
       throw new Error(`Phase not found: ${phaseId}`);
     }
@@ -408,7 +403,7 @@ export class ProjectManager extends EventEmitter {
     this.addAuditEntry(project, 'system', 'phase_updated', 'phase', {
       projectId,
       phaseId,
-      changes: Object.keys(updates)
+      changes: Object.keys(updates),
     });
 
     await this.saveProject(project);
@@ -429,7 +424,7 @@ export class ProjectManager extends EventEmitter {
     this.addAuditEntry(project, 'system', 'team_member_added', 'team', {
       projectId,
       memberId: member.id,
-      memberName: member.name
+      memberName: member.name,
     });
 
     await this.saveProject(project);
@@ -442,7 +437,7 @@ export class ProjectManager extends EventEmitter {
       throw new Error(`Project not found: ${projectId}`);
     }
 
-    const memberIndex = project.collaboration.teamMembers.findIndex(m => m.id === memberId);
+    const memberIndex = project.collaboration.teamMembers.findIndex((m) => m.id === memberId);
     if (memberIndex === -1) {
       throw new Error(`Team member not found: ${memberId}`);
     }
@@ -454,7 +449,7 @@ export class ProjectManager extends EventEmitter {
     this.addAuditEntry(project, 'system', 'team_member_removed', 'team', {
       projectId,
       memberId,
-      memberName: member.name
+      memberName: member.name,
     });
 
     await this.saveProject(project);
@@ -462,49 +457,63 @@ export class ProjectManager extends EventEmitter {
   }
 
   async getProjectMetrics(projectId?: string): Promise<ProjectMetrics> {
-    const projects = projectId ? 
-      [this.projects.get(projectId)].filter(Boolean) as Project[] :
-      Array.from(this.projects.values());
+    const projects = projectId
+      ? ([this.projects.get(projectId)].filter(Boolean) as Project[])
+      : Array.from(this.projects.values());
 
     const totalProjects = projects.length;
-    const activeProjects = projects.filter(p => p.status === 'active').length;
-    const completedProjects = projects.filter(p => p.status === 'completed').length;
+    const activeProjects = projects.filter((p) => p.status === 'active').length;
+    const completedProjects = projects.filter((p) => p.status === 'completed').length;
 
-    const completedProjectsWithDuration = projects.filter(p => 
-      p.status === 'completed' && p.timeline.actualStart && p.timeline.actualEnd
+    const completedProjectsWithDuration = projects.filter(
+      (p) => p.status === 'completed' && p.timeline.actualStart && p.timeline.actualEnd,
     );
 
-    const averageProjectDuration = completedProjectsWithDuration.length > 0 ?
-      completedProjectsWithDuration.reduce((sum, p) => {
-        const duration = p.timeline.actualEnd!.getTime() - p.timeline.actualStart!.getTime();
-        return sum + (duration / (1000 * 60 * 60 * 24)); // Convert to days
-      }, 0) / completedProjectsWithDuration.length : 0;
+    const averageProjectDuration =
+      completedProjectsWithDuration.length > 0
+        ? completedProjectsWithDuration.reduce((sum, p) => {
+            const duration = p.timeline.actualEnd!.getTime() - p.timeline.actualStart!.getTime();
+            return sum + duration / (1000 * 60 * 60 * 24); // Convert to days
+          }, 0) / completedProjectsWithDuration.length
+        : 0;
 
-    const budgetVariance = projects.reduce((sum, p) => {
-      if (p.budget.total > 0) {
-        return sum + ((p.budget.spent - p.budget.total) / p.budget.total);
-      }
-      return sum;
-    }, 0) / Math.max(projects.length, 1);
+    const budgetVariance =
+      projects.reduce((sum, p) => {
+        if (p.budget.total > 0) {
+          return sum + (p.budget.spent - p.budget.total) / p.budget.total;
+        }
+        return sum;
+      }, 0) / Math.max(projects.length, 1);
 
-    const resourceUtilization = projects.reduce((sum, p) => {
-      const totalResources = p.phases.reduce((phaseSum, phase) => 
-        phaseSum + phase.resources.length, 0
-      );
-      const utilizedResources = p.phases.reduce((phaseSum, phase) => 
-        phaseSum + phase.resources.filter(r => r.availability > 0).length, 0
-      );
-      return sum + (totalResources > 0 ? utilizedResources / totalResources : 0);
-    }, 0) / Math.max(projects.length, 1);
+    const resourceUtilization =
+      projects.reduce((sum, p) => {
+        const totalResources = p.phases.reduce(
+          (phaseSum, phase) => phaseSum + phase.resources.length,
+          0,
+        );
+        const utilizedResources = p.phases.reduce(
+          (phaseSum, phase) => phaseSum + phase.resources.filter((r) => r.availability > 0).length,
+          0,
+        );
+        return sum + (totalResources > 0 ? utilizedResources / totalResources : 0);
+      }, 0) / Math.max(projects.length, 1);
 
-    const qualityScore = projects.reduce((sum, p) => {
-      const phaseQuality = p.phases.reduce((phaseSum, phase) => {
-        const metrics = phase.qualityMetrics;
-        return phaseSum + (metrics.testCoverage + metrics.codeQuality + 
-                          metrics.documentation + metrics.securityScore) / 4;
-      }, 0) / Math.max(p.phases.length, 1);
-      return sum + phaseQuality;
-    }, 0) / Math.max(projects.length, 1);
+    const qualityScore =
+      projects.reduce((sum, p) => {
+        const phaseQuality =
+          p.phases.reduce((phaseSum, phase) => {
+            const metrics = phase.qualityMetrics;
+            return (
+              phaseSum +
+              (metrics.testCoverage +
+                metrics.codeQuality +
+                metrics.documentation +
+                metrics.securityScore) /
+                4
+            );
+          }, 0) / Math.max(p.phases.length, 1);
+        return sum + phaseQuality;
+      }, 0) / Math.max(projects.length, 1);
 
     return {
       totalProjects,
@@ -516,14 +525,14 @@ export class ProjectManager extends EventEmitter {
       qualityScore,
       riskScore: 0, // Calculate based on risk assessment
       teamProductivity: 0, // Calculate based on velocity metrics
-      customerSatisfaction: 0 // Calculate based on feedback
+      customerSatisfaction: 0, // Calculate based on feedback
     };
   }
 
   async generateReport(
     projectId: string,
     type: ProjectReport['type'],
-    userId: string = 'system'
+    userId: string = 'system',
   ): Promise<ProjectReport> {
     const project = this.projects.get(projectId);
     if (!project) {
@@ -541,7 +550,7 @@ export class ProjectManager extends EventEmitter {
       generatedAt: new Date(),
       generatedBy: userId,
       format: 'json',
-      recipients: []
+      recipients: [],
     };
 
     switch (type) {
@@ -550,13 +559,13 @@ export class ProjectManager extends EventEmitter {
         report.details = {
           status: project.status,
           progress: this.calculateProjectProgress(project),
-          phases: project.phases.map(p => ({
+          phases: project.phases.map((p) => ({
             name: p.name,
             status: p.status,
-            completion: p.completionPercentage
+            completion: p.completionPercentage,
           })),
           timeline: project.timeline,
-          nextMilestones: this.getUpcomingMilestones(project)
+          nextMilestones: this.getUpcomingMilestones(project),
         };
         break;
 
@@ -566,7 +575,7 @@ export class ProjectManager extends EventEmitter {
           budget: project.budget,
           costBreakdown: this.calculateCostBreakdown(project),
           variance: project.budget.spent - project.budget.total,
-          projectedCost: this.projectFinalCost(project)
+          projectedCost: this.projectFinalCost(project),
         };
         break;
 
@@ -576,17 +585,17 @@ export class ProjectManager extends EventEmitter {
         report.details = {
           qualityMetrics,
           qualityGates: project.qualityGates,
-          recommendations: this.generateQualityRecommendations(project)
+          recommendations: this.generateQualityRecommendations(project),
         };
         break;
 
       case 'risk':
         const risks = this.getAllRisks(project);
-        report.summary = `${risks.filter(r => r.status === 'open').length} open risks identified`;
+        report.summary = `${risks.filter((r) => r.status === 'open').length} open risks identified`;
         report.details = {
           risks,
           riskMatrix: this.generateRiskMatrix(risks),
-          mitigation: this.generateRiskMitigation(risks)
+          mitigation: this.generateRiskMitigation(risks),
         };
         break;
 
@@ -596,7 +605,7 @@ export class ProjectManager extends EventEmitter {
           teamMembers: project.collaboration.teamMembers,
           resourceAllocation: this.calculateResourceAllocation(project),
           utilization: this.calculateResourceUtilization(project),
-          capacity: this.calculateCapacity(project)
+          capacity: this.calculateCapacity(project),
         };
         break;
 
@@ -607,7 +616,7 @@ export class ProjectManager extends EventEmitter {
           requirements: project.complianceRequirements,
           status: compliance,
           gaps: this.identifyComplianceGaps(project),
-          recommendations: this.generateComplianceRecommendations(project)
+          recommendations: this.generateComplianceRecommendations(project),
         };
         break;
     }
@@ -615,7 +624,7 @@ export class ProjectManager extends EventEmitter {
     this.addAuditEntry(project, userId, 'report_generated', 'report', {
       projectId,
       reportId: report.id,
-      reportType: type
+      reportType: type,
     });
 
     this.emit('report:generated', { project, report });
@@ -625,7 +634,7 @@ export class ProjectManager extends EventEmitter {
   private async loadProjects(): Promise<void> {
     try {
       const files = await readdir(this.projectsPath);
-      const projectFiles = files.filter(f => f.endsWith('.json') && !f.startsWith('.'));
+      const projectFiles = files.filter((f) => f.endsWith('.json') && !f.startsWith('.'));
 
       for (const file of projectFiles) {
         try {
@@ -653,7 +662,7 @@ export class ProjectManager extends EventEmitter {
     userId: string,
     action: string,
     target: string,
-    details: Record<string, any>
+    details: Record<string, any>,
   ): void {
     const entry: ProjectAuditEntry = {
       id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -661,7 +670,7 @@ export class ProjectManager extends EventEmitter {
       userId,
       action,
       target,
-      details
+      details,
     };
 
     project.auditLog.push(entry);
@@ -669,27 +678,28 @@ export class ProjectManager extends EventEmitter {
 
   private calculateProjectProgress(project: Project): number {
     if (project.phases.length === 0) return 0;
-    
-    const totalProgress = project.phases.reduce((sum, phase) => 
-      sum + phase.completionPercentage, 0
+
+    const totalProgress = project.phases.reduce(
+      (sum, phase) => sum + phase.completionPercentage,
+      0,
     );
-    
+
     return totalProgress / project.phases.length;
   }
 
   private getUpcomingMilestones(project: Project): ProjectMilestone[] {
-    const allMilestones = project.phases.flatMap(p => p.milestones);
+    const allMilestones = project.phases.flatMap((p) => p.milestones);
     const now = new Date();
-    
+
     return allMilestones
-      .filter(m => m.status === 'pending' && m.targetDate > now)
+      .filter((m) => m.status === 'pending' && m.targetDate > now)
       .sort((a, b) => a.targetDate.getTime() - b.targetDate.getTime())
       .slice(0, 5);
   }
 
   private calculateCostBreakdown(project: Project): Record<string, number> {
     const breakdown: Record<string, number> = {};
-    
+
     for (const phase of project.phases) {
       for (const resource of phase.resources) {
         const category = resource.type;
@@ -697,19 +707,19 @@ export class ProjectManager extends EventEmitter {
         breakdown[category] = (breakdown[category] || 0) + cost;
       }
     }
-    
+
     return breakdown;
   }
 
   private projectFinalCost(project: Project): number {
     const progress = this.calculateProjectProgress(project);
     if (progress === 0) return project.budget.total;
-    
+
     return (project.budget.spent / progress) * 100;
   }
 
   private calculateQualityMetrics(project: Project): any {
-    const allMetrics = project.phases.map(p => p.qualityMetrics);
+    const allMetrics = project.phases.map((p) => p.qualityMetrics);
     if (allMetrics.length === 0) {
       return { overall: 0, testCoverage: 0, codeQuality: 0, documentation: 0, securityScore: 0 };
     }
@@ -718,11 +728,15 @@ export class ProjectManager extends EventEmitter {
       testCoverage: allMetrics.reduce((sum, m) => sum + m.testCoverage, 0) / allMetrics.length,
       codeQuality: allMetrics.reduce((sum, m) => sum + m.codeQuality, 0) / allMetrics.length,
       documentation: allMetrics.reduce((sum, m) => sum + m.documentation, 0) / allMetrics.length,
-      securityScore: allMetrics.reduce((sum, m) => sum + m.securityScore, 0) / allMetrics.length
+      securityScore: allMetrics.reduce((sum, m) => sum + m.securityScore, 0) / allMetrics.length,
     };
 
-    const overall = (averages.testCoverage + averages.codeQuality + 
-                    averages.documentation + averages.securityScore) / 4;
+    const overall =
+      (averages.testCoverage +
+        averages.codeQuality +
+        averages.documentation +
+        averages.securityScore) /
+      4;
 
     return { overall, ...averages };
   }
@@ -741,21 +755,23 @@ export class ProjectManager extends EventEmitter {
       recommendations.push('Enhance documentation coverage for better maintainability');
     }
     if (metrics.securityScore < 85) {
-      recommendations.push('Address security vulnerabilities and implement security best practices');
+      recommendations.push(
+        'Address security vulnerabilities and implement security best practices',
+      );
     }
 
     return recommendations;
   }
 
   private getAllRisks(project: Project): ProjectRisk[] {
-    return project.phases.flatMap(p => p.risks);
+    return project.phases.flatMap((p) => p.risks);
   }
 
   private generateRiskMatrix(risks: ProjectRisk[]): any {
     const matrix = {
       low: { low: 0, medium: 0, high: 0 },
       medium: { low: 0, medium: 0, high: 0 },
-      high: { low: 0, medium: 0, high: 0 }
+      high: { low: 0, medium: 0, high: 0 },
     };
 
     for (const risk of risks) {
@@ -768,22 +784,23 @@ export class ProjectManager extends EventEmitter {
   }
 
   private generateRiskMitigation(risks: ProjectRisk[]): any {
-    const openRisks = risks.filter(r => r.status === 'open');
-    const highPriorityRisks = openRisks.filter(r => 
-      (r.probability === 'high' && r.impact === 'high') ||
-      (r.probability === 'high' && r.impact === 'medium') ||
-      (r.probability === 'medium' && r.impact === 'high')
+    const openRisks = risks.filter((r) => r.status === 'open');
+    const highPriorityRisks = openRisks.filter(
+      (r) =>
+        (r.probability === 'high' && r.impact === 'high') ||
+        (r.probability === 'high' && r.impact === 'medium') ||
+        (r.probability === 'medium' && r.impact === 'high'),
     );
 
     return {
       totalRisks: risks.length,
       openRisks: openRisks.length,
       highPriorityRisks: highPriorityRisks.length,
-      mitigationActions: highPriorityRisks.map(r => ({
+      mitigationActions: highPriorityRisks.map((r) => ({
         risk: r.description,
         mitigation: r.mitigation,
-        assignedTo: r.assignedTo
-      }))
+        assignedTo: r.assignedTo,
+      })),
     };
   }
 
@@ -793,73 +810,74 @@ export class ProjectManager extends EventEmitter {
 
   private calculateResourceAllocation(project: Project): any {
     const allocation: Record<string, number> = {};
-    
+
     for (const phase of project.phases) {
       for (const resource of phase.resources) {
         allocation[resource.type] = (allocation[resource.type] || 0) + 1;
       }
     }
-    
+
     return allocation;
   }
 
   private calculateResourceUtilization(project: Project): any {
     const utilization: Record<string, number> = {};
-    
+
     for (const phase of project.phases) {
       for (const resource of phase.resources) {
         utilization[resource.type] = (utilization[resource.type] || 0) + resource.availability;
       }
     }
-    
+
     return utilization;
   }
 
   private calculateCapacity(project: Project): any {
     const teamSize = project.collaboration.teamMembers.length;
     const totalAvailability = project.collaboration.teamMembers.reduce(
-      (sum, member) => sum + member.availability, 0
+      (sum, member) => sum + member.availability,
+      0,
     );
-    
+
     return {
       teamSize,
       totalAvailability,
-      averageAvailability: teamSize > 0 ? totalAvailability / teamSize : 0
+      averageAvailability: teamSize > 0 ? totalAvailability / teamSize : 0,
     };
   }
 
   private calculateComplianceStatus(project: Project): any {
     const requirements = project.complianceRequirements;
     const total = requirements.length;
-    const compliant = requirements.filter(r => r.status === 'compliant').length;
-    const inProgress = requirements.filter(r => r.status === 'in-progress').length;
-    const nonCompliant = requirements.filter(r => r.status === 'non-compliant').length;
-    
+    const compliant = requirements.filter((r) => r.status === 'compliant').length;
+    const inProgress = requirements.filter((r) => r.status === 'in-progress').length;
+    const nonCompliant = requirements.filter((r) => r.status === 'non-compliant').length;
+
     return {
       total,
       compliant,
       inProgress,
       nonCompliant,
-      compliancePercentage: total > 0 ? (compliant / total) * 100 : 0
+      compliancePercentage: total > 0 ? (compliant / total) * 100 : 0,
     };
   }
 
   private identifyComplianceGaps(project: Project): ComplianceRequirement[] {
-    return project.complianceRequirements.filter(r => 
-      r.status === 'not-started' || r.status === 'non-compliant'
+    return project.complianceRequirements.filter(
+      (r) => r.status === 'not-started' || r.status === 'non-compliant',
     );
   }
 
   private generateComplianceRecommendations(project: Project): string[] {
     const gaps = this.identifyComplianceGaps(project);
     const recommendations: string[] = [];
-    
+
     for (const gap of gaps) {
       recommendations.push(
-        `Address ${gap.framework} requirement: ${gap.name} (Due: ${gap.dueDate.toLocaleDateString()})`
+        `Address ${gap.framework} requirement: ${gap.name} (Due: ${gap.dueDate.toLocaleDateString()})`,
       );
     }
-    
+
     return recommendations;
   }
 }

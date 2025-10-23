@@ -1,7 +1,7 @@
 /**
  * SwarmMemory - MCP-specific memory persistence extending SharedMemory
  * Provides swarm-specific features like agent coordination, task tracking, and neural patterns
- * 
+ *
  * @module swarm-memory
  */
 
@@ -18,7 +18,7 @@ const SWARM_NAMESPACES = {
   CONSENSUS: 'swarm:consensus',
   PATTERNS: 'swarm:patterns',
   METRICS: 'swarm:metrics',
-  COORDINATION: 'swarm:coordination'
+  COORDINATION: 'swarm:coordination',
 };
 
 /**
@@ -30,12 +30,12 @@ export class SwarmMemory extends SharedMemory {
     super({
       directory: options.directory || '.swarm',
       filename: options.filename || 'swarm-memory.db',
-      ...options
+      ...options,
     });
-    
+
     this.swarmId = options.swarmId || 'default';
     this.mcpMode = options.mcpMode !== false;
-    
+
     // Additional swarm-specific caches
     this.agentCache = new Map();
     this.taskCache = new Map();
@@ -47,13 +47,13 @@ export class SwarmMemory extends SharedMemory {
    */
   async initialize() {
     await super.initialize();
-    
+
     // Initialize swarm-specific namespaces
     await this._initializeSwarmNamespaces();
-    
+
     // Load active agents and tasks into cache
     await this._loadSwarmState();
-    
+
     this.emit('swarm:initialized', { swarmId: this.swarmId });
   }
 
@@ -65,23 +65,23 @@ export class SwarmMemory extends SharedMemory {
     const enrichedData = {
       ...agentData,
       swarmId: this.swarmId,
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
     };
-    
+
     await this.store(key, enrichedData, {
       namespace: SWARM_NAMESPACES.AGENTS,
       tags: ['agent', agentData.type, agentData.status],
       metadata: {
         swarmId: this.swarmId,
-        agentType: agentData.type
-      }
+        agentType: agentData.type,
+      },
     });
-    
+
     // Update agent cache
     this.agentCache.set(agentId, enrichedData);
-    
+
     this.emit('swarm:agentStored', { agentId, type: agentData.type });
-    
+
     return { agentId, stored: true };
   }
 
@@ -93,14 +93,14 @@ export class SwarmMemory extends SharedMemory {
     if (this.agentCache.has(agentId)) {
       return this.agentCache.get(agentId);
     }
-    
+
     const key = `agent:${agentId}`;
     const agent = await this.retrieve(key, SWARM_NAMESPACES.AGENTS);
-    
+
     if (agent) {
       this.agentCache.set(agentId, agent);
     }
-    
+
     return agent;
   }
 
@@ -109,15 +109,17 @@ export class SwarmMemory extends SharedMemory {
    */
   async listAgents(filter = {}) {
     const agents = await this.list(SWARM_NAMESPACES.AGENTS, {
-      limit: filter.limit || 100
+      limit: filter.limit || 100,
     });
-    
-    return agents.map(entry => entry.value).filter(agent => {
-      if (filter.type && agent.type !== filter.type) return false;
-      if (filter.status && agent.status !== filter.status) return false;
-      if (filter.swarmId && agent.swarmId !== filter.swarmId) return false;
-      return true;
-    });
+
+    return agents
+      .map((entry) => entry.value)
+      .filter((agent) => {
+        if (filter.type && agent.type !== filter.type) return false;
+        if (filter.status && agent.status !== filter.status) return false;
+        if (filter.swarmId && agent.swarmId !== filter.swarmId) return false;
+        return true;
+      });
   }
 
   /**
@@ -129,23 +131,23 @@ export class SwarmMemory extends SharedMemory {
       ...taskData,
       swarmId: this.swarmId,
       createdAt: taskData.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
-    
+
     await this.store(key, enrichedData, {
       namespace: SWARM_NAMESPACES.TASKS,
       tags: ['task', taskData.status, taskData.priority],
       metadata: {
         swarmId: this.swarmId,
-        assignedAgents: taskData.assignedAgents || []
-      }
+        assignedAgents: taskData.assignedAgents || [],
+      },
     });
-    
+
     // Update task cache
     this.taskCache.set(taskId, enrichedData);
-    
+
     this.emit('swarm:taskStored', { taskId, status: taskData.status });
-    
+
     return { taskId, stored: true };
   }
 
@@ -157,22 +159,22 @@ export class SwarmMemory extends SharedMemory {
     if (!task) {
       throw new Error(`Task ${taskId} not found`);
     }
-    
+
     task.status = status;
     task.updatedAt = new Date().toISOString();
-    
+
     if (result) {
       task.result = result;
     }
-    
+
     if (status === 'completed') {
       task.completedAt = new Date().toISOString();
     }
-    
+
     await this.storeTask(taskId, task);
-    
+
     this.emit('swarm:taskStatusUpdated', { taskId, status });
-    
+
     return { taskId, status, updated: true };
   }
 
@@ -184,14 +186,14 @@ export class SwarmMemory extends SharedMemory {
     if (this.taskCache.has(taskId)) {
       return this.taskCache.get(taskId);
     }
-    
+
     const key = `task:${taskId}`;
     const task = await this.retrieve(key, SWARM_NAMESPACES.TASKS);
-    
+
     if (task) {
       this.taskCache.set(taskId, task);
     }
-    
+
     return task;
   }
 
@@ -206,9 +208,9 @@ export class SwarmMemory extends SharedMemory {
       toAgent,
       message,
       swarmId: this.swarmId,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
-    
+
     await this.store(commId, communication, {
       namespace: SWARM_NAMESPACES.COMMUNICATIONS,
       ttl: 86400, // 24 hours
@@ -216,12 +218,12 @@ export class SwarmMemory extends SharedMemory {
       metadata: {
         fromAgent,
         toAgent,
-        messageType: message.type
-      }
+        messageType: message.type,
+      },
     });
-    
+
     this.emit('swarm:communication', { fromAgent, toAgent, type: message.type });
-    
+
     return { id: commId, stored: true };
   }
 
@@ -233,21 +235,21 @@ export class SwarmMemory extends SharedMemory {
     const consensusData = {
       ...decision,
       swarmId: this.swarmId,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
-    
+
     await this.store(key, consensusData, {
       namespace: SWARM_NAMESPACES.CONSENSUS,
       tags: ['consensus', decision.status],
       metadata: {
         swarmId: this.swarmId,
         taskId: decision.taskId,
-        threshold: decision.threshold
-      }
+        threshold: decision.threshold,
+      },
     });
-    
+
     this.emit('swarm:consensus', { consensusId, status: decision.status });
-    
+
     return { consensusId, stored: true };
   }
 
@@ -261,26 +263,26 @@ export class SwarmMemory extends SharedMemory {
       swarmId: this.swarmId,
       createdAt: new Date().toISOString(),
       usageCount: 0,
-      successRate: 0
+      successRate: 0,
     };
-    
+
     await this.store(key, patternData, {
       namespace: SWARM_NAMESPACES.PATTERNS,
       tags: ['pattern', pattern.type],
       metadata: {
         swarmId: this.swarmId,
         patternType: pattern.type,
-        confidence: pattern.confidence || 0
-      }
+        confidence: pattern.confidence || 0,
+      },
     });
-    
+
     // Cache frequently used patterns
     if (pattern.type === 'coordination' || pattern.type === 'optimization') {
       this.patternCache.set(patternId, patternData);
     }
-    
+
     this.emit('swarm:patternStored', { patternId, type: pattern.type });
-    
+
     return { patternId, stored: true };
   }
 
@@ -292,17 +294,17 @@ export class SwarmMemory extends SharedMemory {
     if (!pattern) {
       throw new Error(`Pattern ${patternId} not found`);
     }
-    
+
     pattern.usageCount++;
     pattern.lastUsedAt = new Date().toISOString();
-    
+
     // Update success rate with exponential moving average
     const alpha = 0.1; // Smoothing factor
     const currentSuccess = success ? 1 : 0;
     pattern.successRate = alpha * currentSuccess + (1 - alpha) * (pattern.successRate || 0);
-    
+
     await this.storePattern(patternId, pattern);
-    
+
     return { patternId, usageCount: pattern.usageCount, successRate: pattern.successRate };
   }
 
@@ -314,7 +316,7 @@ export class SwarmMemory extends SharedMemory {
     if (this.patternCache.has(patternId)) {
       return this.patternCache.get(patternId);
     }
-    
+
     const key = `pattern:${patternId}`;
     return await this.retrieve(key, SWARM_NAMESPACES.PATTERNS);
   }
@@ -326,23 +328,22 @@ export class SwarmMemory extends SharedMemory {
     const patterns = await this.search({
       namespace: SWARM_NAMESPACES.PATTERNS,
       tags: context.tags,
-      limit: 100
+      limit: 100,
     });
-    
+
     // Score patterns based on success rate and relevance
-    const scored = patterns.map(entry => {
+    const scored = patterns.map((entry) => {
       const pattern = entry.value;
-      const score = pattern.successRate * 0.7 + 
-                   (pattern.confidence || 0) * 0.2 +
-                   (pattern.usageCount > 0 ? 0.1 : 0);
-      
+      const score =
+        pattern.successRate * 0.7 +
+        (pattern.confidence || 0) * 0.2 +
+        (pattern.usageCount > 0 ? 0.1 : 0);
+
       return { ...pattern, score };
     });
-    
+
     // Sort by score and return top patterns
-    return scored
-      .sort((a, b) => b.score - a.score)
-      .slice(0, limit);
+    return scored.sort((a, b) => b.score - a.score).slice(0, limit);
   }
 
   /**
@@ -354,10 +355,10 @@ export class SwarmMemory extends SharedMemory {
       ttl: 3600, // 1 hour
       metadata: {
         swarmId: this.swarmId,
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     });
-    
+
     return { key, stored: true };
   }
 
@@ -380,12 +381,12 @@ export class SwarmMemory extends SharedMemory {
       metadata: {
         swarmId: this.swarmId,
         agentId: metrics.agentId,
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     });
-    
+
     this.emit('swarm:metricsStored', { metricsId, type: metrics.type });
-    
+
     return { metricsId, stored: true };
   }
 
@@ -394,27 +395,27 @@ export class SwarmMemory extends SharedMemory {
    */
   async getSwarmStats() {
     const baseStats = await this.getStats();
-    
+
     // Add swarm-specific stats
     const agentCount = await this._countNamespace(SWARM_NAMESPACES.AGENTS);
     const taskCount = await this._countNamespace(SWARM_NAMESPACES.TASKS);
     const patternCount = await this._countNamespace(SWARM_NAMESPACES.PATTERNS);
-    
+
     // Get active agents
-    const activeAgents = Array.from(this.agentCache.values())
-      .filter(agent => agent.status === 'active' || agent.status === 'busy')
-      .length;
-    
+    const activeAgents = Array.from(this.agentCache.values()).filter(
+      (agent) => agent.status === 'active' || agent.status === 'busy',
+    ).length;
+
     // Get task statistics
     const tasks = Array.from(this.taskCache.values());
     const taskStats = {
       total: tasks.length,
-      pending: tasks.filter(t => t.status === 'pending').length,
-      inProgress: tasks.filter(t => t.status === 'in_progress').length,
-      completed: tasks.filter(t => t.status === 'completed').length,
-      failed: tasks.filter(t => t.status === 'failed').length
+      pending: tasks.filter((t) => t.status === 'pending').length,
+      inProgress: tasks.filter((t) => t.status === 'in_progress').length,
+      completed: tasks.filter((t) => t.status === 'completed').length,
+      failed: tasks.filter((t) => t.status === 'failed').length,
     };
-    
+
     return {
       ...baseStats,
       swarm: {
@@ -422,15 +423,15 @@ export class SwarmMemory extends SharedMemory {
         agents: {
           total: agentCount,
           active: activeAgents,
-          cached: this.agentCache.size
+          cached: this.agentCache.size,
         },
         tasks: taskStats,
         patterns: {
           total: patternCount,
-          cached: this.patternCache.size
+          cached: this.patternCache.size,
         },
-        namespaces: Object.values(SWARM_NAMESPACES)
-      }
+        namespaces: Object.values(SWARM_NAMESPACES),
+      },
     };
   }
 
@@ -441,12 +442,12 @@ export class SwarmMemory extends SharedMemory {
     const {
       maxAge = 86400 * 7, // 7 days
       keepPatterns = true,
-      keepConsensus = true
+      keepConsensus = true,
     } = options;
-    
-    const cutoffTime = Date.now() - (maxAge * 1000);
+
+    const cutoffTime = Date.now() - maxAge * 1000;
     let cleaned = 0;
-    
+
     // Clean old communications
     const comms = await this.list(SWARM_NAMESPACES.COMMUNICATIONS);
     for (const comm of comms) {
@@ -455,18 +456,20 @@ export class SwarmMemory extends SharedMemory {
         cleaned++;
       }
     }
-    
+
     // Clean completed tasks
     const tasks = await this.list(SWARM_NAMESPACES.TASKS);
     for (const task of tasks) {
-      if (task.value.status === 'completed' && 
-          new Date(task.value.completedAt).getTime() < cutoffTime) {
+      if (
+        task.value.status === 'completed' &&
+        new Date(task.value.completedAt).getTime() < cutoffTime
+      ) {
         await this.delete(task.key, SWARM_NAMESPACES.TASKS);
         this.taskCache.delete(task.value.id);
         cleaned++;
       }
     }
-    
+
     // Clean old metrics
     const metrics = await this.list(SWARM_NAMESPACES.METRICS);
     for (const metric of metrics) {
@@ -475,9 +478,9 @@ export class SwarmMemory extends SharedMemory {
         cleaned++;
       }
     }
-    
+
     this.emit('swarm:cleanup', { cleaned, maxAge });
-    
+
     return { cleaned };
   }
 
@@ -488,14 +491,14 @@ export class SwarmMemory extends SharedMemory {
     const agents = await this.listAgents();
     const tasks = Array.from(this.taskCache.values());
     const patterns = await this.list(SWARM_NAMESPACES.PATTERNS);
-    
+
     return {
       swarmId: this.swarmId,
       exportedAt: new Date().toISOString(),
       agents: agents,
       tasks: tasks,
-      patterns: patterns.map(p => p.value),
-      statistics: await this.getSwarmStats()
+      patterns: patterns.map((p) => p.value),
+      statistics: await this.getSwarmStats(),
     };
   }
 
@@ -506,9 +509,9 @@ export class SwarmMemory extends SharedMemory {
     let imported = {
       agents: 0,
       tasks: 0,
-      patterns: 0
+      patterns: 0,
     };
-    
+
     // Import agents
     if (state.agents) {
       for (const agent of state.agents) {
@@ -516,7 +519,7 @@ export class SwarmMemory extends SharedMemory {
         imported.agents++;
       }
     }
-    
+
     // Import tasks
     if (state.tasks) {
       for (const task of state.tasks) {
@@ -524,7 +527,7 @@ export class SwarmMemory extends SharedMemory {
         imported.tasks++;
       }
     }
-    
+
     // Import patterns
     if (state.patterns) {
       for (const pattern of state.patterns) {
@@ -532,26 +535,30 @@ export class SwarmMemory extends SharedMemory {
         imported.patterns++;
       }
     }
-    
+
     this.emit('swarm:imported', imported);
-    
+
     return imported;
   }
 
   /**
    * Private helper methods
    */
-  
+
   async _initializeSwarmNamespaces() {
     // Create swarm metadata
-    await this.store('swarm:metadata', {
-      swarmId: this.swarmId,
-      createdAt: new Date().toISOString(),
-      version: '1.0.0',
-      namespaces: Object.values(SWARM_NAMESPACES)
-    }, {
-      namespace: 'swarm:system'
-    });
+    await this.store(
+      'swarm:metadata',
+      {
+        swarmId: this.swarmId,
+        createdAt: new Date().toISOString(),
+        version: '1.0.0',
+        namespaces: Object.values(SWARM_NAMESPACES),
+      },
+      {
+        namespace: 'swarm:system',
+      },
+    );
   }
 
   async _loadSwarmState() {
@@ -562,17 +569,17 @@ export class SwarmMemory extends SharedMemory {
         this.agentCache.set(entry.value.id, entry.value);
       }
     }
-    
+
     // Load in-progress tasks
     const tasks = await this.search({
       namespace: SWARM_NAMESPACES.TASKS,
       tags: ['in_progress'],
-      limit: 100
+      limit: 100,
     });
     for (const entry of tasks) {
       this.taskCache.set(entry.value.id, entry.value);
     }
-    
+
     // Load high-confidence patterns
     const patterns = await this.list(SWARM_NAMESPACES.PATTERNS, { limit: 50 });
     for (const entry of patterns) {

@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Output formatting utilities for CLI
  */
@@ -14,19 +13,19 @@ import * as process from 'process';
  */
 export function formatError(error: unknown): string {
   if (error instanceof Error) {
-    let message = (error instanceof Error ? error.message : String(error));
-    
+    let message = error instanceof Error ? error.message : String(error);
+
     if ('code' in error) {
       message = `[${(error as any).code}] ${message}`;
     }
-    
+
     if ('details' in error && (error as any).details) {
       message += '\n' + chalk.gray('Details: ' + JSON.stringify((error as any).details, null, 2));
     }
-    
+
     return message;
   }
-  
+
   return String(error);
 }
 
@@ -42,7 +41,7 @@ export function formatAgent(agent: AgentProfile): string {
     chalk.gray(`Max Tasks: ${agent.maxConcurrentTasks}`),
     chalk.gray(`Capabilities: ${agent.capabilities.join(', ')}`),
   ];
-  
+
   return lines.join('\n');
 }
 
@@ -50,15 +49,16 @@ export function formatAgent(agent: AgentProfile): string {
  * Formats a task for display
  */
 export function formatTask(task: Task): string {
-  const statusColor = {
-    pending: chalk.gray,
-    queued: chalk.yellow,
-    assigned: chalk.blue,
-    running: chalk.cyan,
-    completed: chalk.green,
-    failed: chalk.red,
-    cancelled: chalk.magenta,
-  }[task.status] || chalk.white;
+  const statusColor =
+    {
+      pending: chalk.gray,
+      queued: chalk.yellow,
+      assigned: chalk.blue,
+      running: chalk.cyan,
+      completed: chalk.green,
+      failed: chalk.red,
+      cancelled: chalk.magenta,
+    }[task.status] || chalk.white;
 
   const lines = [
     chalk.yellow.bold(`Task: ${task.description}`),
@@ -130,7 +130,7 @@ export function formatHealthStatus(health: HealthStatus): string {
     }[component.status];
 
     lines.push(compColor(`  ${name}: ${component.status}`));
-    
+
     if (component.error) {
       lines.push(chalk.red(`    Error: ${component.error}`));
     }
@@ -150,7 +150,7 @@ export function formatHealthStatus(health: HealthStatus): string {
  */
 export function createAgentTable(agents: AgentProfile[]): any {
   const table = new Table({
-    head: ['ID', 'Name', 'Type', 'Priority', 'Max Tasks']
+    head: ['ID', 'Name', 'Type', 'Priority', 'Max Tasks'],
   });
 
   for (const agent of agents) {
@@ -171,19 +171,20 @@ export function createAgentTable(agents: AgentProfile[]): any {
  */
 export function createTaskTable(tasks: Task[]): any {
   const table = new Table({
-    head: ['ID', 'Type', 'Description', 'Status', 'Agent']
+    head: ['ID', 'Type', 'Description', 'Status', 'Agent'],
   });
 
   for (const task of tasks) {
-    const statusCell = {
-      pending: chalk.gray(task.status),
-      queued: chalk.yellow(task.status),
-      assigned: chalk.blue(task.status),
-      running: chalk.cyan(task.status),
-      completed: chalk.green(task.status),
-      failed: chalk.red(task.status),
-      cancelled: chalk.magenta(task.status),
-    }[task.status] || task.status;
+    const statusCell =
+      {
+        pending: chalk.gray(task.status),
+        queued: chalk.yellow(task.status),
+        assigned: chalk.blue(task.status),
+        running: chalk.cyan(task.status),
+        completed: chalk.green(task.status),
+        failed: chalk.red(task.status),
+        cancelled: chalk.magenta(task.status),
+      }[task.status] || task.status;
 
     table.push([
       task.id,
@@ -204,7 +205,7 @@ export function formatDuration(ms: number): string {
   if (ms < 1000) {
     return `${ms}ms`;
   }
-  
+
   const seconds = Math.floor(ms / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
@@ -219,7 +220,7 @@ export function formatDuration(ms: number): string {
   if (minutes > 0) {
     return `${minutes}m ${seconds % 60}s`;
   }
-  
+
   return `${seconds}s`;
 }
 
@@ -258,7 +259,7 @@ export function displayVersion(version: string, buildDate: string): void {
     '',
     chalk.blue('Homepage: ') + chalk.underline('https://github.com/ruvnet/claude-flow'),
   ];
-  
+
   console.log(info.join('\n'));
 }
 
@@ -269,20 +270,20 @@ export function formatProgressBar(
   current: number,
   total: number,
   width: number = 40,
-  label?: string
+  label?: string,
 ): string {
   const percentage = Math.min(100, (current / total) * 100);
   const filled = Math.floor((percentage / 100) * width);
   const empty = width - filled;
-  
+
   const bar = chalk.green('█'.repeat(filled)) + chalk.gray('░'.repeat(empty));
   const percent = percentage.toFixed(1).padStart(5) + '%';
-  
+
   let result = `[${bar}] ${percent}`;
   if (label) {
     result = `${label}: ${result}`;
   }
-  
+
   return result;
 }
 
@@ -298,7 +299,7 @@ export function formatStatusIndicator(status: string): string {
     running: chalk.cyan('⟳'),
     pending: chalk.gray('○'),
   };
-  
+
   return indicators[status as keyof typeof indicators] || status;
 }
 

@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../../utils/error-handler.js';
 /**
  * Base transport interface for MCP
  */
@@ -17,9 +16,9 @@ export interface ITransport {
   onNotification?(handler: NotificationHandler): void;
   sendRequest(request: MCPRequest): Promise<MCPResponse>;
   sendNotification?(notification: MCPNotification): Promise<void>;
-  getHealthStatus(): Promise<{ 
-    healthy: boolean; 
-    error?: string; 
+  getHealthStatus(): Promise<{
+    healthy: boolean;
+    error?: string;
     metrics?: Record<string, number>;
   }>;
 }

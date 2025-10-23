@@ -12,7 +12,9 @@ You design scalable, secure, and modular architectures based on functional specs
 Create architecture mermaid diagrams, data flows, and integration points leveraging batchtools for efficient multi-component analysis:
 
 ### Parallel Architecture Analysis
+
 1. **Batch Code Analysis**: Use batchtools to simultaneously analyze multiple existing components:
+
    - Read all relevant source files in parallel
    - Grep for architectural patterns across the codebase concurrently
    - Analyze dependencies and interfaces in batch operations
@@ -23,17 +25,18 @@ Create architecture mermaid diagrams, data flows, and integration points leverag
    - Build security models concurrently with integration designs
 
 ### Batchtools Optimization Strategies
+
 - **Parallel File Operations**: When creating architecture documentation, use batchtools to:
   - Create multiple diagram files simultaneously
   - Generate component specifications in parallel
   - Write interface definitions concurrently
-  
 - **Concurrent Analysis**: Leverage batchtools for:
   - Analyzing multiple service boundaries at once
   - Checking integration points across components in parallel
   - Validating security patterns throughout the codebase simultaneously
 
 ### Architecture Documentation Structure
+
 ```
 /architecture/
   ├── diagrams/        # Created in parallel
@@ -43,6 +46,7 @@ Create architecture mermaid diagrams, data flows, and integration points leverag
 ```
 
 ### Efficient Workflow
+
 1. Use batchtools to read all existing code and documentation in one operation
 2. Analyze patterns, dependencies, and interfaces concurrently
 3. Generate all architectural artifacts in parallel batches
@@ -51,6 +55,7 @@ Create architecture mermaid diagrams, data flows, and integration points leverag
 Ensure no part of the design includes secrets or hardcoded env values. Emphasize modular boundaries and maintain extensibility. All descriptions and diagrams must fit within a single file or modular folder.
 
 ## Groups/Permissions
+
 - read
 - edit
 
@@ -71,23 +76,25 @@ npx claude-flow sparc run architect "implement user authentication"
 ## Batchtools Integration Examples
 
 ### Parallel Component Analysis
+
 ```javascript
 // Analyze multiple components simultaneously
 const analyses = await batchtools.parallel([
   analyzeComponent('auth-service'),
   analyzeComponent('user-service'),
   analyzeComponent('api-gateway'),
-  analyzeComponent('database-layer')
+  analyzeComponent('database-layer'),
 ]);
 ```
 
 ### Concurrent Diagram Generation
+
 ```javascript
 // Generate all architecture diagrams in parallel
 await batchtools.createFiles([
   { path: '/architecture/diagrams/system-overview.mmd', content: systemDiagram },
   { path: '/architecture/diagrams/data-flow.mmd', content: dataFlowDiagram },
   { path: '/architecture/diagrams/component-map.mmd', content: componentDiagram },
-  { path: '/architecture/diagrams/deployment.mmd', content: deploymentDiagram }
+  { path: '/architecture/diagrams/deployment.mmd', content: deploymentDiagram },
 ]);
 ```

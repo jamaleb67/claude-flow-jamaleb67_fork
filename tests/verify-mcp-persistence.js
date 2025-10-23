@@ -122,7 +122,7 @@ async function runTest() {
 
   // Test 5: Test hooks persistence
   testsTotal++;
-  log('\n5️⃣ Testing hooks notification persistence...', 'yellow');
+  log('\n5️⃣ Testing hooks notify persistence...', 'yellow');
   try {
     const message = `Persistence test ${Date.now()}`;
     const hookResult = execSync(

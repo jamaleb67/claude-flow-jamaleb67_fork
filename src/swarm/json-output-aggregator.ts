@@ -7,9 +7,15 @@ import { EventEmitter } from 'events';
 import { promises as fs } from 'node:fs';
 import { generateId } from '../utils/helpers.js';
 import { Logger } from '../core/logger.js';
-import type { 
-  SwarmId, AgentId, TaskId, AgentState, TaskDefinition, 
-  SwarmResults, SwarmMetrics, TaskResult 
+import type {
+  SwarmId,
+  AgentId,
+  TaskId,
+  AgentState,
+  TaskDefinition,
+  SwarmResults,
+  SwarmMetrics,
+  TaskResult,
 } from './types.js';
 
 export interface SwarmOutputAggregate {
@@ -84,7 +90,7 @@ export class SwarmJsonOutputAggregator extends EventEmitter {
   private startTime: Date;
   private endTime?: Date;
   private configuration: Record<string, any>;
-  
+
   // Data collection
   private agents: Map<string, AgentOutputData> = new Map();
   private tasks: Map<string, TaskOutputData> = new Map();
@@ -100,16 +106,16 @@ export class SwarmJsonOutputAggregator extends EventEmitter {
     this.objective = objective;
     this.configuration = configuration;
     this.startTime = new Date();
-    
+
     this.logger = new Logger(
       { level: 'info', format: 'json', destination: 'console' },
-      { component: 'SwarmJsonAggregator' }
+      { component: 'SwarmJsonAggregator' },
     );
-    
-    this.logger.info('JSON output aggregator initialized', { 
-      swarmId, 
+
+    this.logger.info('JSON output aggregator initialized', {
+      swarmId,
       objective,
-      timestamp: this.startTime.toISOString()
+      timestamp: this.startTime.toISOString(),
     });
   }
 
@@ -120,7 +126,7 @@ export class SwarmJsonOutputAggregator extends EventEmitter {
       this.logger.warn('Attempted to add agent with null/undefined ID, skipping');
       return;
     }
-    
+
     const agentIdStr = typeof agent.id === 'string' ? agent.id : agent.id.id;
     const agentData: AgentOutputData = {
       agentId: agentIdStr,
@@ -133,10 +139,10 @@ export class SwarmJsonOutputAggregator extends EventEmitter {
       errors: [],
       metrics: {
         memoryAccess: 0,
-        operationsPerformed: 0
-      }
+        operationsPerformed: 0,
+      },
     };
-    
+
     this.agents.set(agentIdStr, agentData);
     this.logger.debug('Agent added to output tracking', { agentId: agentIdStr });
   }
@@ -173,18 +179,22 @@ export class SwarmJsonOutputAggregator extends EventEmitter {
       this.logger.warn('Attempted to add task with null/undefined ID, skipping');
       return;
     }
-    
+
     const taskIdStr = typeof task.id === 'string' ? task.id : task.id.id;
     const taskData: TaskOutputData = {
       taskId: taskIdStr,
       name: task.name || taskIdStr,
       type: task.type,
       status: task.status,
-      assignedAgent: task.assignedAt ? (typeof task.assignedAt === 'string' ? task.assignedAt : task.assignedAt.toString()) : undefined,
+      assignedAgent: task.assignedAt
+        ? typeof task.assignedAt === 'string'
+          ? task.assignedAt
+          : task.assignedAt.toString()
+        : undefined,
       startTime: new Date().toISOString(),
-      priority: task.priority || 'normal'
+      priority: task.priority || 'normal',
     };
-    
+
     this.tasks.set(taskIdStr, taskData);
     this.logger.debug('Task added to output tracking', { taskId: taskIdStr });
   }
@@ -202,12 +212,11 @@ export class SwarmJsonOutputAggregator extends EventEmitter {
     if (task) {
       task.status = 'completed';
       task.endTime = new Date().toISOString();
-      task.duration = task.startTime ? 
-        Date.now() - new Date(task.startTime).getTime() : 0;
+      task.duration = task.startTime ? Date.now() - new Date(task.startTime).getTime() : 0;
       task.result = result;
       task.output = result.output;
       task.artifacts = result.artifacts;
-      
+
       // Update agent completion count
       if (task.assignedAgent) {
         const agent = this.agents.get(task.assignedAgent);
@@ -234,20 +243,24 @@ export class SwarmJsonOutputAggregator extends EventEmitter {
   }
 
   // Finalization and output
-  finalize(status: 'completed' | 'failed' | 'timeout' | 'cancelled' = 'completed'): SwarmOutputAggregate {
+  finalize(
+    status: 'completed' | 'failed' | 'timeout' | 'cancelled' = 'completed',
+  ): SwarmOutputAggregate {
     this.endTime = new Date();
     const duration = this.endTime.getTime() - this.startTime.getTime();
 
     // Calculate summary statistics
     const totalTasks = this.tasks.size;
-    const completedTasks = Array.from(this.tasks.values())
-      .filter(task => task.status === 'completed').length;
-    const failedTasks = Array.from(this.tasks.values())
-      .filter(task => task.status === 'failed').length;
+    const completedTasks = Array.from(this.tasks.values()).filter(
+      (task) => task.status === 'completed',
+    ).length;
+    const failedTasks = Array.from(this.tasks.values()).filter(
+      (task) => task.status === 'failed',
+    ).length;
     const successRate = totalTasks > 0 ? completedTasks / totalTasks : 0;
 
     // Finalize agent data
-    this.agents.forEach(agent => {
+    this.agents.forEach((agent) => {
       if (!agent.endTime) {
         agent.endTime = this.endTime.toISOString();
         agent.duration = Date.now() - new Date(agent.startTime).getTime();
@@ -266,7 +279,7 @@ export class SwarmJsonOutputAggregator extends EventEmitter {
         totalTasks,
         completedTasks,
         failedTasks,
-        successRate
+        successRate,
       },
       agents: Array.from(this.agents.values()),
       tasks: Array.from(this.tasks.values()),
@@ -274,28 +287,31 @@ export class SwarmJsonOutputAggregator extends EventEmitter {
         artifacts: this.artifacts,
         outputs: this.outputs,
         errors: this.errors,
-        insights: this.insights
+        insights: this.insights,
       },
       metrics: this.metrics,
       metadata: {
         strategy: this.configuration.strategy || 'auto',
         mode: this.configuration.mode || 'centralized',
         configuration: this.configuration,
-        version: '2.0.0-alpha'
-      }
+        version: '2.0.0-alpha',
+      },
     };
 
     this.logger.info('Swarm output aggregation finalized', {
       swarmId: this.swarmId,
       status,
       duration,
-      summary: aggregate.summary
+      summary: aggregate.summary,
     });
 
     return aggregate;
   }
 
-  async saveToFile(filePath: string, status: 'completed' | 'failed' | 'timeout' | 'cancelled' = 'completed'): Promise<void> {
+  async saveToFile(
+    filePath: string,
+    status: 'completed' | 'failed' | 'timeout' | 'cancelled' = 'completed',
+  ): Promise<void> {
     const aggregate = this.finalize(status);
     const json = JSON.stringify(aggregate, this.circularReplacer(), 2);
     await fs.writeFile(filePath, json, 'utf8');
@@ -328,29 +344,29 @@ export class SwarmJsonOutputAggregator extends EventEmitter {
       latency: 0,
       efficiency: 0,
       reliability: 0,
-      
+
       // Quality metrics
       averageQuality: 0,
       defectRate: 0,
       reworkRate: 0,
-      
+
       // Resource metrics
       resourceUtilization: {
         cpu: 0,
         memory: 0,
         disk: 0,
-        network: 0
+        network: 0,
       },
       costEfficiency: 0,
-      
+
       // Agent metrics
       agentUtilization: 0,
       agentSatisfaction: 0,
       collaborationEffectiveness: 0,
-      
+
       // Timeline metrics
       scheduleVariance: 0,
-      deadlineAdherence: 0
+      deadlineAdherence: 0,
     };
   }
 }

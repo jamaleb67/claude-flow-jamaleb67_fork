@@ -1,20 +1,19 @@
 #!/usr/bin/env node
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Claude-Flow CLI - Main entry point for Node.js
  */
 
-import { CLI, VERSION } from "./cli-core.js";
-import { setupCommands } from "./commands/index.js";
-import { fileURLToPath } from "node:url";
-import { dirname } from "node:path";
+import { CLI, VERSION } from './cli-core.js';
+import { setupCommands } from './commands/index.js';
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
 
 async function main() {
-  const cli = new CLI("claude-flow", "Advanced AI Agent Orchestration System");
-  
+  const cli = new CLI('claude-flow', 'Advanced AI Agent Orchestration System');
+
   // Setup all commands
   setupCommands(cli);
-  
+
   // Run the CLI (args default to process.argv.slice(2) in Node.js version)
   await cli.run();
 }
@@ -26,7 +25,7 @@ const isMainModule = process.argv[1] === __filename || process.argv[1].endsWith(
 
 if (isMainModule) {
   main().catch((error) => {
-    console.error("Fatal error:", error);
+    console.error('Fatal error:', error);
     process.exit(1);
   });
 }

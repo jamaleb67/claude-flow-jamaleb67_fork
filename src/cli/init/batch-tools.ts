@@ -1,11 +1,10 @@
-import { getErrorMessage } from '../../utils/error-handler.js';
 // init/batch-tools.ts - Batch tools coordination guides
 export async function createBatchToolsGuide(): Promise<void> {
   const fs = await import('fs/promises');
   const path = await import('path');
-  
+
   const batchToolsDir = '.claude/commands/swarm';
-  
+
   const batchToolsGuide = `# Batch Tools Coordination Guide
 
 ## Overview
@@ -384,7 +383,7 @@ Memory.store("error_state", {
 
 This guide provides the foundation for effective batch tool coordination in Claude-Flow swarm operations.
 `;
-  
+
   await fs.writeFile(path.join(batchToolsDir, 'batch-tools-guide.md'), batchToolsGuide);
   console.log('  ✅ Created batch-tools-guide.md');
 }

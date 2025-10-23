@@ -170,25 +170,37 @@ class RealBenchmarkEngine(BenchmarkEngine):
         """Convert a task to claude-flow command arguments."""
         command = []
         
-        # Determine command type based on task
-        if task.strategy == StrategyType.RESEARCH:
-            command.extend(["sparc", "researcher", task.objective])
-        elif task.strategy == StrategyType.DEVELOPMENT:
-            command.extend(["sparc", "coder", task.objective])
-        elif task.strategy == StrategyType.ANALYSIS:
-            command.extend(["sparc", "analyzer", task.objective])
-        elif task.strategy == StrategyType.TESTING:
-            command.extend(["sparc", "tester", task.objective])
-        elif task.strategy == StrategyType.OPTIMIZATION:
-            command.extend(["sparc", "optimizer", task.objective])
-        elif "swarm" in task.objective.lower():
-            # Swarm command
+        # Check if we should use swarm (based on config or task objective)
+        use_swarm = (
+            task.parameters.get("use_swarm", False) or
+            self.config.parameters.get("force_swarm", False)
+        )
+        
+        if use_swarm:
+            # Use swarm command with executor for non-interactive mode
             command.extend(["swarm", task.objective])
             command.extend(["--strategy", task.strategy.value])
             command.extend(["--mode", task.mode.value])
+            command.append("--executor")  # Use built-in executor for non-interactive
         else:
-            # Default sparc command
-            command.extend(["sparc", "orchestrator", task.objective])
+            # Determine command type based on task strategy
+            # Map strategies to valid SPARC modes: spec, architect, tdd, integration, refactor
+            if task.strategy == StrategyType.RESEARCH:
+                command.extend(["sparc", "spec", task.objective])
+            elif task.strategy == StrategyType.DEVELOPMENT:
+                command.extend(["sparc", "tdd", task.objective])
+            elif task.strategy == StrategyType.ANALYSIS:
+                command.extend(["sparc", "architect", task.objective])
+            elif task.strategy == StrategyType.TESTING:
+                command.extend(["sparc", "integration", task.objective])
+            elif task.strategy == StrategyType.OPTIMIZATION:
+                command.extend(["sparc", "refactor", task.objective])
+            else:
+                # Default to swarm for unknown strategies with executor
+                command.extend(["swarm", task.objective])
+                command.extend(["--strategy", task.strategy.value])
+                command.extend(["--mode", task.mode.value])
+                command.append("--executor")  # Use built-in executor for non-interactive
         
         # Add common parameters
         if task.parameters.get("parallel"):
@@ -272,3 +284,21 @@ class RealBenchmarkEngine(BenchmarkEngine):
             self.metrics_aggregator.stop_collection()
             
         return results
+    
+    def cleanup(self):
+        """Clean up resources used by the benchmark engine."""
+        try:
+            # Stop metrics collection if still running
+            if hasattr(self, 'metrics_aggregator'):
+                self.metrics_aggregator.stop_collection()
+            
+            # Clean up any process trackers if they have cleanup method
+            if hasattr(self, 'process_tracker') and hasattr(self.process_tracker, 'cleanup'):
+                self.process_tracker.cleanup()
+                
+            # Any other cleanup needed
+            pass
+        except Exception as e:
+            # Log but don't raise - cleanup should be safe
+            import logging
+            logging.warning(f"Error during cleanup: {e}")

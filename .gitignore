@@ -48,6 +48,20 @@ tests/results/
 tests/logs/
 *.lcov
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+*.egg
+
+# Test outputs
+output/
+api-project/
+
 # OS
 .DS_Store
 Thumbs.db
@@ -93,12 +107,57 @@ test-reports/
 .swarm/memory.db*
 .hive-mind/hive.db*
 
+
+
+
+
+
+# Removed Windows wrapper files per user request
+hive-mind-prompt-*.txt
+
+
+# Removed Windows wrapper files per user request
+hive-mind-prompt-*.txt
+
+
+# Removed Windows wrapper files per user request
+hive-mind-prompt-*.txt
+
+
+# Removed Windows wrapper files per user request
+hive-mind-prompt-*.txt
+
+
+# Removed Windows wrapper files per user request
+hive-mind-prompt-*.txt
+
+
+# Removed Windows wrapper files per user request
+hive-mind-prompt-*.txt
+./claude/checkpoints/
+
+
+# Removed Windows wrapper files per user request
+hive-mind-prompt-*.txt
+.research/
+
+
+# Removed Windows wrapper files per user request
+hive-mind-prompt-*.txt
+
+# SPARC/Roo files (not used)
+.roo/
+.roomodes
+
 # Claude Flow generated files
 .claude/settings.local.json
 .mcp.json
 claude-flow.config.json
 .swarm/
 .hive-mind/
+.claude-flow/
+memory/
+coordination/
 memory/claude-flow-data.json
 memory/sessions/*
 !memory/sessions/README.md
@@ -114,6 +173,5 @@ coordination/orchestration/*
 *.sqlite-journal
 *.sqlite-wal
 claude-flow
-claude-flow.bat
-claude-flow.ps1
+# Removed Windows wrapper files per user request
 hive-mind-prompt-*.txt

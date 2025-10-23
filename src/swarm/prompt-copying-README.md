@@ -5,6 +5,7 @@ A comprehensive, enterprise-grade prompt copying mechanism designed for Claude-F
 ## Features
 
 ### Core Functionality
+
 - ✅ **Parallel Processing**: Multi-threaded copying for faster performance
 - ✅ **Conflict Resolution**: Smart handling of file conflicts (skip, overwrite, backup, merge)
 - ✅ **File Verification**: Hash-based integrity checking
@@ -15,8 +16,9 @@ A comprehensive, enterprise-grade prompt copying mechanism designed for Claude-F
 - ✅ **Dry Run Mode**: Preview operations without making changes
 
 ### Advanced Features
+
 - 🔍 **Pattern Matching**: Flexible include/exclude patterns
-- 📁 **Directory Discovery**: Automatic detection of prompt directories  
+- 📁 **Directory Discovery**: Automatic detection of prompt directories
 - ✅ **File Validation**: Validate prompt files for common issues
 - 🔧 **Configuration Profiles**: Pre-configured settings for different use cases
 - 📊 **Comprehensive Reporting**: Detailed operation reports and statistics
@@ -32,7 +34,7 @@ import { copyPrompts } from './prompt-copier';
 
 const result = await copyPrompts({
   source: './.roo',
-  destination: './project-prompts'
+  destination: './project-prompts',
 });
 
 console.log(`Copied ${result.copiedFiles} files successfully`);
@@ -44,11 +46,11 @@ console.log(`Copied ${result.copiedFiles} files successfully`);
 import { copyPromptsEnhanced } from './prompt-copier-enhanced';
 
 const result = await copyPromptsEnhanced({
-  source: './.roo', 
+  source: './.roo',
   destination: './project-prompts',
   parallel: true,
   maxWorkers: 8,
-  verify: true
+  verify: true,
 });
 ```
 
@@ -59,7 +61,7 @@ import { PromptManager } from './prompt-manager';
 
 const manager = new PromptManager({
   defaultProfile: 'sparc',
-  autoDiscovery: true
+  autoDiscovery: true,
 });
 
 await manager.initialize();
@@ -69,6 +71,7 @@ const result = await manager.copyPrompts();
 ## CLI Usage
 
 ### Installation
+
 ```bash
 npm install -g @claude-flow/prompt-copier
 ```
@@ -97,7 +100,7 @@ npx prompt-copier validate ./prompts --recursive
 # Initialize configuration
 npx prompt-copier config --init
 
-# Show current configuration  
+# Show current configuration
 npx prompt-copier config --show
 
 # Rollback from backup
@@ -110,11 +113,7 @@ npx prompt-copier rollback ./prompts/.prompt-backups/manifest-123456.json
 
 ```json
 {
-  "sourceDirectories": [
-    ".roo",
-    ".claude/commands", 
-    "src/templates"
-  ],
+  "sourceDirectories": [".roo", ".claude/commands", "src/templates"],
   "destinationDirectory": "./project-prompts",
   "defaultOptions": {
     "backup": true,
@@ -150,26 +149,34 @@ npx prompt-copier rollback ./prompts/.prompt-backups/manifest-123456.json
 ### Built-in Profiles
 
 #### `sparc` Profile
+
 Optimized for SPARC methodology prompts:
+
 - Includes: `*.md`, `rules.md`, `sparc-*.md`
 - Excludes: README and changelog files
 - Backup enabled, merge conflicts
 
-#### `templates` Profile  
+#### `templates` Profile
+
 For template files:
+
 - Includes: `*.template`, `*.tmpl`, `*.hbs`, `*.mustache`
 - Merge conflict resolution
 - Template variable preservation
 
 #### `safe` Profile
+
 Conservative copying:
+
 - Backup enabled
 - Verification enabled
 - Skip conflicts (no overwrites)
 - Sequential processing
 
 #### `fast` Profile
+
 Performance optimized:
+
 - No backups
 - No verification
 - Overwrite conflicts
@@ -183,17 +190,17 @@ The main copying class with comprehensive options:
 
 ```typescript
 interface CopyOptions {
-  source: string;                    // Source directory
-  destination: string;               // Destination directory
-  backup?: boolean;                  // Create backups (default: true)
-  overwrite?: boolean;               // Overwrite existing files
-  verify?: boolean;                  // Verify copied files (default: true)
-  preservePermissions?: boolean;     // Preserve file permissions
-  excludePatterns?: string[];        // Exclude patterns
-  includePatterns?: string[];        // Include patterns  
-  parallel?: boolean;                // Enable parallel processing
-  maxWorkers?: number;               // Worker thread count
-  dryRun?: boolean;                  // Preview mode
+  source: string; // Source directory
+  destination: string; // Destination directory
+  backup?: boolean; // Create backups (default: true)
+  overwrite?: boolean; // Overwrite existing files
+  verify?: boolean; // Verify copied files (default: true)
+  preservePermissions?: boolean; // Preserve file permissions
+  excludePatterns?: string[]; // Exclude patterns
+  includePatterns?: string[]; // Include patterns
+  parallel?: boolean; // Enable parallel processing
+  maxWorkers?: number; // Worker thread count
+  dryRun?: boolean; // Preview mode
   conflictResolution?: 'skip' | 'overwrite' | 'backup' | 'merge';
   progressCallback?: (progress: CopyProgress) => void;
 }
@@ -210,7 +217,7 @@ const copier = new EnhancedPromptCopier({
   source: './source',
   destination: './dest',
   parallel: true,
-  maxWorkers: 8
+  maxWorkers: 8,
 });
 
 const result = await copier.copy();
@@ -247,7 +254,7 @@ const sparcSettings = manager.getProfile('sparc');
 
 // Update configuration
 await manager.saveConfig({
-  destinationDirectory: './new-destination'
+  destinationDirectory: './new-destination',
 });
 ```
 
@@ -262,7 +269,7 @@ await manager.initialize();
 
 const result = await manager.copyPrompts({
   verify: true,
-  backup: true
+  backup: true,
 });
 
 if (result.success) {
@@ -306,7 +313,7 @@ const copier = new EnhancedPromptCopier({
   source: './source',
   destination: './dest',
   parallel: true,
-  maxWorkers: 16 // Scale based on CPU cores
+  maxWorkers: 16, // Scale based on CPU cores
 });
 
 // Monitor progress
@@ -327,7 +334,7 @@ await copyPrompts({
   source: './.roo',
   destination: './prompts',
   includePatterns: ['**/rules-*.md', '**/sparc-*.md'],
-  excludePatterns: ['**/debug/**', '**/temp/**']
+  excludePatterns: ['**/debug/**', '**/temp/**'],
 });
 ```
 
@@ -351,7 +358,7 @@ const result = await copyPrompts({
   source: './source',
   destination: './dest',
   backup: true,
-  conflictResolution: 'backup'
+  conflictResolution: 'backup',
 });
 
 // Restore from backup if needed
@@ -364,17 +371,20 @@ if (!result.success && result.backupLocation) {
 ## Performance Considerations
 
 ### Parallel Processing
+
 - Default workers: 4 (good for most systems)
 - High-end systems: 8-16 workers
 - Network storage: Reduce workers to 2-4
 - SSD storage: Can handle more workers
 
 ### Memory Usage
+
 - Large files: Enable streaming mode
 - Many files: Use chunked processing
 - Worker threads: Monitor memory per worker
 
 ### Network Considerations
+
 - Remote sources: Reduce parallelization
 - Slow connections: Disable verification temporarily
 - Bandwidth limits: Use sequential processing
@@ -384,6 +394,7 @@ if (!result.success && result.backupLocation) {
 ### Common Errors and Solutions
 
 **Permission Denied**
+
 ```typescript
 // Solution: Check file permissions
 try {
@@ -396,6 +407,7 @@ try {
 ```
 
 **Disk Space**
+
 ```typescript
 // Solution: Check available space
 import { promises as fs } from 'fs';
@@ -407,12 +419,13 @@ if (stats.bavail * stats.bsize < requiredSpace) {
 ```
 
 **Network Timeouts**
+
 ```typescript
 // Solution: Reduce parallelization
 const options = {
   ...defaultOptions,
   parallel: false, // or reduce maxWorkers
-  timeout: 30000   // increase timeout
+  timeout: 30000, // increase timeout
 };
 ```
 
@@ -439,11 +452,13 @@ npm run test:performance
 ## Troubleshooting
 
 ### Debug Mode
+
 ```bash
 DEBUG=prompt-copier* npx prompt-copier copy --source ./source --destination ./dest
 ```
 
 ### Verbose Logging
+
 ```typescript
 import { logger } from '../logger';
 logger.level = 'debug';
@@ -455,7 +470,7 @@ const result = await copyPrompts(options);
 
 1. **Files not copying**: Check include/exclude patterns
 2. **Slow performance**: Increase worker count or disable verification
-3. **Permission errors**: Check file/directory permissions  
+3. **Permission errors**: Check file/directory permissions
 4. **Memory issues**: Reduce worker count or enable streaming
 5. **Verification failures**: Check disk space and file integrity
 
@@ -475,7 +490,7 @@ npm test
 
 ```bash
 npm run example:basic
-npm run example:enhanced  
+npm run example:enhanced
 npm run example:manager
 ```
 
@@ -494,6 +509,7 @@ MIT License - see LICENSE file for details.
 ## Changelog
 
 ### v1.0.0
+
 - Initial release with core copying functionality
 - Parallel processing with worker threads
 - Configuration profiles and CLI interface

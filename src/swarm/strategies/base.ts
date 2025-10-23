@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../../utils/error-handler.js';
 /**
  * Base Strategy Interface for Swarm Task Execution
  * Provides the foundation for different task execution strategies
@@ -83,8 +82,14 @@ export abstract class BaseStrategy {
 
   // Abstract methods that must be implemented by concrete strategies
   abstract decomposeObjective(objective: SwarmObjective): Promise<DecompositionResult>;
-  abstract selectAgentForTask(task: TaskDefinition, availableAgents: AgentState[]): Promise<string | null>;
-  abstract optimizeTaskSchedule(tasks: TaskDefinition[], agents: AgentState[]): Promise<AgentAllocation[]>;
+  abstract selectAgentForTask(
+    task: TaskDefinition,
+    availableAgents: AgentState[],
+  ): Promise<string | null>;
+  abstract optimizeTaskSchedule(
+    tasks: TaskDefinition[],
+    agents: AgentState[],
+  ): Promise<AgentAllocation[]>;
 
   // Common utility methods
   protected initializeMetrics(): StrategyMetrics {
@@ -95,7 +100,7 @@ export abstract class BaseStrategy {
       resourceUtilization: 0,
       parallelismEfficiency: 0,
       cacheHitRate: 0,
-      predictionAccuracy: 0
+      predictionAccuracy: 0,
     };
   }
 
@@ -107,7 +112,7 @@ export abstract class BaseStrategy {
         complexity: 3,
         estimatedDuration: 15 * 60 * 1000,
         requiredAgents: 2,
-        priority: 2
+        priority: 2,
       },
       {
         pattern: /test|verify|validate/i,
@@ -115,7 +120,7 @@ export abstract class BaseStrategy {
         complexity: 2,
         estimatedDuration: 8 * 60 * 1000,
         requiredAgents: 1,
-        priority: 1
+        priority: 1,
       },
       {
         pattern: /analyze|research|investigate/i,
@@ -123,7 +128,7 @@ export abstract class BaseStrategy {
         complexity: 2,
         estimatedDuration: 10 * 60 * 1000,
         requiredAgents: 1,
-        priority: 1
+        priority: 1,
       },
       {
         pattern: /document|write|explain/i,
@@ -131,7 +136,7 @@ export abstract class BaseStrategy {
         complexity: 1,
         estimatedDuration: 5 * 60 * 1000,
         requiredAgents: 1,
-        priority: 0
+        priority: 0,
       },
       {
         pattern: /optimize|improve|refactor/i,
@@ -139,8 +144,8 @@ export abstract class BaseStrategy {
         complexity: 3,
         estimatedDuration: 12 * 60 * 1000,
         requiredAgents: 2,
-        priority: 1
-      }
+        priority: 1,
+      },
     ];
   }
 
@@ -154,7 +159,7 @@ export abstract class BaseStrategy {
   }
 
   protected estimateComplexity(description: string): number {
-    const pattern = this.taskPatterns.find(p => p.pattern.test(description));
+    const pattern = this.taskPatterns.find((p) => p.pattern.test(description));
     if (pattern) {
       return pattern.complexity;
     }
@@ -162,17 +167,17 @@ export abstract class BaseStrategy {
     // Fallback complexity estimation based on description length and keywords
     let complexity = 1;
     const words = description.split(' ').length;
-    
+
     if (words > 50) complexity += 1;
     if (words > 100) complexity += 1;
-    
+
     const complexKeywords = ['integrate', 'complex', 'advanced', 'multiple', 'system'];
-    const foundKeywords = complexKeywords.filter(keyword => 
-      description.toLowerCase().includes(keyword)
+    const foundKeywords = complexKeywords.filter((keyword) =>
+      description.toLowerCase().includes(keyword),
     ).length;
-    
+
     complexity += foundKeywords;
-    
+
     return Math.min(complexity, 5); // Cap at 5
   }
 
@@ -182,8 +187,7 @@ export abstract class BaseStrategy {
 
   protected updateMetrics(result: DecompositionResult, executionTime: number): void {
     this.metrics.tasksCompleted += result.tasks.length;
-    this.metrics.averageExecutionTime = 
-      (this.metrics.averageExecutionTime + executionTime) / 2;
+    this.metrics.averageExecutionTime = (this.metrics.averageExecutionTime + executionTime) / 2;
   }
 
   public getMetrics(): StrategyMetrics {

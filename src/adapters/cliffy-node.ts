@@ -1,7 +1,6 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Cliffy Node.js Adapter
- * 
+ *
  * This adapter provides Node.js-compatible implementations of Cliffy modules
  * by wrapping existing Node.js packages to match the Cliffy API.
  */
@@ -33,22 +32,26 @@ export const colors = {
 
 // Prompt adapter - map Cliffy prompt to inquirer
 export const Input = async (options: { message: string; default?: string }) => {
-  const answers = await inquirer.prompt([{
-    type: 'input',
-    name: 'value',
-    message: options.message,
-    default: options.default,
-  }]);
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'value',
+      message: options.message,
+      default: options.default,
+    },
+  ]);
   return answers.value;
 };
 
 export const Confirm = async (options: { message: string; default?: boolean }) => {
-  const answers = await inquirer.prompt([{
-    type: 'confirm',
-    name: 'value',
-    message: options.message,
-    default: options.default,
-  }]);
+  const answers = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'value',
+      message: options.message,
+      default: options.default,
+    },
+  ]);
   return answers.value;
 };
 
@@ -57,13 +60,15 @@ export const Select = async <T>(options: {
   options: Array<{ name: string; value: T }>;
   default?: T;
 }): Promise<T> => {
-  const answers = await inquirer.prompt([{
-    type: 'list',
-    name: 'value',
-    message: options.message,
-    choices: options.options.map(opt => ({ name: opt.name, value: opt.value })),
-    default: options.default,
-  }]);
+  const answers = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'value',
+      message: options.message,
+      choices: options.options.map((opt) => ({ name: opt.name, value: opt.value })),
+      default: options.default,
+    },
+  ]);
   return answers.value;
 };
 

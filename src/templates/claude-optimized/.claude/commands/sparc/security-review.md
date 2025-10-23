@@ -12,17 +12,19 @@ You perform static and dynamic audits using parallel scanning and batch analysis
 ### Parallel Security Scanning Strategy
 
 1. **Concurrent Vulnerability Detection**:
+
    ```javascript
    const securityScans = await batchtools.parallel([
      () => scanForSecrets(['**/*.js', '**/*.ts', '**/*.env']),
      () => checkDependencyVulnerabilities('package.json'),
      () => analyzeCodePatterns(['SQL injection', 'XSS', 'CSRF']),
      () => auditFilePermissions('**/*'),
-     () => validateCryptoUsage('src/**/*.{ts,js}')
+     () => validateCryptoUsage('src/**/*.{ts,js}'),
    ]);
    ```
 
 2. **Batch Secret Detection**:
+
    - Scan all file types simultaneously for exposed credentials
    - Check multiple pattern types in parallel (API keys, passwords, tokens)
    - Analyze git history for accidentally committed secrets
@@ -37,6 +39,7 @@ You perform static and dynamic audits using parallel scanning and batch analysis
 ### Security Audit Workflows
 
 **Comprehensive Security Scan**:
+
 ```javascript
 const auditResults = await batchtools.securityAudit({
   targets: ['src/', 'tests/', 'config/', 'scripts/'],
@@ -47,30 +50,32 @@ const auditResults = await batchtools.securityAudit({
     'injection',
     'crypto',
     'authentication',
-    'authorization'
+    'authorization',
   ],
-  parallel: true
+  parallel: true,
 });
 ```
 
 **Batch Vulnerability Analysis**:
+
 ```javascript
 // Check multiple vulnerability databases
 const vulnDatabases = ['npm-audit', 'snyk', 'owasp', 'cve'];
 const vulnerabilities = await batchtools.checkVulnerabilities(vulnDatabases, {
   includeDevDeps: true,
-  severityThreshold: 'medium'
+  severityThreshold: 'medium',
 });
 ```
 
 **Parallel Pattern Detection**:
+
 ```javascript
 const securityPatterns = [
   { pattern: /password\s*=\s*["'][^"']+["']/gi, risk: 'high' },
   { pattern: /api[_-]?key\s*[:=]\s*["'][^"']+["']/gi, risk: 'critical' },
   { pattern: /eval\s*\(/g, risk: 'high' },
   { pattern: /innerHTML\s*=/g, risk: 'medium' },
-  { pattern: /SELECT.*FROM.*WHERE/gi, risk: 'medium' }
+  { pattern: /SELECT.*FROM.*WHERE/gi, risk: 'medium' },
 ];
 
 const findings = await batchtools.searchPatterns(securityPatterns, '**/*.{js,ts}');
@@ -79,6 +84,7 @@ const findings = await batchtools.searchPatterns(securityPatterns, '**/*.{js,ts}
 ### Advanced Security Checks
 
 1. **Parallel OWASP Top 10 Scanning**:
+
    ```javascript
    const owaspChecks = await batchtools.parallel([
      () => checkInjectionVulnerabilities(),
@@ -90,11 +96,12 @@ const findings = await batchtools.searchPatterns(securityPatterns, '**/*.{js,ts}
      () => checkXSS(),
      () => validateDeserialization(),
      () => auditComponentVulnerabilities(),
-     () => checkLoggingMonitoring()
+     () => checkLoggingMonitoring(),
    ]);
    ```
 
 2. **Batch Compliance Validation**:
+
    - Check GDPR compliance across all data handlers
    - Validate PCI DSS requirements in parallel
    - Audit HIPAA compliance for health data
@@ -106,7 +113,7 @@ const findings = await batchtools.searchPatterns(securityPatterns, '**/*.{js,ts}
      { check: 'algorithms', validate: ['AES-256', 'RSA-2048'] },
      { check: 'randomness', sources: ['crypto.getRandomValues'] },
      { check: 'keyStorage', forbidden: ['localStorage', 'cookies'] },
-     { check: 'tlsVersions', minimum: 'TLS1.2' }
+     { check: 'tlsVersions', minimum: 'TLS1.2' },
    ]);
    ```
 
@@ -118,7 +125,7 @@ const codeQuality = await batchtools.parallel([
   () => findLargeFiles({ maxLines: 500, extensions: ['.js', '.ts'] }),
   () => analyzeModuleCoupling({ maxDependencies: 10 }),
   () => detectCircularDependencies(),
-  () => checkCodeDuplication({ threshold: 0.2 })
+  () => checkCodeDuplication({ threshold: 0.2 }),
 ]);
 ```
 
@@ -130,13 +137,14 @@ const remediations = await batchtools.generateFixes({
   secrets: { action: 'move-to-env', validate: true },
   largeFiles: { action: 'split-module', maxSize: 300 },
   vulnerabilities: { action: 'update-deps', test: true },
-  permissions: { action: 'restrict', mode: '644' }
+  permissions: { action: 'restrict', mode: '644' },
 });
 ```
 
 ### Task Delegation
 
 Use `new_task` with batch specifications to:
+
 - Assign parallel sub-audits for different modules
 - Delegate specific vulnerability fixes
 - Create batch refactoring tasks for oversized files
@@ -145,6 +153,7 @@ Use `new_task` with batch specifications to:
 ### Reporting
 
 Return `attempt_completion` with:
+
 - Consolidated security findings from all parallel scans
 - Batch vulnerability assessment results
 - Performance metrics showing scan efficiency
@@ -160,6 +169,7 @@ Return `attempt_completion` with:
 5. **Continuous Monitoring**: Set up parallel watchers for real-time security
 
 ## Groups/Permissions
+
 - read
 - edit
 - batchtools
@@ -200,19 +210,23 @@ const securityGate = async (commit) => {
     () => scanCommitForSecrets(commit),
     () => checkNewDependencies(commit),
     () => validateSecurityPolicies(commit),
-    () => runStaticAnalysis(commit)
+    () => runStaticAnalysis(commit),
   ]);
-  
-  return results.every(r => r.passed);
+
+  return results.every((r) => r.passed);
 };
 
 // Scheduled Security Audit
 const weeklyAudit = async () => {
   const services = await getServiceList();
-  const audits = await batchtools.map(services, async (service) => {
-    return await comprehensiveSecurityAudit(service);
-  }, { concurrency: 5 });
-  
+  const audits = await batchtools.map(
+    services,
+    async (service) => {
+      return await comprehensiveSecurityAudit(service);
+    },
+    { concurrency: 5 },
+  );
+
   await generateSecurityReport(audits);
 };
 ```

@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -9,14 +8,14 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import type { 
-  MigrationOptions, 
-  MigrationResult, 
+import type {
+  MigrationOptions,
+  MigrationResult,
   MigrationBackup,
   BackupFile,
   ValidationResult,
   MigrationProgress,
-  MigrationManifest
+  MigrationManifest,
 } from './types.js';
 import { MigrationAnalyzer } from './migration-analyzer.js';
 import { logger } from './logger.js';
@@ -48,14 +47,14 @@ export class MigrationRunner {
       filesCreated: [],
       filesBackedUp: [],
       errors: [],
-      warnings: []
+      warnings: [],
     };
 
     try {
       // Analyze project
       this.progress.start('analyzing', 'Analyzing project...');
       const analysis = await this.analyzer.analyze(this.options.projectPath);
-      
+
       // Show analysis and confirm
       if (!this.options.force && !this.options.dryRun) {
         this.analyzer.printAnalysis(analysis);
@@ -71,12 +70,12 @@ export class MigrationRunner {
         this.progress.update('backing-up', 'Creating backup...');
         const backup = await this.createBackup();
         result.rollbackPath = backup.timestamp.toISOString();
-        result.filesBackedUp = backup.files.map(f => f.path);
+        result.filesBackedUp = backup.files.map((f) => f.path);
       }
 
       // Execute migration based on strategy
       this.progress.update('migrating', 'Migrating files...');
-      
+
       switch (this.options.strategy) {
         case 'full':
           await this.fullMigration(result);
@@ -93,23 +92,27 @@ export class MigrationRunner {
       if (!this.options.skipValidation && !this.options.dryRun) {
         this.progress.update('validating', 'Validating migration...');
         const validation = await this.validator.validate(this.options.projectPath);
-        
+
         if (!validation.valid) {
-          result.errors.push(...validation.errors.map(e => ({ error: e })));
+          result.errors.push(...validation.errors.map((e) => ({ error: e })));
           result.warnings.push(...validation.warnings);
         }
       }
 
       result.success = result.errors.length === 0;
-      this.progress.complete(result.success ? 'Migration completed successfully!' : 'Migration completed with errors');
+      this.progress.complete(
+        result.success ? 'Migration completed successfully!' : 'Migration completed with errors',
+      );
 
       // Print summary
       this.printSummary(result);
-
     } catch (error) {
-      result.errors.push({ error: (error instanceof Error ? error.message : String(error)), stack: error.stack });
+      result.errors.push({
+        error: error instanceof Error ? error.message : String(error),
+        stack: error.stack,
+      });
       this.progress.error('Migration failed');
-      
+
       // Attempt rollback on failure
       if (result.rollbackPath && !this.options.dryRun) {
         logger.warn('Attempting automatic rollback...');
@@ -164,7 +167,10 @@ export class MigrationRunner {
       const sourceFile = path.join(commandsSource, command.source);
       const targetFile = path.join(commandsTarget, command.target);
 
-      if (this.options.preserveCustom && analysis.customCommands.includes(path.basename(command.target, '.md'))) {
+      if (
+        this.options.preserveCustom &&
+        analysis.customCommands.includes(path.basename(command.target, '.md'))
+      ) {
         result.warnings.push(`Skipped ${command.target} (custom command preserved)`);
         continue;
       }
@@ -182,7 +188,7 @@ export class MigrationRunner {
       'BATCHTOOLS_GUIDE.md',
       'BATCHTOOLS_BEST_PRACTICES.md',
       'MIGRATION_GUIDE.md',
-      'PERFORMANCE_BENCHMARKS.md'
+      'PERFORMANCE_BENCHMARKS.md',
     ];
 
     for (const guide of guides) {
@@ -219,7 +225,7 @@ export class MigrationRunner {
     if (await fs.pathExists(claudeMdPath)) {
       const existingContent = await fs.readFile(claudeMdPath, 'utf-8');
       const newContent = await this.getMergedClaudeMd(existingContent);
-      
+
       await fs.writeFile(claudeMdPath, newContent);
       result.filesModified.push('CLAUDE.md');
     }
@@ -229,7 +235,7 @@ export class MigrationRunner {
     if (await fs.pathExists(roomodesPath)) {
       const existing = await fs.readJson(roomodesPath);
       const updated = await this.getMergedRoomodes(existing);
-      
+
       await fs.writeJson(roomodesPath, updated, { spaces: 2 });
       result.filesModified.push('.roomodes');
     }
@@ -238,7 +244,7 @@ export class MigrationRunner {
   private async copyRequiredFiles(result: MigrationResult): Promise<void> {
     const files = [
       { source: 'CLAUDE.md', target: 'CLAUDE.md' },
-      { source: '.roomodes', target: '.roomodes' }
+      { source: '.roomodes', target: '.roomodes' },
     ];
 
     for (const file of files) {
@@ -261,15 +267,15 @@ export class MigrationRunner {
     const packageJsonPath = path.join(this.options.projectPath, 'package.json');
     if (await fs.pathExists(packageJsonPath)) {
       const packageJson = await fs.readJson(packageJsonPath);
-      
+
       if (!packageJson.scripts) {
         packageJson.scripts = {};
       }
 
       const scripts = {
-        'migrate': 'claude-flow migrate',
+        migrate: 'claude-flow migrate',
         'migrate:analyze': 'claude-flow migrate analyze',
-        'migrate:rollback': 'claude-flow migrate rollback'
+        'migrate:rollback': 'claude-flow migrate rollback',
       };
 
       let modified = false;
@@ -288,7 +294,10 @@ export class MigrationRunner {
   }
 
   private async createBackup(): Promise<MigrationBackup> {
-    const backupDir = path.join(this.options.projectPath, this.options.backupDir || '.claude-backup');
+    const backupDir = path.join(
+      this.options.projectPath,
+      this.options.backupDir || '.claude-backup',
+    );
     const timestamp = new Date();
     const backupPath = path.join(backupDir, timestamp.toISOString().replace(/:/g, '-'));
 
@@ -300,15 +309,15 @@ export class MigrationRunner {
       files: [],
       metadata: {
         strategy: this.options.strategy,
-        projectPath: this.options.projectPath
-      }
+        projectPath: this.options.projectPath,
+      },
     };
 
     // Backup .claude folder
     const claudePath = path.join(this.options.projectPath, '.claude');
     if (await fs.pathExists(claudePath)) {
       await fs.copy(claudePath, path.join(backupPath, '.claude'));
-      
+
       // Record backed up files
       const files = await glob('**/*', { cwd: claudePath, nodir: true });
       for (const file of files) {
@@ -316,7 +325,7 @@ export class MigrationRunner {
         backup.files.push({
           path: `.claude/${file}`,
           content,
-          checksum: crypto.createHash('md5').update(content).digest('hex')
+          checksum: crypto.createHash('md5').update(content).digest('hex'),
         });
       }
     }
@@ -331,7 +340,7 @@ export class MigrationRunner {
         backup.files.push({
           path: file,
           content,
-          checksum: crypto.createHash('md5').update(content).digest('hex')
+          checksum: crypto.createHash('md5').update(content).digest('hex'),
         });
       }
     }
@@ -344,14 +353,17 @@ export class MigrationRunner {
   }
 
   async rollback(timestamp?: string): Promise<void> {
-    const backupDir = path.join(this.options.projectPath, this.options.backupDir || '.claude-backup');
-    
-    if (!await fs.pathExists(backupDir)) {
+    const backupDir = path.join(
+      this.options.projectPath,
+      this.options.backupDir || '.claude-backup',
+    );
+
+    if (!(await fs.pathExists(backupDir))) {
       throw new Error('No backups found');
     }
 
     let backupPath: string;
-    
+
     if (timestamp) {
       backupPath = path.join(backupDir, timestamp);
     } else {
@@ -364,7 +376,7 @@ export class MigrationRunner {
       backupPath = path.join(backupDir, backups[0]);
     }
 
-    if (!await fs.pathExists(backupPath)) {
+    if (!(await fs.pathExists(backupPath))) {
       throw new Error(`Backup not found: ${backupPath}`);
     }
 
@@ -372,12 +384,14 @@ export class MigrationRunner {
 
     // Confirm rollback
     if (!this.options.force) {
-      const confirm = await inquirer.prompt([{
-        type: 'confirm',
-        name: 'proceed',
-        message: 'Are you sure you want to rollback? This will overwrite current files.',
-        default: false
-      }]);
+      const confirm = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'proceed',
+          message: 'Are you sure you want to rollback? This will overwrite current files.',
+          default: false,
+        },
+      ]);
 
       if (!confirm.proceed) {
         logger.info('Rollback cancelled');
@@ -387,7 +401,7 @@ export class MigrationRunner {
 
     // Restore files
     const backup = await fs.readJson(path.join(backupPath, 'backup.json'));
-    
+
     for (const file of backup.files) {
       const targetPath = path.join(this.options.projectPath, file.path);
       await fs.ensureDir(path.dirname(targetPath));
@@ -399,7 +413,7 @@ export class MigrationRunner {
 
   async validate(verbose: boolean = false): Promise<boolean> {
     const validation = await this.validator.validate(this.options.projectPath);
-    
+
     if (verbose) {
       this.validator.printValidation(validation);
     }
@@ -408,9 +422,12 @@ export class MigrationRunner {
   }
 
   async listBackups(): Promise<void> {
-    const backupDir = path.join(this.options.projectPath, this.options.backupDir || '.claude-backup');
-    
-    if (!await fs.pathExists(backupDir)) {
+    const backupDir = path.join(
+      this.options.projectPath,
+      this.options.backupDir || '.claude-backup',
+    );
+
+    if (!(await fs.pathExists(backupDir))) {
       logger.info('No backups found');
       return;
     }
@@ -432,7 +449,7 @@ export class MigrationRunner {
       console.log(`\n${chalk.bold(backup)}`);
       console.log(`  Created: ${stats.mtime.toLocaleString()}`);
       console.log(`  Size: ${(stats.size / 1024).toFixed(2)} KB`);
-      
+
       if (manifest) {
         console.log(`  Version: ${manifest.version}`);
         console.log(`  Strategy: ${manifest.metadata.strategy}`);
@@ -449,8 +466,8 @@ export class MigrationRunner {
         type: 'confirm',
         name: 'proceed',
         message: `Proceed with ${this.options.strategy} migration?`,
-        default: true
-      }
+        default: true,
+      },
     ];
 
     if (analysis.customCommands.length > 0 && !this.options.preserveCustom) {
@@ -458,12 +475,12 @@ export class MigrationRunner {
         type: 'confirm',
         name: 'preserveCustom',
         message: `Found ${analysis.customCommands.length} custom commands. Preserve them?`,
-        default: true
+        default: true,
       });
     }
 
     const answers = await inquirer.prompt(questions);
-    
+
     if (answers.preserveCustom) {
       this.options.preserveCustom = true;
     }
@@ -483,11 +500,11 @@ export class MigrationRunner {
           { source: 'sparc/tdd.md', target: 'sparc-tdd.md' },
           { source: 'claude-flow-help.md', target: 'claude-flow-help.md' },
           { source: 'claude-flow-memory.md', target: 'claude-flow-memory.md' },
-          { source: 'claude-flow-swarm.md', target: 'claude-flow-swarm.md' }
+          { source: 'claude-flow-swarm.md', target: 'claude-flow-swarm.md' },
         ],
         configurations: {},
-        templates: {}
-      }
+        templates: {},
+      },
     };
   }
 
@@ -510,7 +527,7 @@ export class MigrationRunner {
 
     // Merge custom modes with template
     const merged = { ...template };
-    
+
     for (const [mode, config] of Object.entries(existing)) {
       if (!merged[mode]) {
         merged[mode] = config;
@@ -524,18 +541,22 @@ export class MigrationRunner {
     console.log(chalk.bold('\n📋 Migration Summary'));
     console.log(chalk.gray('─'.repeat(50)));
 
-    console.log(`\n${chalk.bold('Status:')} ${result.success ? chalk.green('Success') : chalk.red('Failed')}`);
-    
+    console.log(
+      `\n${chalk.bold('Status:')} ${result.success ? chalk.green('Success') : chalk.red('Failed')}`,
+    );
+
     if (result.filesCreated.length > 0) {
       console.log(`\n${chalk.bold('Files Created:')} ${chalk.green(result.filesCreated.length)}`);
       if (result.filesCreated.length <= 10) {
-        result.filesCreated.forEach(file => console.log(`  • ${file}`));
+        result.filesCreated.forEach((file) => console.log(`  • ${file}`));
       }
     }
 
     if (result.filesModified.length > 0) {
-      console.log(`\n${chalk.bold('Files Modified:')} ${chalk.yellow(result.filesModified.length)}`);
-      result.filesModified.forEach(file => console.log(`  • ${file}`));
+      console.log(
+        `\n${chalk.bold('Files Modified:')} ${chalk.yellow(result.filesModified.length)}`,
+      );
+      result.filesModified.forEach((file) => console.log(`  • ${file}`));
     }
 
     if (result.filesBackedUp.length > 0) {
@@ -544,17 +565,19 @@ export class MigrationRunner {
 
     if (result.warnings.length > 0) {
       console.log(`\n${chalk.bold('Warnings:')}`);
-      result.warnings.forEach(warning => console.log(`  ⚠️  ${warning}`));
+      result.warnings.forEach((warning) => console.log(`  ⚠️  ${warning}`));
     }
 
     if (result.errors.length > 0) {
       console.log(`\n${chalk.bold('Errors:')}`);
-      result.errors.forEach(error => console.log(`  ❌ ${error.error}`));
+      result.errors.forEach((error) => console.log(`  ❌ ${error.error}`));
     }
 
     if (result.rollbackPath) {
       console.log(`\n${chalk.bold('Rollback Available:')} ${result.rollbackPath}`);
-      console.log(chalk.gray(`  Run "claude-flow migrate rollback -t ${result.rollbackPath}" to revert`));
+      console.log(
+        chalk.gray(`  Run "claude-flow migrate rollback -t ${result.rollbackPath}" to revert`),
+      );
     }
 
     console.log(chalk.gray('\n' + '─'.repeat(50)));

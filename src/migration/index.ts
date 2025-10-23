@@ -1,11 +1,10 @@
 #!/usr/bin/env node
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Claude-Flow Migration Tool
  * Helps existing projects migrate to optimized prompts and configurations
  */
 
-import { Command } from "@cliffy/command";
+import { Command } from '@cliffy/command';
 import { MigrationRunner } from './migration-runner.js';
 import { MigrationAnalyzer } from './migration-analyzer.js';
 import type { MigrationStrategy } from './types.js';
@@ -29,12 +28,12 @@ program
     try {
       const analyzer = new MigrationAnalyzer();
       const analysis = await analyzer.analyze(path.resolve(projectPath));
-      
+
       if (options.output) {
         await analyzer.saveAnalysis(analysis, options.output);
         logger.success(`Analysis saved to ${options.output}`);
       }
-      
+
       analyzer.printAnalysis(analysis, options.detailed);
     } catch (error) {
       logger.error('Analysis failed:', error);
@@ -60,9 +59,9 @@ program
         force: options.force,
         dryRun: options.dryRun,
         preserveCustom: options.preserveCustom,
-        skipValidation: options.skipValidation
+        skipValidation: options.skipValidation,
       });
-      
+
       await runner.run();
     } catch (error) {
       logger.error('Migration failed:', error);
@@ -82,9 +81,9 @@ program
         projectPath: path.resolve(projectPath),
         strategy: 'full',
         backupDir: options.backup,
-        force: options.force
+        force: options.force,
       });
-      
+
       await runner.rollback(options.timestamp);
     } catch (error) {
       logger.error('Rollback failed:', error);
@@ -100,11 +99,11 @@ program
     try {
       const runner = new MigrationRunner({
         projectPath: path.resolve(projectPath),
-        strategy: 'full'
+        strategy: 'full',
       });
-      
+
       const isValid = await runner.validate(options.verbose);
-      
+
       if (isValid) {
         logger.success('Migration validated successfully!');
       } else {
@@ -126,9 +125,9 @@ program
       const runner = new MigrationRunner({
         projectPath: path.resolve(projectPath),
         strategy: 'full',
-        backupDir: options.backup
+        backupDir: options.backup,
       });
-      
+
       await runner.listBackups();
     } catch (error) {
       logger.error('Failed to list backups:', error);

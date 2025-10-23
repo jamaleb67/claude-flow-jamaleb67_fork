@@ -51,10 +51,23 @@ declare module 'vscode' {
   export namespace window {
     export function createOutputChannel(name: string): OutputChannel;
     export function createTerminal(options: TerminalOptions): Terminal;
-    export function createTerminal(name: string, shellPath?: string, shellArgs?: string[]): Terminal;
-    export function showErrorMessage(message: string, ...items: string[]): Thenable<string | undefined>;
-    export function showInformationMessage(message: string, ...items: string[]): Thenable<string | undefined>;
-    export function showWarningMessage(message: string, ...items: string[]): Thenable<string | undefined>;
+    export function createTerminal(
+      name: string,
+      shellPath?: string,
+      shellArgs?: string[],
+    ): Terminal;
+    export function showErrorMessage(
+      message: string,
+      ...items: string[]
+    ): Thenable<string | undefined>;
+    export function showInformationMessage(
+      message: string,
+      ...items: string[]
+    ): Thenable<string | undefined>;
+    export function showWarningMessage(
+      message: string,
+      ...items: string[]
+    ): Thenable<string | undefined>;
     export const onDidCloseTerminal: Event<Terminal>;
     export function registerTerminalProfileProvider(id: string, provider: any): any;
   }

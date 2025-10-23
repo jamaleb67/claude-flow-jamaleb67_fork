@@ -14,12 +14,23 @@ At session end, automatically saves:
 - Knowledge base updates
 
 ### 2. Session Restoration
-```bash
-# New session automatically loads previous state
-claude "Continue where we left off"
+```javascript
+// Using MCP tools for memory operations
+mcp__claude-flow__memory_usage({
+  "action": "retrieve",
+  "key": "session-state",
+  "namespace": "sessions"
+})
 
-# Or manually restore specific session
-npx ruv-swarm hook session-restore --session-id "sess-123"
+// Restore swarm state
+mcp__claude-flow__context_restore({
+  "snapshotId": "sess-123"
+})
+```
+
+**Fallback with npx:**
+```bash
+npx claude-flow hook session-restore --session-id "sess-123"
 ```
 
 ### 3. Memory Types
@@ -43,15 +54,33 @@ npx ruv-swarm hook session-restore --session-id "sess-123"
 - Efficiency trends
 
 ### 4. Privacy & Control
+```javascript
+// List memory contents
+mcp__claude-flow__memory_usage({
+  "action": "list",
+  "namespace": "sessions"
+})
+
+// Delete specific memory
+mcp__claude-flow__memory_usage({
+  "action": "delete",
+  "key": "session-123",
+  "namespace": "sessions"
+})
+
+// Backup memory
+mcp__claude-flow__memory_backup({
+  "path": "./backups/memory-backup.json"
+})
+```
+
+**Manual control:**
 ```bash
 # View stored memory
-ls .ruv-swarm/
-
-# Clear specific memory
-rm .ruv-swarm/session-*.json
+ls .claude-flow/memory/
 
 # Disable memory
-export RUV_SWARM_MEMORY_PERSIST=false
+export CLAUDE_FLOW_MEMORY_PERSIST=false
 ```
 
 ## Benefits

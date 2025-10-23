@@ -8,6 +8,7 @@ description: Coordinate multi-agent swarms with batchtools optimization for comp
 Swarm mode with batchtools enables massively parallel multi-agent coordination for complex tasks with enhanced efficiency.
 
 ## Enhanced Basic Usage
+
 ```bash
 # Traditional single swarm
 npx claude-flow swarm "your complex task" --strategy <type> [options]
@@ -17,6 +18,7 @@ npx claude-flow swarm batch --tasks "frontend:dev,backend:dev,database:architect
 ```
 
 ## Parallel Strategy Execution
+
 ```bash
 # Execute multiple strategies concurrently
 npx claude-flow swarm multi-strategy --config '{
@@ -28,6 +30,7 @@ npx claude-flow swarm multi-strategy --config '{
 ```
 
 ## Enhanced Strategies with Batch Operations
+
 - `development` - Parallel code implementation across modules
 - `research` - Concurrent information gathering from multiple sources
 - `analysis` - Parallel data processing pipelines
@@ -38,6 +41,7 @@ npx claude-flow swarm multi-strategy --config '{
 - `deployment` - Concurrent multi-environment deployment
 
 ## Advanced Batch Options
+
 - `--parallel-tasks <n>` - Number of concurrent tasks
 - `--batch-size <n>` - Task batch size for processing
 - `--pipeline` - Enable pipeline parallelization
@@ -50,6 +54,7 @@ npx claude-flow swarm multi-strategy --config '{
 ## Batch Examples
 
 ### Parallel Development Swarm
+
 ```bash
 # Develop multiple microservices concurrently
 npx claude-flow swarm batch-dev --services '{
@@ -61,6 +66,7 @@ npx claude-flow swarm batch-dev --services '{
 ```
 
 ### Distributed Research Swarm
+
 ```bash
 # Parallel research across multiple domains
 npx claude-flow swarm batch-research --topics '{
@@ -71,6 +77,7 @@ npx claude-flow swarm batch-research --topics '{
 ```
 
 ### Massive Testing Swarm
+
 ```bash
 # Execute comprehensive parallel testing
 npx claude-flow swarm batch-test --suites '{
@@ -84,6 +91,7 @@ npx claude-flow swarm batch-test --suites '{
 ## Pipeline Operations
 
 ### Development Pipeline
+
 ```bash
 # Create development pipeline with parallel stages
 npx claude-flow swarm pipeline --config '{
@@ -97,6 +105,7 @@ npx claude-flow swarm pipeline --config '{
 ```
 
 ### Analysis Pipeline
+
 ```bash
 # Parallel data analysis pipeline
 npx claude-flow swarm analyze-pipeline --stages '{
@@ -110,6 +119,7 @@ npx claude-flow swarm analyze-pipeline --stages '{
 ## Distributed Coordination
 
 ### Multi-Region Deployment
+
 ```bash
 # Deploy across regions in parallel
 npx claude-flow swarm deploy-multi --regions '{
@@ -120,6 +130,7 @@ npx claude-flow swarm deploy-multi --regions '{
 ```
 
 ### Federated Learning
+
 ```bash
 # Coordinate distributed model training
 npx claude-flow swarm federated-train --nodes 20 --parallel --aggregate-method "secure"
@@ -128,6 +139,7 @@ npx claude-flow swarm federated-train --nodes 20 --parallel --aggregate-method "
 ## Advanced Monitoring & Control
 
 ### Real-time Batch Monitoring
+
 ```bash
 # Monitor all swarm operations
 npx claude-flow swarm monitor-batch --metrics '{
@@ -138,6 +150,7 @@ npx claude-flow swarm monitor-batch --metrics '{
 ```
 
 ### Dynamic Resource Management
+
 ```bash
 # Auto-scale based on load
 npx claude-flow swarm auto-manage --rules '{
@@ -150,6 +163,7 @@ npx claude-flow swarm auto-manage --rules '{
 ## Batch Optimization Features
 
 ### Work Distribution
+
 ```bash
 # Intelligent work distribution
 npx claude-flow swarm distribute --algorithm "weighted" --factors '{
@@ -160,6 +174,7 @@ npx claude-flow swarm distribute --algorithm "weighted" --factors '{
 ```
 
 ### Failure Handling
+
 ```bash
 # Resilient batch execution
 npx claude-flow swarm batch-execute --resilient '{
@@ -172,6 +187,7 @@ npx claude-flow swarm batch-execute --resilient '{
 ## Performance Optimizations
 
 ### Caching Strategy
+
 ```bash
 # Enable intelligent caching
 npx claude-flow swarm batch --cache '{
@@ -182,6 +198,7 @@ npx claude-flow swarm batch --cache '{
 ```
 
 ### Network Optimization
+
 ```bash
 # Optimize network communication
 npx claude-flow swarm optimize-network --compression "gzip" --batching 100 --keepalive
@@ -190,6 +207,7 @@ npx claude-flow swarm optimize-network --compression "gzip" --batching 100 --kee
 ## Complex Workflow Examples
 
 ### Full-Stack Application Development
+
 ```bash
 # Orchestrate complete application development
 npx claude-flow swarm full-stack --project "e-commerce" --parallel-components '{
@@ -203,6 +221,7 @@ npx claude-flow swarm full-stack --project "e-commerce" --parallel-components '{
 ```
 
 ### Data Pipeline Processing
+
 ```bash
 # Massive parallel data processing
 npx claude-flow swarm data-pipeline --config '{
@@ -214,6 +233,7 @@ npx claude-flow swarm data-pipeline --config '{
 ```
 
 ### Security Audit Swarm
+
 ```bash
 # Comprehensive security analysis
 npx claude-flow swarm security-audit --parallel-scans '{

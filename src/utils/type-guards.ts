@@ -41,19 +41,24 @@ export function isErrorLike(value: unknown): value is { message: string; stack?:
  * Check if a value has a code property
  */
 export function hasCode(value: unknown): value is { code: string | number } {
-  return isObject(value) && 'code' in value && 
-    (typeof value.code === 'string' || typeof value.code === 'number');
+  return (
+    isObject(value) &&
+    'code' in value &&
+    (typeof value.code === 'string' || typeof value.code === 'number')
+  );
 }
 
 /**
  * Check if a value has an agentId property
  */
 export function hasAgentId(value: unknown): value is { agentId: { id: string } } {
-  return isObject(value) && 
-    'agentId' in value && 
-    isObject(value.agentId) && 
+  return (
+    isObject(value) &&
+    'agentId' in value &&
+    isObject(value.agentId) &&
     'id' in value.agentId &&
-    typeof value.agentId.id === 'string';
+    typeof value.agentId.id === 'string'
+  );
 }
 
 /**
@@ -123,7 +128,7 @@ export function isArray<T = unknown>(value: unknown): value is T[] {
 /**
  * Type guard for checking if value is a function
  */
-export function isFunction(value: unknown): value is Function {
+export function isFunction(value: unknown): value is (...args: any[]) => any {
   return typeof value === 'function';
 }
 
@@ -145,44 +150,50 @@ export function isDefined<T>(value: T | null | undefined): value is T {
  * Type guard for agent load update event data
  */
 export function hasAgentLoad(value: unknown): value is { agentId: { id: string }; load: number } {
-  return isObject(value) && 
-    'agentId' in value && 
-    isObject(value.agentId) && 
+  return (
+    isObject(value) &&
+    'agentId' in value &&
+    isObject(value.agentId) &&
     'id' in value.agentId &&
     typeof value.agentId.id === 'string' &&
     'load' in value &&
-    typeof value.load === 'number';
+    typeof value.load === 'number'
+  );
 }
 
 /**
  * Type guard for task event data
  */
 export function hasAgentTask(value: unknown): value is { agentId: { id: string }; task: unknown } {
-  return isObject(value) && 
-    'agentId' in value && 
-    isObject(value.agentId) && 
+  return (
+    isObject(value) &&
+    'agentId' in value &&
+    isObject(value.agentId) &&
     'id' in value.agentId &&
     typeof value.agentId.id === 'string' &&
-    'task' in value;
+    'task' in value
+  );
 }
 
 /**
  * Type guard for work stealing event data
  */
-export function hasWorkStealingData(value: unknown): value is { 
-  sourceAgent: { id: string }; 
-  targetAgent: { id: string }; 
-  taskCount: number 
+export function hasWorkStealingData(value: unknown): value is {
+  sourceAgent: { id: string };
+  targetAgent: { id: string };
+  taskCount: number;
 } {
-  return isObject(value) && 
-    'sourceAgent' in value && 
-    isObject(value.sourceAgent) && 
+  return (
+    isObject(value) &&
+    'sourceAgent' in value &&
+    isObject(value.sourceAgent) &&
     'id' in value.sourceAgent &&
     typeof value.sourceAgent.id === 'string' &&
-    'targetAgent' in value && 
-    isObject(value.targetAgent) && 
+    'targetAgent' in value &&
+    isObject(value.targetAgent) &&
     'id' in value.targetAgent &&
     typeof value.targetAgent.id === 'string' &&
     'taskCount' in value &&
-    typeof value.taskCount === 'number';
+    typeof value.taskCount === 'number'
+  );
 }

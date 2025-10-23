@@ -3,7 +3,12 @@
  */
 
 import { BaseAgent } from './base-agent.js';
-import type { AgentCapabilities, AgentConfig, AgentEnvironment, TaskDefinition } from '../../swarm/types.js';
+import type {
+  AgentCapabilities,
+  AgentConfig,
+  AgentEnvironment,
+  TaskDefinition,
+} from '../../swarm/types.js';
 import type { ILogger } from '../../core/logger.js';
 import type { IEventBus } from '../../core/event-bus.js';
 import type { DistributedMemorySystem } from '../../memory/distributed-memory.js';
@@ -50,7 +55,7 @@ export class TesterAgent extends BaseAgent {
     environment: AgentEnvironment,
     logger: ILogger,
     eventBus: IEventBus,
-    memory: DistributedMemorySystem
+    memory: DistributedMemorySystem,
   ) {
     super(id, 'tester', config, environment, logger, eventBus, memory);
   }
@@ -67,14 +72,7 @@ export class TesterAgent extends BaseAgent {
       apiIntegration: true,
       fileSystem: true,
       terminalAccess: true,
-      languages: [
-        'typescript',
-        'javascript',
-        'python',
-        'java',
-        'csharp',
-        'go'
-      ],
+      languages: ['typescript', 'javascript', 'python', 'java', 'csharp', 'go'],
       frameworks: [
         'jest',
         'mocha',
@@ -83,7 +81,7 @@ export class TesterAgent extends BaseAgent {
         'selenium',
         'pytest',
         'junit',
-        'testng'
+        'testng',
       ],
       domains: [
         'unit-testing',
@@ -95,7 +93,7 @@ export class TesterAgent extends BaseAgent {
         'api-testing',
         'mobile-testing',
         'load-testing',
-        'test-automation'
+        'test-automation',
       ],
       tools: [
         'test-runner',
@@ -105,14 +103,14 @@ export class TesterAgent extends BaseAgent {
         'assertion-library',
         'browser-automation',
         'api-tester',
-        'performance-profiler'
+        'performance-profiler',
       ],
       maxConcurrentTasks: 4,
       maxMemoryUsage: 1024 * 1024 * 1024, // 1GB
       maxExecutionTime: 1800000, // 30 minutes
       reliability: 0.95,
-      speed: 0.80,
-      quality: 0.95
+      speed: 0.8,
+      quality: 0.95,
     };
   }
 
@@ -131,24 +129,24 @@ export class TesterAgent extends BaseAgent {
         'file-write',
         'terminal-access',
         'browser-control',
-        'network-access'
+        'network-access',
       ],
       trustedAgents: [],
       expertise: {
         'unit-testing': 0.95,
-        'integration-testing': 0.90,
+        'integration-testing': 0.9,
         'e2e-testing': 0.88,
         'test-automation': 0.92,
         'performance-testing': 0.85,
-        'security-testing': 0.80
+        'security-testing': 0.8,
       },
       preferences: {
         testFramework: 'jest',
         coverageThreshold: 80,
         testStrategy: 'pyramid',
         mockingStyle: 'minimal',
-        reportFormat: 'detailed'
-      }
+        reportFormat: 'detailed',
+      },
     };
   }
 
@@ -156,7 +154,7 @@ export class TesterAgent extends BaseAgent {
     this.logger.info('Tester executing task', {
       agentId: this.id,
       taskType: task.type,
-      taskId: task.id
+      taskId: task.id,
     });
 
     try {
@@ -184,7 +182,7 @@ export class TesterAgent extends BaseAgent {
       this.logger.error('Testing task failed', {
         agentId: this.id,
         taskId: task.id,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -199,7 +197,7 @@ export class TesterAgent extends BaseAgent {
     this.logger.info('Creating unit tests', {
       framework,
       coverage,
-      style
+      style,
     });
 
     const testing = {
@@ -212,16 +210,16 @@ export class TesterAgent extends BaseAgent {
         lines: 0,
         functions: 0,
         branches: 0,
-        statements: 0
+        statements: 0,
       },
       mocks: [] as any[],
       assertions: [] as any[],
       setup: {
         beforeEach: true,
         afterEach: true,
-        fixtures: [] as any[]
+        fixtures: [] as any[],
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate unit test creation
@@ -231,20 +229,20 @@ export class TesterAgent extends BaseAgent {
       {
         path: 'tests/unit/user.test.ts',
         testCount: 15,
-        coverage: 92
+        coverage: 92,
       },
       {
         path: 'tests/unit/auth.test.ts',
         testCount: 8,
-        coverage: 88
-      }
+        coverage: 88,
+      },
     ];
-    
+
     testing.coverage = {
       lines: 87,
       functions: 92,
       branches: 78,
-      statements: 89
+      statements: 89,
     };
 
     return testing;
@@ -260,7 +258,7 @@ export class TesterAgent extends BaseAgent {
       components: components.length,
       database,
       api,
-      framework
+      framework,
     });
 
     const integration = {
@@ -272,12 +270,12 @@ export class TesterAgent extends BaseAgent {
       environment: {
         setup: 'docker-compose',
         database: 'test-db',
-        services: [] as any[]
+        services: [] as any[],
       },
       scenarios: [] as TestCase[],
       dataFlow: [] as any[],
       assertions: [] as any[],
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate integration test creation
@@ -287,13 +285,13 @@ export class TesterAgent extends BaseAgent {
       {
         name: 'User registration flow',
         steps: ['Create user', 'Send email', 'Verify account'],
-        assertions: ['User created', 'Email sent', 'Account active']
+        assertions: ['User created', 'Email sent', 'Account active'],
       },
       {
         name: 'Order processing flow',
         steps: ['Create order', 'Process payment', 'Update inventory'],
-        assertions: ['Order confirmed', 'Payment processed', 'Stock updated']
-      }
+        assertions: ['Order confirmed', 'Payment processed', 'Stock updated'],
+      },
     ];
 
     return integration;
@@ -309,7 +307,7 @@ export class TesterAgent extends BaseAgent {
       userJourneys: userJourneys.length,
       browser,
       framework,
-      viewport
+      viewport,
     });
 
     const e2e = {
@@ -325,14 +323,14 @@ export class TesterAgent extends BaseAgent {
         headless: true,
         screenshots: true,
         videos: false,
-        retries: 2
+        retries: 2,
       },
       crossBrowser: {
         chrome: true,
         firefox: true,
-        safari: false
+        safari: false,
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate E2E test creation
@@ -345,10 +343,10 @@ export class TesterAgent extends BaseAgent {
           'Navigate to login page',
           'Enter credentials',
           'Click login button',
-          'Verify dashboard loads'
+          'Verify dashboard loads',
         ],
-        expected: 'User successfully logged in and sees dashboard'
-      }
+        expected: 'User successfully logged in and sees dashboard',
+      },
     ];
 
     return e2e;
@@ -364,7 +362,7 @@ export class TesterAgent extends BaseAgent {
       target,
       loadPattern,
       duration,
-      virtualUsers
+      virtualUsers,
     });
 
     const performance = {
@@ -377,24 +375,24 @@ export class TesterAgent extends BaseAgent {
           avg: 0,
           p95: 0,
           p99: 0,
-          max: 0
+          max: 0,
         },
         throughput: 0,
         errorRate: 0,
         resourceUtilization: {
           cpu: 0,
           memory: 0,
-          network: 0
-        }
+          network: 0,
+        },
       },
       bottlenecks: [],
       recommendations: [],
       slaCompliance: {
         responseTime: false,
         throughput: false,
-        errorRate: false
+        errorRate: false,
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate performance testing
@@ -405,15 +403,15 @@ export class TesterAgent extends BaseAgent {
         avg: 245,
         p95: 520,
         p99: 1200,
-        max: 2500
+        max: 2500,
       },
       throughput: 1250,
       errorRate: 0.03,
       resourceUtilization: {
         cpu: 75,
         memory: 68,
-        network: 45
-      }
+        network: 45,
+      },
     };
 
     return performance;
@@ -427,7 +425,7 @@ export class TesterAgent extends BaseAgent {
     this.logger.info('Performing security test', {
       target,
       testTypes,
-      severity
+      severity,
     });
 
     const security = {
@@ -438,12 +436,12 @@ export class TesterAgent extends BaseAgent {
       compliance: {
         owasp: [] as any[],
         gdpr: [] as any[],
-        pci: [] as any[]
+        pci: [] as any[],
       },
       penetrationTests: [] as any[],
       recommendations: [] as any[],
       riskLevel: 'unknown',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate security testing
@@ -455,10 +453,10 @@ export class TesterAgent extends BaseAgent {
         severity: 'high',
         location: '/api/users/search',
         description: 'Input not properly sanitized',
-        impact: 'Data breach potential'
-      }
+        impact: 'Data breach potential',
+      },
     ];
-    
+
     security.riskLevel = 'medium';
 
     return security;
@@ -472,7 +470,7 @@ export class TesterAgent extends BaseAgent {
     this.logger.info('Testing API', {
       endpoints: endpoints.length,
       authentication,
-      environment
+      environment,
     });
 
     const apiTest = {
@@ -486,14 +484,14 @@ export class TesterAgent extends BaseAgent {
       performance: {
         averageResponseTime: 0,
         slowestEndpoint: '',
-        fastestEndpoint: ''
+        fastestEndpoint: '',
       },
       coverage: {
         endpoints: 0,
         statusCodes: [] as any[],
-        errorScenarios: 0
+        errorScenarios: 0,
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate API testing
@@ -504,15 +502,15 @@ export class TesterAgent extends BaseAgent {
         endpoint: 'GET /api/users',
         status: 'passed',
         responseTime: 150,
-        statusCode: 200
+        statusCode: 200,
       },
       {
         endpoint: 'POST /api/users',
         status: 'failed',
         responseTime: 300,
         statusCode: 500,
-        error: 'Internal server error'
-      }
+        error: 'Internal server error',
+      },
     ];
 
     return apiTest;
@@ -526,7 +524,7 @@ export class TesterAgent extends BaseAgent {
     this.logger.info('Automating tests', {
       testSuite,
       pipeline,
-      triggers
+      triggers,
     });
 
     const automation = {
@@ -537,20 +535,20 @@ export class TesterAgent extends BaseAgent {
         parallel: true,
         retries: 2,
         timeout: '30m',
-        artifacts: ['reports', 'screenshots']
+        artifacts: ['reports', 'screenshots'],
       },
       environments: ['staging', 'production'],
       notifications: {
         slack: true,
         email: true,
-        github: true
+        github: true,
       },
       reporting: {
         format: 'junit',
         coverage: true,
-        trends: true
+        trends: true,
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate test automation setup
@@ -565,7 +563,7 @@ export class TesterAgent extends BaseAgent {
     const timeframe = task.input?.timeframe || '7d';
 
     this.logger.info('Analyzing tests', {
-      timeframe
+      timeframe,
     });
 
     const analysis = {
@@ -575,18 +573,18 @@ export class TesterAgent extends BaseAgent {
         passed: 0,
         failed: 0,
         skipped: 0,
-        flaky: 0
+        flaky: 0,
       },
       trends: {
         passRate: [] as any[],
         executionTime: [] as any[],
-        coverage: [] as any[]
+        coverage: [] as any[],
       },
       flakyTests: [] as any[],
       slowTests: [] as any[],
       recommendations: [] as any[],
       insights: [] as string[],
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Simulate test analysis
@@ -597,13 +595,13 @@ export class TesterAgent extends BaseAgent {
       passed: 230,
       failed: 10,
       skipped: 5,
-      flaky: 3
+      flaky: 3,
     };
-    
+
     analysis.insights = [
       'Test execution time increased by 15% this week',
       'Coverage decreased in auth module',
-      '3 tests are consistently flaky and need attention'
+      '3 tests are consistently flaky and need attention',
     ];
 
     return analysis;
@@ -611,7 +609,7 @@ export class TesterAgent extends BaseAgent {
 
   private async performGeneralTesting(task: TaskDefinition): Promise<any> {
     this.logger.info('Performing general testing', {
-      description: task.description
+      description: task.description,
     });
 
     // Default to unit testing
@@ -619,7 +617,7 @@ export class TesterAgent extends BaseAgent {
   }
 
   private async delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   override getAgentStatus(): any {
@@ -632,13 +630,13 @@ export class TesterAgent extends BaseAgent {
         'E2E Testing',
         'Performance Testing',
         'Security Testing',
-        'API Testing'
+        'API Testing',
       ],
       frameworks: this.capabilities.frameworks,
       currentTests: this.getCurrentTasks().length,
       averageTestTime: '15-30 minutes',
       lastTestCompleted: this.getLastTaskCompletedTime(),
-      testCoverageGoal: this.config.preferences?.coverageThreshold || 80
+      testCoverageGoal: this.config.preferences?.coverageThreshold || 80,
     };
   }
 }
@@ -649,7 +647,7 @@ export const createTesterAgent = (
   environment: Partial<AgentEnvironment>,
   logger: ILogger,
   eventBus: IEventBus,
-  memory: DistributedMemorySystem
+  memory: DistributedMemorySystem,
 ): TesterAgent => {
   const defaultConfig = {
     autonomyLevel: 0.7,
@@ -665,23 +663,23 @@ export const createTesterAgent = (
       'code-access',
       'system-access',
       'browser-automation',
-      'security-testing'
+      'security-testing',
     ],
     trustedAgents: [],
     expertise: {
       'unit-testing': 0.95,
       'integration-testing': 0.92,
-      'e2e-testing': 0.90,
+      'e2e-testing': 0.9,
       'performance-testing': 0.88,
       'security-testing': 0.85,
-      'api-testing': 0.90
+      'api-testing': 0.9,
     },
     preferences: {
       testingApproach: 'comprehensive',
       coverageThreshold: 85,
       testingFramework: 'jest',
-      automationLevel: 'high'
-    }
+      automationLevel: 'high',
+    },
   };
   const defaultEnv = {
     runtime: 'deno' as const,
@@ -691,16 +689,11 @@ export const createTesterAgent = (
     logDirectory: './logs/tester',
     apiEndpoints: {},
     credentials: {},
-    availableTools: [
-      'test-runner',
-      'coverage-analyzer',
-      'browser-automation',
-      'api-tester'
-    ],
+    availableTools: ['test-runner', 'coverage-analyzer', 'browser-automation', 'api-tester'],
     toolConfigs: {
       testRunner: { framework: 'jest', coverage: true },
-      browser: { headless: true, screenshots: true }
-    }
+      browser: { headless: true, screenshots: true },
+    },
   };
 
   return new TesterAgent(
@@ -709,6 +702,6 @@ export const createTesterAgent = (
     { ...defaultEnv, ...environment } as AgentEnvironment,
     logger,
     eventBus,
-    memory
+    memory,
   );
 };

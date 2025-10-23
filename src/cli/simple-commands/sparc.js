@@ -1,18 +1,27 @@
 // sparc.js - SPARC development mode commands
 import { printSuccess, printError, printWarning } from '../utils.js';
+import { promises as fs } from 'fs';
+import { spawn } from 'child_process';
+import { promisify } from 'util';
 import { createSparcPrompt } from './sparc-modes/index.js';
-import { Deno, cwd, exit, existsSync } from '../node-compat.js';
+import { cwd, exit, existsSync } from '../node-compat.js';
 import process from 'process';
 
 export async function sparcCommand(subArgs, flags) {
   const sparcCmd = subArgs[0];
-  
+
   // Show help if requested or no args
-  if (flags.help || flags.h || sparcCmd === '--help' || sparcCmd === '-h' || (!sparcCmd && Object.keys(flags).length === 0)) {
+  if (
+    flags.help ||
+    flags.h ||
+    sparcCmd === '--help' ||
+    sparcCmd === '-h' ||
+    (!sparcCmd && Object.keys(flags).length === 0)
+  ) {
     showSparcHelp();
     return;
   }
-  
+
   // Merge flags back into subArgs for backward compatibility
   const mergedArgs = [...subArgs];
   for (const [key, value] of Object.entries(flags)) {
@@ -34,36 +43,36 @@ export async function sparcCommand(subArgs, flags) {
       mergedArgs.push('--interactive');
     }
   }
-  
+
   // Check if first arg is a known subcommand
   const knownSubcommands = ['modes', 'info', 'run', 'tdd'];
-  
+
   if (!knownSubcommands.includes(sparcCmd)) {
     // If not a known subcommand, treat it as a task description for sparc orchestrator
     // Insert 'run' and 'sparc' to make it: ['run', 'sparc', ...rest of args]
     mergedArgs.unshift('run', 'sparc');
   }
-  
+
   // Now process the command
   const actualCmd = mergedArgs[0];
-  
+
   switch (actualCmd) {
     case 'modes':
       await listSparcModes(mergedArgs);
       break;
-      
+
     case 'info':
       await showModeInfo(mergedArgs);
       break;
-      
+
     case 'run':
       await runSparcMode(mergedArgs, flags);
       break;
-      
+
     case 'tdd':
       await runTddWorkflow(mergedArgs);
       break;
-      
+
     default:
       showSparcHelp();
   }
@@ -73,30 +82,27 @@ async function listSparcModes(subArgs) {
   try {
     // Get the actual working directory where the command was run from
     const workingDir = process.env.PWD || cwd();
-    const configPath = `${workingDir}/.roomodes`;
+    const configPath = `${workingDir}/.claude/sparc-modes.json`;
     let configContent;
     try {
-      configContent = await Deno.readTextFile(configPath);
+      configContent = await fs.readFile(configPath, 'utf8');
     } catch (error) {
-      printError('SPARC configuration file (.roomodes) not found');
-      console.log(`Please ensure .roomodes file exists in: ${workingDir}`);
+      printError('SPARC configuration file not found');
+      console.log(`Looking for: ${configPath}`);
       console.log();
-      console.log('To enable SPARC development modes, run:');
-      console.log('  npx claude-flow@latest init --sparc');
+      console.log('✅ SPARC modes are now part of .claude/ folder structure');
+      console.log('Run `claude-flow init` to set up the .claude/ folder with SPARC modes');
       console.log();
-      console.log('This will create:');
-      console.log('  • .roomodes file with 17+ SPARC development modes');
-      console.log('  • .roo/ directory with templates and workflows');
-      console.log('  • SPARC-enhanced CLAUDE.md configuration');
+      console.log('Or manually ensure .claude/sparc-modes.json exists');
       return;
     }
-    
+
     const config = JSON.parse(configContent);
     const verbose = subArgs.includes('--verbose') || subArgs.includes('-v');
-    
+
     printSuccess('Available SPARC Modes:');
     console.log();
-    
+
     for (const mode of config.customModes) {
       console.log(`• ${mode.name} (${mode.slug})`);
       if (verbose) {
@@ -105,7 +111,7 @@ async function listSparcModes(subArgs) {
         console.log();
       }
     }
-    
+
     if (!verbose) {
       console.log();
       console.log('Use --verbose for detailed descriptions');
@@ -121,25 +127,25 @@ async function showModeInfo(subArgs) {
     printError('Usage: sparc info <mode-slug>');
     return;
   }
-  
+
   try {
     // Get the actual working directory where the command was run from
     const workingDir = process.env.PWD || cwd();
-    const configPath = `${workingDir}/.roomodes`;
+    const configPath = `${workingDir}/.claude/sparc-modes.json`;
     let configContent;
     try {
-      configContent = await Deno.readTextFile(configPath);
+      configContent = await fs.readFile(configPath, 'utf8');
     } catch (error) {
-      printError('SPARC configuration file (.roomodes) not found');
-      console.log(`Please ensure .roomodes file exists in: ${workingDir}`);
+      printError('SPARC configuration file not found');
+      console.log(`Looking for: ${configPath}`);
       console.log();
-      console.log('To enable SPARC development modes, run:');
-      console.log('  npx claude-flow@latest init --sparc');
+      console.log('✅ SPARC modes are now part of .claude/ folder structure');
+      console.log('Run `claude-flow init` to set up the .claude/ folder with SPARC modes');
       return;
     }
     const config = JSON.parse(configContent);
-    const mode = config.customModes.find(m => m.slug === modeSlug);
-    
+    const mode = config.customModes.find((m) => m.slug === modeSlug);
+
     if (!mode) {
       printError(`Mode not found: ${modeSlug}`);
       console.log('Available modes:');
@@ -148,7 +154,7 @@ async function showModeInfo(subArgs) {
       }
       return;
     }
-    
+
     printSuccess(`SPARC Mode: ${mode.name}`);
     console.log();
     console.log('Role Definition:');
@@ -162,7 +168,6 @@ async function showModeInfo(subArgs) {
     console.log();
     console.log('Source:');
     console.log(mode.source);
-    
   } catch (err) {
     printError(`Failed to show mode info: ${err.message}`);
   }
@@ -170,52 +175,56 @@ async function showModeInfo(subArgs) {
 
 async function runSparcMode(subArgs, flags) {
   const runModeSlug = subArgs[1];
-  const taskDescription = subArgs.slice(2).filter(arg => !arg.startsWith('--')).join(' ');
-  
+  const taskDescription = subArgs
+    .slice(2)
+    .filter((arg) => !arg.startsWith('--'))
+    .join(' ');
+
   if (!runModeSlug || !taskDescription) {
     printError('Usage: sparc run <mode-slug> <task-description>');
     return;
   }
-  
+
   try {
     // Get the actual working directory where the command was run from
     const workingDir = process.env.PWD || cwd();
-    const configPath = `${workingDir}/.roomodes`;
+    const configPath = `${workingDir}/.claude/sparc-modes.json`;
     let configContent;
     try {
-      configContent = await Deno.readTextFile(configPath);
+      configContent = await fs.readFile(configPath, 'utf8');
     } catch (error) {
-      printError('SPARC configuration file (.roomodes) not found');
-      console.log(`Please ensure .roomodes file exists in: ${workingDir}`);
+      printError('SPARC configuration file not found');
+      console.log(`Looking for: ${configPath}`);
       console.log();
-      console.log('To enable SPARC development modes, run:');
-      console.log('  npx claude-flow@latest init --sparc');
+      console.log('✅ SPARC modes are now part of .claude/ folder structure');
+      console.log('Run `claude-flow init` to set up the .claude/ folder with SPARC modes');
       return;
     }
     const config = JSON.parse(configContent);
-    const mode = config.customModes.find(m => m.slug === runModeSlug);
-    
+    const mode = config.customModes.find((m) => m.slug === runModeSlug);
+
     if (!mode) {
       printError(`Mode not found: ${runModeSlug}`);
       return;
     }
-    
+
     // Build enhanced SPARC prompt
-    const memoryNamespace = subArgs.includes('--namespace') ? 
-      subArgs[subArgs.indexOf('--namespace') + 1] : mode.slug;
-    
+    const memoryNamespace = subArgs.includes('--namespace')
+      ? subArgs[subArgs.indexOf('--namespace') + 1]
+      : mode.slug;
+
     const enhancedTask = createSparcPrompt(mode, taskDescription, memoryNamespace);
-    
+
     // Build tools based on mode groups
     const tools = buildToolsFromGroups(mode.groups);
     const toolsList = Array.from(tools).join(',');
     const instanceId = `sparc-${runModeSlug}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     if (subArgs.includes('--dry-run') || subArgs.includes('-d')) {
       printWarning('DRY RUN - SPARC Mode Configuration:');
       console.log(`Mode: ${mode.name} (${mode.slug})`);
       console.log(`Instance ID: ${instanceId}`);
-      
+
       const enablePermissions = subArgs.includes('--enable-permissions');
       if (!enablePermissions) {
         console.log(`Tools: ALL (via --dangerously-skip-permissions)`);
@@ -224,21 +233,21 @@ async function runSparcMode(subArgs, flags) {
         console.log(`Tools: ${toolsList}`);
         console.log(`Permissions: Will prompt for actions`);
       }
-      
+
       console.log(`Task: ${taskDescription}`);
       console.log();
       console.log('Enhanced prompt preview:');
       console.log(enhancedTask.substring(0, 300) + '...');
       return;
     }
-    
+
     printSuccess(`Starting SPARC mode: ${mode.name}`);
     console.log(`📝 Instance ID: ${instanceId}`);
     console.log(`🎯 Mode: ${mode.slug}`);
-    
+
     const isNonInteractive = subArgs.includes('--non-interactive') || subArgs.includes('-n');
     const enablePermissions = subArgs.includes('--enable-permissions');
-    
+
     if (!enablePermissions) {
       console.log(`🔧 Tools: ALL (including MCP and WebSearch via --dangerously-skip-permissions)`);
       console.log(`⚡ Permissions: Auto-skipped (--dangerously-skip-permissions)`);
@@ -246,22 +255,21 @@ async function runSparcMode(subArgs, flags) {
       console.log(`🔧 Tools: ${toolsList}`);
       console.log(`✅ Permissions: Enabled (will prompt for actions)`);
     }
-    console.log(`📋 Task: ${taskDescription}`)
-    
+    console.log(`📋 Task: ${taskDescription}`);
+
     if (isNonInteractive) {
       console.log(`🚀 Running in non-interactive mode with stream-json output`);
       console.log();
-      
+
       // Show debug info immediately for non-interactive mode
       console.log('🔍 Debug: Preparing claude command...');
       console.log(`Enhanced prompt length: ${enhancedTask.length} characters`);
       console.log(`First 200 chars of prompt: ${enhancedTask.substring(0, 200)}...`);
     }
     console.log();
-    
+
     // Execute Claude with SPARC configuration
     await executeClaude(enhancedTask, toolsList, instanceId, memoryNamespace, subArgs);
-    
   } catch (err) {
     printError(`Failed to run SPARC mode: ${err.message}`);
   }
@@ -269,28 +277,28 @@ async function runSparcMode(subArgs, flags) {
 
 async function runTddWorkflow(subArgs) {
   const tddTaskDescription = subArgs.slice(1).join(' ');
-  
+
   if (!tddTaskDescription) {
     printError('Usage: sparc tdd <task-description>');
     return;
   }
-  
+
   printSuccess('Starting SPARC TDD Workflow');
   console.log('Following Test-Driven Development with SPARC methodology');
   console.log();
-  
+
   const phases = [
     { name: 'Red', description: 'Write failing tests', mode: 'tdd' },
     { name: 'Green', description: 'Minimal implementation', mode: 'code' },
-    { name: 'Refactor', description: 'Optimize and clean', mode: 'tdd' }
+    { name: 'Refactor', description: 'Optimize and clean', mode: 'tdd' },
   ];
-  
+
   console.log('TDD Phases:');
   for (const phase of phases) {
     console.log(`  ${phase.name}: ${phase.description} (${phase.mode} mode)`);
   }
   console.log();
-  
+
   if (subArgs.includes('--interactive') || subArgs.includes('-i')) {
     printSuccess('Starting interactive TDD workflow');
     console.log('This would walk through each phase interactively');
@@ -310,22 +318,22 @@ function buildToolsFromGroups(groups) {
     edit: ['Edit', 'Replace', 'MultiEdit', 'Write'],
     browser: ['WebFetch'],
     mcp: ['mcp_tools'],
-    command: ['Bash', 'Terminal']
+    command: ['Bash', 'Terminal'],
   };
-  
+
   const tools = new Set(['View', 'Edit', 'Bash']); // Always include basic tools
-  
+
   for (const group of groups) {
     if (Array.isArray(group)) {
       const groupName = group[0];
       if (toolMappings[groupName]) {
-        toolMappings[groupName].forEach(tool => tools.add(tool));
+        toolMappings[groupName].forEach((tool) => tools.add(tool));
       }
     } else if (toolMappings[group]) {
-      toolMappings[group].forEach(tool => tools.add(tool));
+      toolMappings[group].forEach((tool) => tools.add(tool));
     }
   }
-  
+
   return tools;
 }
 
@@ -333,16 +341,16 @@ async function executeClaude(enhancedTask, toolsList, instanceId, memoryNamespac
   // Check for non-interactive mode
   const isNonInteractive = subArgs.includes('--non-interactive') || subArgs.includes('-n');
   const enablePermissions = subArgs.includes('--enable-permissions');
-  
+
   // Build arguments array correctly
   const claudeArgs = [];
   claudeArgs.push(enhancedTask);
-  
+
   // Add --dangerously-skip-permissions by default unless --enable-permissions is set
   if (!enablePermissions) {
     claudeArgs.push('--dangerously-skip-permissions');
   }
-  
+
   if (isNonInteractive) {
     // Non-interactive mode: add additional flags
     claudeArgs.push('-p'); // Use short form for print
@@ -354,29 +362,37 @@ async function executeClaude(enhancedTask, toolsList, instanceId, memoryNamespac
       claudeArgs.push('--verbose');
     }
   }
-  
+
   // When using --dangerously-skip-permissions, we don't need to specify individual tools
   // as it enables ALL tools including mcp and websearch
   // Only add --allowedTools if permissions are enabled
   if (enablePermissions) {
     claudeArgs.push('--allowedTools', toolsList);
   }
-  
+
   if (subArgs.includes('--config')) {
     const configIndex = subArgs.indexOf('--config');
     claudeArgs.push('--mcp-config', subArgs[configIndex + 1]);
   }
-  
+
   // Show debug info for non-interactive mode or when verbose
   if (isNonInteractive || subArgs.includes('--verbose') || subArgs.includes('-v')) {
     console.log('\n🔍 Debug: Executing claude with:');
     console.log('Command: claude');
-    console.log('Permissions:', enablePermissions ? '✅ Enabled (will prompt)' : '⚡ Skipped (--dangerously-skip-permissions)');
-    console.log('Tools:', enablePermissions ? `Specified: ${toolsList}` : 'ALL tools enabled (MCP, WebSearch, etc.)');
+    console.log(
+      'Permissions:',
+      enablePermissions
+        ? '✅ Enabled (will prompt)'
+        : '⚡ Skipped (--dangerously-skip-permissions)',
+    );
+    console.log(
+      'Tools:',
+      enablePermissions ? `Specified: ${toolsList}` : 'ALL tools enabled (MCP, WebSearch, etc.)',
+    );
     console.log('Mode:', isNonInteractive ? '🤖 Non-interactive' : '💬 Interactive');
     console.log('Args array length:', claudeArgs.length);
     console.log('First arg (prompt) length:', claudeArgs[0].length, 'characters');
-    
+
     if (isNonInteractive) {
       console.log('First 200 chars of prompt:', claudeArgs[0].substring(0, 200) + '...');
       console.log('\nAll arguments:');
@@ -392,22 +408,26 @@ async function executeClaude(enhancedTask, toolsList, instanceId, memoryNamespac
     }
     console.log();
   }
-  
+
   try {
     // Log the actual command being executed
     console.log('\n🚀 Executing command:');
     console.log(`Command: claude`);
     console.log(`Working Directory: ${cwd()}`);
     console.log(`Number of args: ${claudeArgs.length}`);
-    
+
     // Check if claude command exists
     try {
-      const checkCommand = new Deno.Command('which', {
-        args: ['claude'],
-        stdout: 'piped',
-        stderr: 'piped',
+      const checkResult = await new Promise((resolve) => {
+        const child = spawn('which', ['claude'], {
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
+        let stdout = '';
+        child.stdout?.on('data', (data) => { stdout += data; });
+        child.on('close', (code) => {
+          resolve({ success: code === 0, stdout: Buffer.from(stdout) });
+        });
       });
-      const checkResult = await checkCommand.output();
       if (!checkResult.success) {
         console.error('❌ Error: claude command not found in PATH');
         console.error('Please ensure claude CLI is installed and in your PATH');
@@ -418,27 +438,22 @@ async function executeClaude(enhancedTask, toolsList, instanceId, memoryNamespac
     } catch (e) {
       console.warn('⚠️  Could not verify claude command location');
     }
-    
-    const command = new Deno.Command('claude', {
-      args: claudeArgs,
-      cwd: cwd(), // Explicitly set working directory to current directory
-      env: {
-        ...Deno.env.toObject(),
-        CLAUDE_INSTANCE_ID: instanceId,
-        CLAUDE_SPARC_MODE: 'true',
-        CLAUDE_FLOW_MEMORY_ENABLED: 'true',
-        CLAUDE_FLOW_MEMORY_NAMESPACE: memoryNamespace,
-        CLAUDE_WORKING_DIRECTORY: cwd(), // Also pass as env variable
-      },
-      stdin: 'inherit',
-      stdout: 'inherit',
-      stderr: 'inherit',
-    });
-    
+
+    // Use spawn for claude command
+    const env = { ...process.env, CLAUDE_INSTANCE_ID: instanceId };
+
     console.log('\n📡 Spawning claude process...\n');
-    const child = command.spawn();
-    const status = await child.status;
-    
+    const child = spawn('claude', claudeArgs, {
+      cwd: cwd(),
+      env: env,
+      stdio: 'inherit'
+    });
+    const status = await new Promise((resolve) => {
+      child.on('close', (code) => {
+        resolve({ code, success: code === 0 });
+      });
+    });
+
     if (status.success) {
       printSuccess(`SPARC instance ${instanceId} completed successfully`);
     } else {
@@ -476,7 +491,9 @@ function showSparcHelp() {
   console.log();
   console.log('  # Boomerang orchestration pattern');
   console.log('  batchtool orchestrate --boomerang \\');
-  console.log('    --research "npx claude-flow sparc run ask \'requirements\' --non-interactive" \\');
+  console.log(
+    '    --research "npx claude-flow sparc run ask \'requirements\' --non-interactive" \\',
+  );
   console.log('    --design "npx claude-flow sparc run architect \'system\' --non-interactive" \\');
   console.log('    --implement "npx claude-flow sparc run code \'features\' --non-interactive" \\');
   console.log('    --test "npx claude-flow sparc run tdd \'validation\' --non-interactive"');

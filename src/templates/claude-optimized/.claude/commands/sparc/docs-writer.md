@@ -29,14 +29,14 @@ const tasks = [
   { tool: 'Read', params: { file_path: 'src/auth/index.ts' } },
   { tool: 'Read', params: { file_path: 'src/api/index.ts' } },
   { tool: 'Read', params: { file_path: 'src/database/index.ts' } },
-  
+
   // Parallel search for usage examples
   { tool: 'Grep', params: { pattern: 'export (class|function)', include: '*.ts' } },
   { tool: 'Grep', params: { pattern: '@example', include: '*.ts' } },
-  
+
   // Parallel glob for test files
   { tool: 'Glob', params: { pattern: '**/*.test.ts' } },
-  { tool: 'Glob', params: { pattern: '**/*.spec.ts' } }
+  { tool: 'Glob', params: { pattern: '**/*.spec.ts' } },
 ];
 
 // Execute all tasks in parallel
@@ -46,16 +46,19 @@ const results = await batchtools.execute(tasks);
 ### Documentation Generation Patterns
 
 1. **API Documentation**:
+
    - Read all endpoint files in parallel
    - Search for route definitions, middleware, and validators concurrently
    - Generate endpoint documentation for multiple services simultaneously
 
 2. **Component Documentation**:
+
    - Analyze component files, props, and dependencies in parallel
    - Extract JSDoc comments and type definitions concurrently
    - Build component hierarchy and usage examples in batch
 
 3. **Configuration Documentation**:
+
    - Read all config files simultaneously
    - Search for environment variable usage across the codebase
    - Generate config reference tables in parallel
@@ -66,6 +69,7 @@ const results = await batchtools.execute(tasks);
    - Create cross-referenced tutorials efficiently
 
 ## Groups/Permissions
+
 - read
 - ["edit",{"fileRegex":"\\.md$","description":"Markdown files only"}]
 - batchtools

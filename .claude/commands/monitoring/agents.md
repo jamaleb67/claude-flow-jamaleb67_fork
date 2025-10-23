@@ -9,7 +9,9 @@
 
 ## Parameters
 ```json
-{"filter": "active"}
+{
+  "swarmId": "current"
+}
 ```
 
 ## Description
@@ -25,9 +27,9 @@ Filters:
 ## Example Usage
 
 **In Claude Code:**
-1. Use the tool: `mcp__claude-flow__agent_list`
-2. With parameters: `{"filter": "active"}`
-3. Claude Code then executes the coordinated plan using its native tools
+1. List all agents: Use tool `mcp__claude-flow__agent_list`
+2. Get specific agent metrics: Use tool `mcp__claude-flow__agent_metrics` with parameters `{"agentId": "coder-123"}`
+3. Monitor agent performance: Use tool `mcp__claude-flow__swarm_monitor` with parameters `{"interval": 2000}`
 
 ## Important Reminders
 - ✅ This tool provides coordination and structure
@@ -37,6 +39,6 @@ Filters:
 - ❌ The tool does NOT execute commands
 
 ## See Also
-- Main documentation: /claude.md
+- Main documentation: /CLAUDE.md
 - Other commands in this category
 - Workflow examples in /workflows/

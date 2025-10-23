@@ -17,7 +17,8 @@ Agents automatically specialize based on file extensions:
 Tool: mcp__claude-flow__agent_spawn
 Parameters: {
   "type": "coder",
-  "capabilities": ["react", "typescript", "testing"]
+  "capabilities": ["react", "typescript", "testing"],
+  "name": "React Specialist"
 }
 ```
 
@@ -32,7 +33,7 @@ The system trains through:
 ```
 # Check agent specializations
 Tool: mcp__claude-flow__agent_list
-Parameters: {"filter": "active"}
+Parameters: {"swarmId": "current"}
 
 Result shows expertise levels:
 {
@@ -51,3 +52,12 @@ Result shows expertise levels:
 
 ## Continuous Improvement
 Agents share learnings across sessions for cumulative expertise!
+
+## CLI Usage
+```bash
+# Train agent specialization via CLI
+npx claude-flow train agent --type coder --capabilities "react,typescript"
+
+# Check specializations
+npx claude-flow agent list --specializations
+```

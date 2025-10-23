@@ -8,49 +8,49 @@ export class CircularBuffer<T> {
   private writeIndex = 0;
   private size = 0;
   private totalItemsWritten = 0;
-  
+
   constructor(private capacity: number) {
     if (capacity <= 0) {
       throw new Error('Capacity must be greater than 0');
     }
     this.buffer = new Array(capacity);
   }
-  
+
   push(item: T): void {
     this.buffer[this.writeIndex] = item;
     this.writeIndex = (this.writeIndex + 1) % this.capacity;
     this.size = Math.min(this.size + 1, this.capacity);
     this.totalItemsWritten++;
   }
-  
+
   pushMany(items: T[]): void {
     for (const item of items) {
       this.push(item);
     }
   }
-  
+
   get(index: number): T | undefined {
     if (index < 0 || index >= this.size) {
       return undefined;
     }
-    
+
     // Calculate actual buffer index based on current state
-    const actualIndex = this.size < this.capacity
-      ? index
-      : (this.writeIndex + index) % this.capacity;
-    
+    const actualIndex =
+      this.size < this.capacity ? index : (this.writeIndex + index) % this.capacity;
+
     return this.buffer[actualIndex];
   }
-  
+
   getRecent(count: number): T[] {
     const result: T[] = [];
     const itemsToReturn = Math.min(count, this.size);
-    
+
     // Calculate starting position for most recent items
-    const start = this.size < this.capacity
-      ? Math.max(0, this.size - itemsToReturn)
-      : (this.writeIndex - itemsToReturn + this.capacity) % this.capacity;
-    
+    const start =
+      this.size < this.capacity
+        ? Math.max(0, this.size - itemsToReturn)
+        : (this.writeIndex - itemsToReturn + this.capacity) % this.capacity;
+
     for (let i = 0; i < itemsToReturn; i++) {
       const index = (start + i) % this.capacity;
       const item = this.buffer[index];
@@ -58,13 +58,13 @@ export class CircularBuffer<T> {
         result.push(item);
       }
     }
-    
+
     return result;
   }
-  
+
   getAll(): T[] {
     const result: T[] = [];
-    
+
     if (this.size < this.capacity) {
       // Buffer not full yet, return items in order
       for (let i = 0; i < this.size; i++) {
@@ -83,60 +83,60 @@ export class CircularBuffer<T> {
         }
       }
     }
-    
+
     return result;
   }
-  
+
   find(predicate: (item: T) => boolean): T | undefined {
     const all = this.getAll();
     return all.find(predicate);
   }
-  
+
   filter(predicate: (item: T) => boolean): T[] {
     const all = this.getAll();
     return all.filter(predicate);
   }
-  
+
   clear(): void {
     this.buffer = new Array(this.capacity);
     this.writeIndex = 0;
     this.size = 0;
   }
-  
+
   isEmpty(): boolean {
     return this.size === 0;
   }
-  
+
   isFull(): boolean {
     return this.size === this.capacity;
   }
-  
+
   getSize(): number {
     return this.size;
   }
-  
+
   getCapacity(): number {
     return this.capacity;
   }
-  
+
   getTotalItemsWritten(): number {
     return this.totalItemsWritten;
   }
-  
+
   getOverwrittenCount(): number {
     return Math.max(0, this.totalItemsWritten - this.capacity);
   }
-  
+
   /**
    * Get estimated memory usage of the buffer
    */
   getMemoryUsage(): number {
     if (this.size === 0) return 0;
-    
+
     // Sample first item to estimate size
     const sample = this.buffer[0];
     if (sample === undefined) return 0;
-    
+
     try {
       // Rough estimation based on JSON serialization
       const sampleSize = JSON.stringify(sample).length * 2; // 2 bytes per character
@@ -146,7 +146,7 @@ export class CircularBuffer<T> {
       return this.size * 1024; // 1KB per item default
     }
   }
-  
+
   /**
    * Create a snapshot of the current buffer state
    */
@@ -164,10 +164,10 @@ export class CircularBuffer<T> {
       size: this.size,
       totalItemsWritten: this.totalItemsWritten,
       overwrittenCount: this.getOverwrittenCount(),
-      memoryUsage: this.getMemoryUsage()
+      memoryUsage: this.getMemoryUsage(),
     };
   }
-  
+
   /**
    * Resize the buffer (creates a new buffer with the new capacity)
    */
@@ -175,13 +175,13 @@ export class CircularBuffer<T> {
     if (newCapacity <= 0) {
       throw new Error('New capacity must be greater than 0');
     }
-    
+
     const items = this.getAll();
     this.capacity = newCapacity;
     this.buffer = new Array(newCapacity);
     this.writeIndex = 0;
     this.size = 0;
-    
+
     // Re-add items (newest items will be kept if newCapacity < items.length)
     const itemsToKeep = items.slice(-newCapacity);
     this.pushMany(itemsToKeep);

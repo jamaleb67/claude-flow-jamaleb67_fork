@@ -9,7 +9,7 @@ export { ResourceManager } from './resources.js';
 export { MessageRouter } from './messaging.js';
 
 // Advanced scheduling
-export { 
+export {
   AdvancedTaskScheduler,
   type SchedulingStrategy,
   type SchedulingContext,
@@ -27,11 +27,7 @@ export {
 } from './work-stealing.js';
 
 // Dependency management
-export {
-  DependencyGraph,
-  type DependencyNode,
-  type DependencyPath,
-} from './dependency-graph.js';
+export { DependencyGraph, type DependencyNode, type DependencyPath } from './dependency-graph.js';
 
 // Circuit breakers
 export {

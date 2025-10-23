@@ -252,8 +252,8 @@ class BenchmarkConfig:
     mode: CoordinationMode = CoordinationMode.CENTRALIZED
     max_agents: int = 5
     max_tasks: int = 100
-    timeout: int = 3600  # seconds
-    task_timeout: int = 300  # seconds
+    timeout: int = 21600  # 6 hours in seconds (for long benchmarks)
+    task_timeout: int = 7200  # 2 hours per task in seconds
     max_retries: int = 3
     parallel: bool = False
     background: bool = False
@@ -267,6 +267,7 @@ class BenchmarkConfig:
     output_formats: List[str] = field(default_factory=lambda: ["json"])
     output_directory: str = "./reports"
     verbose: bool = False
+    parameters: Dict[str, Any] = field(default_factory=dict)  # Additional parameters
 
 
 @dataclass

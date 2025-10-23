@@ -1,6 +1,6 @@
 /**
  * Prompt Defaults System for Non-Interactive Mode
- * 
+ *
  * This module provides a system for supplying default values
  * to prompts when running in non-interactive mode.
  */
@@ -73,20 +73,20 @@ export class PromptDefaultsManager {
    */
   private loadEnvironmentDefaults(): void {
     const env = process.env;
-    
+
     // Common defaults from environment
     if (env.CLAUDE_AUTO_APPROVE === '1' || env.CLAUDE_AUTO_APPROVE === 'true') {
       this.environmentDefaults.set('confirm:*', true);
     }
-    
+
     if (env.CLAUDE_DEFAULT_MODEL) {
       this.environmentDefaults.set('select:model', env.CLAUDE_DEFAULT_MODEL);
     }
-    
+
     if (env.CLAUDE_DEFAULT_REGION) {
       this.environmentDefaults.set('select:region', env.CLAUDE_DEFAULT_REGION);
     }
-    
+
     // Parse CLAUDE_PROMPT_DEFAULTS if set
     if (env.CLAUDE_PROMPT_DEFAULTS) {
       try {
@@ -109,7 +109,7 @@ export class PromptDefaultsManager {
     if (this.environmentDefaults.has(envKey)) {
       return this.environmentDefaults.get(envKey);
     }
-    
+
     // Check wildcard environment defaults
     const wildcardKey = `${promptType || 'text'}:*`;
     if (this.environmentDefaults.has(wildcardKey)) {
@@ -118,8 +118,8 @@ export class PromptDefaultsManager {
 
     // Check command-specific defaults
     if (command && this.config.command?.[command]) {
-      const commandDefault = this.config.command[command].find(d => 
-        d.id === promptId || (d.pattern && this.matchPattern(promptId, d.pattern))
+      const commandDefault = this.config.command[command].find(
+        (d) => d.id === promptId || (d.pattern && this.matchPattern(promptId, d.pattern)),
       );
       if (commandDefault) {
         return commandDefault.defaultValue;
@@ -129,8 +129,8 @@ export class PromptDefaultsManager {
     // Check environment-specific defaults
     const currentEnv = process.env.NODE_ENV || 'development';
     if (this.config.environment?.[currentEnv]) {
-      const envDefault = this.config.environment[currentEnv].find(d =>
-        d.id === promptId || (d.pattern && this.matchPattern(promptId, d.pattern))
+      const envDefault = this.config.environment[currentEnv].find(
+        (d) => d.id === promptId || (d.pattern && this.matchPattern(promptId, d.pattern)),
       );
       if (envDefault) {
         return envDefault.defaultValue;
@@ -139,8 +139,8 @@ export class PromptDefaultsManager {
 
     // Check global defaults
     if (this.config.global) {
-      const globalDefault = this.config.global.find(d =>
-        d.id === promptId || (d.pattern && this.matchPattern(promptId, d.pattern))
+      const globalDefault = this.config.global.find(
+        (d) => d.id === promptId || (d.pattern && this.matchPattern(promptId, d.pattern)),
       );
       if (globalDefault) {
         return globalDefault.defaultValue;
@@ -154,19 +154,23 @@ export class PromptDefaultsManager {
   /**
    * Set a default value
    */
-  setDefault(promptId: string, defaultValue: any, options: {
-    command?: string;
-    type?: string;
-    pattern?: string | RegExp;
-    description?: string;
-    scope?: 'global' | 'command' | 'environment';
-  } = {}): void {
+  setDefault(
+    promptId: string,
+    defaultValue: any,
+    options: {
+      command?: string;
+      type?: string;
+      pattern?: string | RegExp;
+      description?: string;
+      scope?: 'global' | 'command' | 'environment';
+    } = {},
+  ): void {
     const defaultEntry: PromptDefault = {
       id: promptId,
       type: (options.type as any) || 'text',
       defaultValue,
       description: options.description,
-      pattern: options.pattern
+      pattern: options.pattern,
     };
 
     const scope = options.scope || 'global';
@@ -208,21 +212,21 @@ export class PromptDefaultsManager {
       'confirm:overwrite': true,
       'confirm:delete': false, // Safety: don't auto-confirm deletes
       'confirm:deploy': false, // Safety: don't auto-confirm deploys
-      
+
       // Selection prompts
       'select:model': 'claude-3-opus-20240229',
       'select:region': 'us-east-1',
       'select:topology': 'hierarchical',
       'select:strategy': 'auto',
-      
+
       // Text prompts
       'text:projectName': 'claude-flow-project',
       'text:description': 'Claude Flow AI Project',
-      
+
       // Number prompts
       'number:maxAgents': 4,
       'number:timeout': 30000,
-      'number:port': 3000
+      'number:port': 3000,
     };
   }
 
@@ -279,7 +283,7 @@ export class PromptDefaultsManager {
     } else if (scope === 'global' || !scope) {
       this.config.global = [];
     }
-    
+
     this.saveConfig();
   }
 }
@@ -302,7 +306,7 @@ export function getPromptDefault(promptId: string, command?: string, promptType?
 // Apply non-interactive defaults based on environment
 export function applyNonInteractiveDefaults(flags: any): void {
   const manager = getPromptDefaultsManager();
-  const isNonInteractive = flags.nonInteractive || flags['non-interactive'] || 
-                          flags.ci || !process.stdout.isTTY;
+  const isNonInteractive =
+    flags.nonInteractive || flags['non-interactive'] || flags.ci || !process.stdout.isTTY;
   manager.applyNonInteractiveDefaults(isNonInteractive);
 }

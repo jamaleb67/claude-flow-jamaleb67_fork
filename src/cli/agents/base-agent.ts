@@ -13,7 +13,7 @@ import type {
   AgentMetrics,
   AgentError,
   TaskDefinition,
-  TaskId
+  TaskId,
 } from '../../swarm/types.js';
 import type { ILogger } from '../../core/logger.js';
 import type { IEventBus } from '../../core/event-bus.js';
@@ -61,7 +61,7 @@ export abstract class BaseAgent extends EventEmitter {
   protected logger: ILogger;
   protected eventBus: IEventBus;
   protected memory: DistributedMemorySystem;
-  
+
   private heartbeatInterval?: NodeJS.Timeout;
   private metricsInterval?: NodeJS.Timeout;
   private isShuttingDown = false;
@@ -73,7 +73,7 @@ export abstract class BaseAgent extends EventEmitter {
     environment: AgentEnvironment,
     logger: ILogger,
     eventBus: IEventBus,
-    memory: DistributedMemorySystem
+    memory: DistributedMemorySystem,
   ) {
     super();
     this.id = id;
@@ -81,7 +81,7 @@ export abstract class BaseAgent extends EventEmitter {
     this.logger = logger;
     this.eventBus = eventBus;
     this.memory = memory;
-    
+
     // Merge with defaults
     this.capabilities = { ...this.getDefaultCapabilities(), ...(config as any).capabilities };
     this.config = { ...this.getDefaultConfig(), ...config };
@@ -100,7 +100,7 @@ export abstract class BaseAgent extends EventEmitter {
   async initialize(): Promise<void> {
     this.logger.info('Initializing agent', {
       agentId: this.id,
-      type: this.type
+      type: this.type,
     });
 
     this.status = 'initializing';
@@ -108,7 +108,7 @@ export abstract class BaseAgent extends EventEmitter {
 
     // Start heartbeat
     this.startHeartbeat();
-    
+
     // Start metrics collection
     this.startMetricsCollection();
 
@@ -121,14 +121,14 @@ export abstract class BaseAgent extends EventEmitter {
 
     this.logger.info('Agent initialized successfully', {
       agentId: this.id,
-      type: this.type
+      type: this.type,
     });
   }
 
   async shutdown(): Promise<void> {
     this.logger.info('Shutting down agent', {
       agentId: this.id,
-      type: this.type
+      type: this.type,
     });
 
     this.isShuttingDown = true;
@@ -155,7 +155,7 @@ export abstract class BaseAgent extends EventEmitter {
 
     this.logger.info('Agent shutdown complete', {
       agentId: this.id,
-      type: this.type
+      type: this.type,
     });
   }
 
@@ -171,7 +171,7 @@ export abstract class BaseAgent extends EventEmitter {
     this.logger.info('Task assigned to agent', {
       agentId: this.id,
       taskId: task.id,
-      taskType: task.type
+      taskType: task.type,
     });
 
     this.currentTasks.push(task.id);
@@ -188,11 +188,11 @@ export abstract class BaseAgent extends EventEmitter {
 
       // Update metrics
       this.updateTaskMetrics(task.id, executionTime, true);
-      
+
       // Remove from current tasks
-      this.currentTasks = this.currentTasks.filter(id => id !== task.id);
+      this.currentTasks = this.currentTasks.filter((id) => id !== task.id);
       this.taskHistory.push(task.id);
-      
+
       // Update status
       this.status = this.currentTasks.length > 0 ? 'busy' : 'idle';
       this.workload = this.currentTasks.length / this.capabilities.maxConcurrentTasks;
@@ -201,23 +201,22 @@ export abstract class BaseAgent extends EventEmitter {
         agentId: this.id,
         taskId: task.id,
         result,
-        executionTime
+        executionTime,
       });
 
       this.logger.info('Task completed successfully', {
         agentId: this.id,
         taskId: task.id,
-        executionTime
+        executionTime,
       });
 
       return result;
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      
+
       // Update metrics
       this.updateTaskMetrics(task.id, 0, false);
-      
+
       // Add to error history
       this.addError({
         timestamp: new Date(),
@@ -225,24 +224,24 @@ export abstract class BaseAgent extends EventEmitter {
         message: errorMessage,
         context: { taskId: task.id, taskType: task.type },
         severity: 'high',
-        resolved: false
+        resolved: false,
       });
 
       // Remove from current tasks
-      this.currentTasks = this.currentTasks.filter(id => id !== task.id);
+      this.currentTasks = this.currentTasks.filter((id) => id !== task.id);
       this.status = this.currentTasks.length > 0 ? 'busy' : 'idle';
       this.workload = this.currentTasks.length / this.capabilities.maxConcurrentTasks;
 
       this.emit('agent:task-failed', {
         agentId: this.id,
         taskId: task.id,
-        error: errorMessage
+        error: errorMessage,
       });
 
       this.logger.error('Task execution failed', {
         agentId: this.id,
         taskId: task.id,
-        error: errorMessage
+        error: errorMessage,
       });
 
       throw error;
@@ -256,7 +255,7 @@ export abstract class BaseAgent extends EventEmitter {
         id: this.id,
         swarmId: 'default',
         type: this.type,
-        instance: 1
+        instance: 1,
       },
       name: `${this.type}-${this.id.slice(-8)}`,
       type: this.type,
@@ -273,7 +272,7 @@ export abstract class BaseAgent extends EventEmitter {
       errorHistory: this.errorHistory,
       collaborators: this.collaborators,
       childAgents: this.childAgents,
-      endpoints: this.endpoints
+      endpoints: this.endpoints,
     };
   }
 
@@ -289,7 +288,7 @@ export abstract class BaseAgent extends EventEmitter {
       successRate: this.metrics.successRate,
       averageExecutionTime: this.metrics.averageExecutionTime,
       lastActivity: this.metrics.lastActivity,
-      uptime: Date.now() - this.metrics.totalUptime
+      uptime: Date.now() - this.metrics.totalUptime,
     };
   }
 
@@ -316,14 +315,14 @@ export abstract class BaseAgent extends EventEmitter {
   }
 
   addCollaborator(agentId: AgentId): void {
-    if (!this.collaborators.find(c => c.id === agentId.id)) {
+    if (!this.collaborators.find((c) => c.id === agentId.id)) {
       this.collaborators.push(agentId);
       this.emit('agent:collaborator-added', { agentId: this.id, collaborator: agentId });
     }
   }
 
   removeCollaborator(agentId: string): void {
-    this.collaborators = this.collaborators.filter(c => c.id !== agentId);
+    this.collaborators = this.collaborators.filter((c) => c.id !== agentId);
     this.emit('agent:collaborator-removed', { agentId: this.id, collaborator: agentId });
   }
 
@@ -338,7 +337,7 @@ export abstract class BaseAgent extends EventEmitter {
       apiEndpoints: {},
       credentials: {},
       availableTools: [],
-      toolConfigs: {}
+      toolConfigs: {},
     };
   }
 
@@ -358,17 +357,17 @@ export abstract class BaseAgent extends EventEmitter {
       userSatisfaction: 0.8,
       totalUptime: Date.now(),
       lastActivity: new Date(),
-      responseTime: 0
+      responseTime: 0,
     };
   }
 
   protected setupEventHandlers(): void {
     this.eventBus.on('system:shutdown', () => {
       if (!this.isShuttingDown) {
-        this.shutdown().catch(error => {
+        this.shutdown().catch((error) => {
           this.logger.error('Error during agent shutdown', {
             agentId: this.id,
-            error: error instanceof Error ? error.message : String(error)
+            error: error instanceof Error ? error.message : String(error),
           });
         });
       }
@@ -396,7 +395,7 @@ export abstract class BaseAgent extends EventEmitter {
     this.eventBus.emit('agent:heartbeat', {
       agentId: this.id,
       timestamp: this.lastHeartbeat,
-      metrics: this.metrics
+      metrics: this.metrics,
     });
   }
 
@@ -404,7 +403,7 @@ export abstract class BaseAgent extends EventEmitter {
     // Update response time based on recent tasks
     const recentTasksTime = this.getRecentTasksAverageTime();
     this.metrics.responseTime = recentTasksTime;
-    
+
     // Update activity timestamp
     if (this.currentTasks.length > 0) {
       this.metrics.lastActivity = new Date();
@@ -420,16 +419,17 @@ export abstract class BaseAgent extends EventEmitter {
     await this.memory.store(`agent:${this.id}:metrics`, this.metrics, {
       type: 'agent-metrics',
       tags: ['metrics', this.type, this.id],
-      partition: 'metrics'
+      partition: 'metrics',
     });
   }
 
   protected updateTaskMetrics(taskId: TaskId, executionTime: number, success: boolean): void {
     if (success) {
       this.metrics.tasksCompleted++;
-      
+
       // Update average execution time
-      const totalTime = this.metrics.averageExecutionTime * (this.metrics.tasksCompleted - 1) + executionTime;
+      const totalTime =
+        this.metrics.averageExecutionTime * (this.metrics.tasksCompleted - 1) + executionTime;
       this.metrics.averageExecutionTime = totalTime / this.metrics.tasksCompleted;
     } else {
       this.metrics.tasksFailed++;
@@ -440,7 +440,7 @@ export abstract class BaseAgent extends EventEmitter {
 
   protected addError(error: AgentError): void {
     this.errorHistory.push(error);
-    
+
     // Keep only last 50 errors
     if (this.errorHistory.length > 50) {
       this.errorHistory.shift();
@@ -448,16 +448,17 @@ export abstract class BaseAgent extends EventEmitter {
 
     this.eventBus.emit('agent:error', {
       agentId: this.id,
-      error
+      error,
     });
 
     // Reduce health based on error severity
-    const healthImpact = {
-      low: 0.01,
-      medium: 0.05,
-      high: 0.1,
-      critical: 0.2
-    }[error.severity] || 0.05;
+    const healthImpact =
+      {
+        low: 0.01,
+        medium: 0.05,
+        high: 0.1,
+        critical: 0.2,
+      }[error.severity] || 0.05;
 
     this.updateHealth(this.health - healthImpact);
   }
@@ -487,12 +488,12 @@ export abstract class BaseAgent extends EventEmitter {
       await this.memory.store(`agent:${this.id}:state`, this.getAgentInfo(), {
         type: 'agent-state',
         tags: ['state', this.type, this.id],
-        partition: 'state'
+        partition: 'state',
       });
     } catch (error) {
       this.logger.error('Failed to save agent state', {
         agentId: this.id,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }

@@ -1,46 +1,89 @@
 {
   "default": [
     {
-      "key": "verification-test",
-      "value": "Thu Jul 17 03:59:02 UTC 2025",
+      "key": "project-name",
+      "value": "claude-flow-demo",
       "namespace": "default",
-      "timestamp": 1752724743925
+      "timestamp": 1758288473182
     },
     {
-      "key": "alpha58-test",
-      "value": "MCP database persistence confirmed working 1752724792",
+      "key": "version",
+      "value": "2.0.0-alpha",
       "namespace": "default",
-      "timestamp": 1752724794280
+      "timestamp": 1758288474782
+    },
+    {
+      "key": "test-results",
+      "value": "passing",
+      "namespace": "default",
+      "timestamp": 1758288476266
     },
     {
       "key": "test-key",
-      "value": "test-value",
+      "value": "{\"value\": \"test data\"}",
       "namespace": "default",
-      "timestamp": 1752725674570
+      "timestamp": 1758909856523
     },
     {
-      "key": "mcp-test-key",
-      "value": "MCP persistence working",
+      "key": "test_key",
+      "value": "sk-ant-a...[REDACTED]",
       "namespace": "default",
-      "timestamp": 1752726326756
+      "timestamp": 1760200201854,
+      "redacted": true
     },
     {
-      "key": "project-analysis",
-      "value": "Claude-Flow v2.0.0-alpha.60 successfully initialized with full SPARC development environment",
+      "key": "test_basic",
+      "value": "Testing backward compatibility",
       "namespace": "default",
-      "timestamp": 1752771305382
+      "timestamp": 1760284936974,
+      "redacted": false
     },
     {
-      "key": "test-sqlite",
-      "value": "Testing with better-sqlite3 installed!",
+      "key": "docker_test",
+      "value": "validation test",
       "namespace": "default",
-      "timestamp": 1752772624133
+      "timestamp": 1760381491944,
+      "redacted": false
     },
     {
-      "key": "claude-flow/status",
-      "value": "Web UI running, memory system operational, awaiting swarm fixes",
+      "key": "secure_key",
+      "value": "api=sk-ant-test",
       "namespace": "default",
-      "timestamp": 1752772957881
+      "timestamp": 1760381495550,
+      "redacted": false
+    }
+  ],
+  "swarm": [
+    {
+      "key": "phase8-complete",
+      "value": "{\n  \"phase\": 8,\n  \"status\": \"complete\",\n  \"timestamp\": \"2025-09-30T14:30:00Z\",\n  \"summary\": {\n    \"code_quality\": \"5/5\",\n    \"type_safety\": \"100%\",\n    \"performance\": \"Optimized\",\n    \"build_status\": \"Success\",\n    \"cli_validation\": \"Pass\",\n    \"lines_added\": 1328,\n    \"files_created\": 5,\n    \"tests_created\": 16,\n    \"eslint_errors\": 0,\n    \"typescript_errors\": 0\n  },\n  \"optimizations\": {\n    \"sdk_retry\": \"Custom logic eliminated\",\n    \"streaming\": \"20-30% faster\",\n    \"type_checking\": \"5-10% performance gain\",\n    \"memory_usage\": \"30% reduction\"\n  },\n  \"deliverables\": {\n    \"sdk_config\": \"src/sdk/sdk-config.ts\",\n    \"compatibility_layer\": \"src/sdk/compatibility-layer.ts\",\n    \"claude_client_v25\": \"src/api/claude-client-v2.5.ts\",\n    \"executor_sdk\": \"src/swarm/executor-sdk.ts\",\n    \"tests\": \"src/__tests__/sdk-integration.test.ts\",\n    \"report\": \".research/phase8-optimization-report.md\"\n  },\n  \"production_ready\": true\n}",
+      "namespace": "swarm",
+      "timestamp": 1759242599549
+    }
+  ],
+  "release_check": [
+    {
+      "key": "validation_test",
+      "value": "Test data for final validation",
+      "namespace": "release_check",
+      "timestamp": 1760201341998,
+      "redacted": false
+    },
+    {
+      "key": "secure_test",
+      "value": "key=sk-ant-a...[REDACTED]",
+      "namespace": "release_check",
+      "timestamp": 1760201357297,
+      "redacted": true
+    }
+  ],
+  "security": [
+    {
+      "key": "test-key",
+      "value": "This is a test memory for authentication",
+      "namespace": "security",
+      "timestamp": 1760388004082,
+      "redacted": false
     }
   ]
 }

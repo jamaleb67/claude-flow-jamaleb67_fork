@@ -1,6 +1,7 @@
 """Main benchmark engine for orchestrating swarm tests."""
 
 import asyncio
+import logging
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from pathlib import Path
@@ -10,16 +11,38 @@ from ..strategies import create_strategy
 from ..output.json_writer import JSONWriter
 from ..output.sqlite_manager import SQLiteManager
 
+# Import real executor for actual Claude Flow integration
+from .claude_flow_real_executor import (
+    RealClaudeFlowExecutor, 
+    SwarmCommand, 
+    RealExecutionResult
+)
+
+logger = logging.getLogger(__name__)
+
 
 class BenchmarkEngine:
     """Main engine for running swarm benchmarks."""
     
-    def __init__(self, config: Optional[BenchmarkConfig] = None):
+    def __init__(self, config: Optional[BenchmarkConfig] = None, use_real_executor: bool = False):
         """Initialize the benchmark engine."""
         self.config = config or BenchmarkConfig()
         self.status = "READY"
         self.task_queue = []
         self.current_benchmark: Optional[Benchmark] = None
+        self.use_real_executor = use_real_executor
+        
+        # Initialize real executor if requested
+        if self.use_real_executor:
+            try:
+                self.real_executor = RealClaudeFlowExecutor()
+                logger.info("Real Claude Flow executor initialized")
+            except Exception as e:
+                logger.error(f"Failed to initialize real executor: {e}")
+                self.real_executor = None
+                self.use_real_executor = False
+        else:
+            self.real_executor = None
     
     def submit_task(self, task: Task) -> None:
         """Submit a task to the benchmark queue."""
@@ -142,3 +165,122 @@ class BenchmarkEngine:
             "created_at": result.created_at.isoformat(),
             "completed_at": result.completed_at.isoformat() if result.completed_at else None
         }
+    async def run_real_benchmark(self, 
+                                objective: str,
+                                strategy: str = "auto",
+                                mode: str = "centralized",
+                                max_agents: int = 5,
+                                timeout: int = 60) -> Dict[str, Any]:
+        """
+        Run a benchmark using real Claude Flow execution.
+        
+        Args:
+            objective: The benchmark objective
+            strategy: Swarm strategy
+            mode: Coordination mode
+            max_agents: Maximum number of agents
+            timeout: Timeout in minutes
+            
+        Returns:
+            Dictionary with benchmark results
+        """
+        if not self.use_real_executor or not self.real_executor:
+            raise RuntimeError("Real executor not available. Initialize with use_real_executor=True")
+        
+        logger.info(f"Running real benchmark: {objective}")
+        logger.info(f"Configuration: {strategy}/{mode}/{max_agents} agents, timeout={timeout}min")
+        
+        start_time = datetime.now()
+        
+        try:
+            # Create swarm command configuration
+            swarm_config = SwarmCommand(
+                objective=objective,
+                strategy=strategy,
+                mode=mode,
+                max_agents=max_agents,
+                timeout=timeout
+            )
+            
+            # Execute real command
+            result = await self.real_executor.execute_swarm_async(swarm_config)
+            end_time = datetime.now()
+            
+            # Convert to benchmark result format
+            benchmark_result = {
+                "benchmark_id": f"real-{objective[:20]}-{start_time.strftime('%Y%m%d-%H%M%S')}",
+                "status": "success" if result.success else "failed",
+                "objective": objective,
+                "strategy": strategy,
+                "mode": mode,
+                "max_agents": max_agents,
+                "execution_details": {
+                    "success": result.success,
+                    "exit_code": result.exit_code,
+                    "duration": result.duration,
+                    "command": " ".join(result.command)
+                },
+                "tokens": {
+                    "input": result.input_tokens,
+                    "output": result.output_tokens,
+                    "total": result.total_tokens
+                },
+                "agents": {
+                    "spawned": result.agents_spawned,
+                    "tasks_completed": result.tasks_completed
+                },
+                "tools": {
+                    "calls": len(result.tool_calls),
+                    "results": len(result.tool_results)
+                },
+                "performance": {
+                    "first_response_time": result.first_response_time,
+                    "completion_time": result.completion_time
+                },
+                "output_analysis": {
+                    "stdout_lines": len(result.stdout_lines),
+                    "stderr_lines": len(result.stderr_lines),
+                    "errors": len(result.errors),
+                    "warnings": len(result.warnings)
+                },
+                "errors": result.errors,
+                "warnings": result.warnings,
+                "started_at": start_time.isoformat(),
+                "completed_at": end_time.isoformat()
+            }
+            
+            # Save results
+            await self._save_real_benchmark_results(benchmark_result)
+            
+            logger.info(f"Real benchmark completed successfully: {benchmark_result['benchmark_id']}")
+            return benchmark_result
+            
+        except Exception as e:
+            logger.error(f"Real benchmark failed: {e}")
+            
+            error_result = {
+                "benchmark_id": f"real-error-{start_time.strftime('%Y%m%d-%H%M%S')}",
+                "status": "failed",
+                "objective": objective,
+                "strategy": strategy,
+                "mode": mode,
+                "max_agents": max_agents,
+                "error": str(e),
+                "started_at": start_time.isoformat(),
+                "completed_at": datetime.now().isoformat()
+            }
+            
+            return error_result
+    
+    async def _save_real_benchmark_results(self, result: Dict[str, Any]):
+        """Save real benchmark results."""
+        output_dir = Path(self.config.output_directory)
+        output_dir.mkdir(exist_ok=True)
+        
+        # Save as JSON
+        import json
+        json_file = output_dir / f"{result['benchmark_id']}.json"
+        with open(json_file, 'w') as f:
+            json.dump(result, f, indent=2)
+        
+        logger.info(f"Saved real benchmark results: {json_file}")

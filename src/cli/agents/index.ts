@@ -18,11 +18,7 @@ export { AgentRegistry } from '../../agents/agent-registry.js';
 
 // Types
 export type { AgentState } from './base-agent.js';
-export type {
-  CapabilityMatch,
-  TaskRequirements,
-  CapabilityRegistry
-} from './capabilities.js';
+export type { CapabilityMatch, TaskRequirements, CapabilityRegistry } from './capabilities.js';
 
 // Agent Factory
 import type { AgentType, AgentConfig, AgentEnvironment } from '../../swarm/types.js';
@@ -66,35 +62,56 @@ export class AgentFactory {
     type: AgentType,
     config: Partial<AgentConfig> = {},
     environment: Partial<AgentEnvironment> = {},
-    customId?: string
+    customId?: string,
   ): BaseAgent {
     const id = customId || this.generateAgentId(type);
-    
+
     this.logger.info('Creating agent', {
       id,
       type,
-      factory: 'AgentFactory'
+      factory: 'AgentFactory',
     });
 
     switch (type) {
       case 'researcher':
-        return createResearcherAgent(id, config, environment, this.logger, this.eventBus, this.memory);
-      
+        return createResearcherAgent(
+          id,
+          config,
+          environment,
+          this.logger,
+          this.eventBus,
+          this.memory,
+        );
+
       case 'coder':
         return createCoderAgent(id, config, environment, this.logger, this.eventBus, this.memory);
-      
+
       case 'analyst':
         return createAnalystAgent(id, config, environment, this.logger, this.eventBus, this.memory);
-      
+
       case 'architect':
-        return createArchitectAgent(id, config, environment, this.logger, this.eventBus, this.memory);
-      
+        return createArchitectAgent(
+          id,
+          config,
+          environment,
+          this.logger,
+          this.eventBus,
+          this.memory,
+        );
+
       case 'tester':
         return createTesterAgent(id, config, environment, this.logger, this.eventBus, this.memory);
-      
+
       case 'coordinator':
-        return createCoordinatorAgent(id, config, environment, this.logger, this.eventBus, this.memory);
-      
+        return createCoordinatorAgent(
+          id,
+          config,
+          environment,
+          this.logger,
+          this.eventBus,
+          this.memory,
+        );
+
       default:
         throw new Error(`Unknown agent type: ${type}`);
     }
@@ -103,29 +120,27 @@ export class AgentFactory {
   /**
    * Create multiple agents of different types
    */
-  createAgents(specs: Array<{
-    type: AgentType;
-    count?: number;
-    config?: Partial<AgentConfig>;
-    environment?: Partial<AgentEnvironment>;
-  }>): BaseAgent[] {
+  createAgents(
+    specs: Array<{
+      type: AgentType;
+      count?: number;
+      config?: Partial<AgentConfig>;
+      environment?: Partial<AgentEnvironment>;
+    }>,
+  ): BaseAgent[] {
     const agents: BaseAgent[] = [];
 
     for (const spec of specs) {
       const count = spec.count || 1;
       for (let i = 0; i < count; i++) {
-        const agent = this.createAgent(
-          spec.type,
-          spec.config,
-          spec.environment
-        );
+        const agent = this.createAgent(spec.type, spec.config, spec.environment);
         agents.push(agent);
       }
     }
 
     this.logger.info('Created multiple agents', {
       totalAgents: agents.length,
-      specs: specs.map(s => ({ type: s.type, count: s.count || 1 }))
+      specs: specs.map((s) => ({ type: s.type, count: s.count || 1 })),
     });
 
     return agents;
@@ -136,26 +151,26 @@ export class AgentFactory {
    */
   createBalancedSwarm(
     size: number = 5,
-    strategy: 'research' | 'development' | 'analysis' | 'balanced' = 'balanced'
+    strategy: 'research' | 'development' | 'analysis' | 'balanced' = 'balanced',
   ): BaseAgent[] {
     const compositions = {
       research: {
         researcher: 0.4,
         analyst: 0.3,
         coordinator: 0.2,
-        architect: 0.1
+        architect: 0.1,
       },
       development: {
         coder: 0.4,
         tester: 0.25,
         architect: 0.2,
-        coordinator: 0.15
+        coordinator: 0.15,
       },
       analysis: {
         analyst: 0.4,
         researcher: 0.3,
         coordinator: 0.2,
-        architect: 0.1
+        architect: 0.1,
       },
       balanced: {
         coder: 0.25,
@@ -163,8 +178,8 @@ export class AgentFactory {
         analyst: 0.2,
         tester: 0.15,
         architect: 0.1,
-        coordinator: 0.1
-      }
+        coordinator: 0.1,
+      },
     };
 
     const composition = compositions[strategy];
@@ -189,14 +204,19 @@ export class AgentFactory {
       }
     }
 
-    return this.createAgents(specs.map(spec => ({ type: spec.type, count: spec.count })));
+    return this.createAgents(specs.map((spec) => ({ type: spec.type, count: spec.count })));
   }
 
   /**
    * Get supported agent types
    */
   getSupportedTypes(): AgentType[] {
-    return ['researcher', 'coder', 'analyst', 'architect', 'tester', 'coordinator'];
+    return [
+      'researcher', 'coder', 'analyst', 'architect', 'tester', 'coordinator',
+      'reviewer', 'optimizer', 'documenter', 'monitor', 'specialist',
+      'requirements_analyst', 'design_architect', 'task_planner', 
+      'implementation_coder', 'quality_reviewer', 'steering_documenter'
+    ];
   }
 
   /**
@@ -214,7 +234,16 @@ export class AgentFactory {
       optimizer: 'Optimizes performance and efficiency across systems',
       documenter: 'Creates and maintains comprehensive documentation',
       monitor: 'Monitors system health and performance metrics',
-      specialist: 'Provides domain-specific expertise and specialized knowledge'
+      specialist: 'Provides domain-specific expertise and specialized knowledge',
+      requirements_analyst: 'Analyzes requirements and creates user stories with acceptance criteria',
+      design_architect: 'Creates technical designs and system architecture for features',
+      'system-architect': 'High-level system architecture and design patterns',
+      task_planner: 'Plans implementation tasks and orchestrates workflow execution', 
+      'task-planner': 'Plans implementation tasks and orchestrates workflow execution',
+      implementation_coder: 'Implements code based on designs with quality focus',
+      developer: 'General purpose software development and implementation',
+      quality_reviewer: 'Reviews code quality and ensures standards compliance',
+      steering_documenter: 'Maintains governance documentation and project steering'
     };
   }
 
@@ -235,7 +264,7 @@ export class AgentFactory {
 export function createAgentFactory(
   logger: ILogger,
   eventBus: IEventBus,
-  memory: DistributedMemorySystem
+  memory: DistributedMemorySystem,
 ): AgentFactory {
   return new AgentFactory({ logger, eventBus, memory });
 }
@@ -259,7 +288,7 @@ export class AgentLifecycle {
     this.agents.set(info.id.id, agent);
     this.logger.info('Agent registered for lifecycle management', {
       agentId: info.id.id,
-      type: info.type
+      type: info.type,
     });
   }
 
@@ -267,20 +296,20 @@ export class AgentLifecycle {
    * Initialize all registered agents
    */
   async initializeAll(): Promise<void> {
-    const initPromises = Array.from(this.agents.values()).map(agent => 
-      agent.initialize().catch(error => {
+    const initPromises = Array.from(this.agents.values()).map((agent) =>
+      agent.initialize().catch((error) => {
         const info = agent.getAgentInfo();
         this.logger.error('Agent initialization failed', {
           agentId: info.id.id,
-          error: error instanceof Error ? error.message : String(error)
+          error: error instanceof Error ? error.message : String(error),
         });
         throw error;
-      })
+      }),
     );
 
     await Promise.all(initPromises);
     this.logger.info('All agents initialized', {
-      count: this.agents.size
+      count: this.agents.size,
     });
   }
 
@@ -288,14 +317,14 @@ export class AgentLifecycle {
    * Shutdown all registered agents
    */
   async shutdownAll(): Promise<void> {
-    const shutdownPromises = Array.from(this.agents.values()).map(agent =>
-      agent.shutdown().catch(error => {
+    const shutdownPromises = Array.from(this.agents.values()).map((agent) =>
+      agent.shutdown().catch((error) => {
         const info = agent.getAgentInfo();
         this.logger.error('Agent shutdown failed', {
           agentId: info.id.id,
-          error: error instanceof Error ? error.message : String(error)
+          error: error instanceof Error ? error.message : String(error),
         });
-      })
+      }),
     );
 
     await Promise.all(shutdownPromises);
@@ -321,7 +350,7 @@ export class AgentLifecycle {
    * Get agents by type
    */
   getAgentsByType(type: AgentType): BaseAgent[] {
-    return Array.from(this.agents.values()).filter(agent => {
+    return Array.from(this.agents.values()).filter((agent) => {
       const info = agent.getAgentInfo();
       return info.type === type;
     });
@@ -342,23 +371,23 @@ export class AgentLifecycle {
       byType: {} as Record<AgentType, number>,
       byStatus: {} as Record<string, number>,
       healthy: 0,
-      active: 0
+      active: 0,
     };
 
     for (const agent of this.agents.values()) {
       const info = agent.getAgentInfo();
-      
+
       // Count by type
       stats.byType[info.type] = (stats.byType[info.type] || 0) + 1;
-      
+
       // Count by status
       stats.byStatus[info.status] = (stats.byStatus[info.status] || 0) + 1;
-      
+
       // Count healthy agents (health > 0.7)
       if (info.health > 0.7) {
         stats.healthy++;
       }
-      
+
       // Count active agents
       if (info.status === 'idle' || info.status === 'busy') {
         stats.active++;

@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Custom error types for Claude-Flow
  */
@@ -40,7 +39,7 @@ export class TerminalError extends ClaudeFlowError {
 
 export class TerminalSpawnError extends TerminalError {
   override readonly code = 'TERMINAL_SPAWN_ERROR';
-  
+
   constructor(message: string, details?: unknown) {
     super(message, details);
   }
@@ -48,7 +47,7 @@ export class TerminalSpawnError extends TerminalError {
 
 export class TerminalCommandError extends TerminalError {
   override readonly code = 'TERMINAL_COMMAND_ERROR';
-  
+
   constructor(message: string, details?: unknown) {
     super(message, details);
   }
@@ -66,7 +65,7 @@ export class MemoryError extends ClaudeFlowError {
 
 export class MemoryBackendError extends MemoryError {
   override readonly code = 'MEMORY_BACKEND_ERROR';
-  
+
   constructor(message: string, details?: unknown) {
     super(message, details);
   }
@@ -74,7 +73,7 @@ export class MemoryBackendError extends MemoryError {
 
 export class MemoryConflictError extends MemoryError {
   override readonly code = 'MEMORY_CONFLICT_ERROR';
-  
+
   constructor(message: string, details?: unknown) {
     super(message, details);
   }
@@ -92,7 +91,7 @@ export class CoordinationError extends ClaudeFlowError {
 
 export class DeadlockError extends CoordinationError {
   override readonly code = 'DEADLOCK_ERROR';
-  
+
   constructor(
     message: string,
     public readonly agents: string[],
@@ -104,7 +103,7 @@ export class DeadlockError extends CoordinationError {
 
 export class ResourceLockError extends CoordinationError {
   override readonly code = 'RESOURCE_LOCK_ERROR';
-  
+
   constructor(message: string, details?: unknown) {
     super(message, details);
   }
@@ -122,7 +121,7 @@ export class MCPError extends ClaudeFlowError {
 
 export class MCPTransportError extends MCPError {
   override readonly code = 'MCP_TRANSPORT_ERROR';
-  
+
   constructor(message: string, details?: unknown) {
     super(message, details);
   }
@@ -130,7 +129,7 @@ export class MCPTransportError extends MCPError {
 
 export class MCPMethodNotFoundError extends MCPError {
   override readonly code = 'MCP_METHOD_NOT_FOUND';
-  
+
   constructor(method: string) {
     super(`Method not found: ${method}`, { method });
   }
@@ -148,7 +147,7 @@ export class ConfigError extends ClaudeFlowError {
 
 export class ValidationError extends ConfigError {
   override readonly code = 'VALIDATION_ERROR';
-  
+
   constructor(message: string, details?: unknown) {
     super(message, details);
   }
@@ -166,7 +165,7 @@ export class TaskError extends ClaudeFlowError {
 
 export class TaskTimeoutError extends TaskError {
   override readonly code = 'TASK_TIMEOUT_ERROR';
-  
+
   constructor(taskId: string, timeout: number) {
     super(`Task ${taskId} timed out after ${timeout}ms`, { taskId, timeout });
   }
@@ -174,7 +173,7 @@ export class TaskTimeoutError extends TaskError {
 
 export class TaskDependencyError extends TaskError {
   override readonly code = 'TASK_DEPENDENCY_ERROR';
-  
+
   constructor(taskId: string, dependencies: string[]) {
     super(`Task ${taskId} has unmet dependencies`, { taskId, dependencies });
   }
@@ -192,19 +191,22 @@ export class SystemError extends ClaudeFlowError {
 
 export class InitializationError extends SystemError {
   override readonly code = 'INITIALIZATION_ERROR';
-  
+
   constructor(componentOrMessage: string, details?: unknown) {
     // If the message already contains the word "initialize", use it as-is
-    const message = componentOrMessage.includes('initialize') 
-      ? componentOrMessage 
+    const message = componentOrMessage.includes('initialize')
+      ? componentOrMessage
       : `Failed to initialize ${componentOrMessage}`;
-    super(message, details ? { component: componentOrMessage, ...details } : { component: componentOrMessage });
+    super(
+      message,
+      details ? { component: componentOrMessage, ...details } : { component: componentOrMessage },
+    );
   }
 }
 
 export class ShutdownError extends SystemError {
   override readonly code = 'SHUTDOWN_ERROR';
-  
+
   constructor(message: string, details?: unknown) {
     super(message, details);
   }

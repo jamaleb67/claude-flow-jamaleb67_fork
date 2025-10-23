@@ -13,6 +13,12 @@ export default {
     '<rootDir>/src/**/*.spec.ts',
     '<rootDir>/src/**/*.spec.js'
   ],
+  testPathIgnorePatterns: [
+    '<rootDir>/node_modules/',
+    '<rootDir>/dist/',
+    '<rootDir>/bin/',
+    '<rootDir>/tests/.*\\.broken$'
+  ],
   transform: {
     '^.+\\.ts$': ['ts-jest', {
       useESM: true,
@@ -40,7 +46,7 @@ export default {
     '<rootDir>/node_modules/'
   ],
   transformIgnorePatterns: [
-    'node_modules/(?!(chalk|ora|inquirer|nanoid|fs-extra|ansi-styles|ruv-swarm)/)'
+    'node_modules/(?!(chalk|ora|inquirer|nanoid|fs-extra|ansi-styles|ruv-swarm|@modelcontextprotocol)/)'
   ],
   resolver: undefined,
   collectCoverageFrom: [
@@ -64,10 +70,6 @@ export default {
   // Clear mocks between tests
   clearMocks: true,
   restoreMocks: true,
-  // Enhanced globals
-  globals: {
-    'ts-jest': {
-      useESM: true
-    }
-  }
+  // Remove deprecated globals configuration
+  // ts-jest configuration moved to transform options above
 };

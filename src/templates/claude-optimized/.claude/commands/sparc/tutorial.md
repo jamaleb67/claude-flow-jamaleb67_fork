@@ -29,15 +29,15 @@ const tutorialTasks = [
   { tool: 'Grep', params: { pattern: 'sparc (run|tdd|spec)', include: '*.md' } },
   { tool: 'Glob', params: { pattern: 'examples/**/sparc-*.md' } },
   { tool: 'Glob', params: { pattern: '.claude/commands/sparc/*.md' } },
-  
+
   // Concurrent reading of existing documentation
   { tool: 'Read', params: { file_path: 'README.md' } },
   { tool: 'Read', params: { file_path: 'docs/sparc.md' } },
   { tool: 'Read', params: { file_path: 'CLAUDE.md' } },
-  
+
   // Parallel analysis of mode configurations
   { tool: 'Read', params: { file_path: '.roomodes' } },
-  { tool: 'Grep', params: { pattern: 'mode:.*description:', include: '*.md' } }
+  { tool: 'Grep', params: { pattern: 'mode:.*description:', include: '*.md' } },
 ];
 
 // Execute all tutorial research in parallel
@@ -47,18 +47,21 @@ const results = await batchtools.execute(tutorialTasks);
 ### Educational Content Patterns
 
 1. **Interactive Tutorials**:
+
    - Generate multiple tutorial paths simultaneously
    - Create exercises for different skill levels in parallel
    - Build interactive examples with concurrent file operations
    - Produce quiz questions and answers in batch
 
 2. **Best Practices Guides**:
+
    - Analyze successful implementations across the codebase
    - Extract patterns and anti-patterns concurrently
    - Generate do's and don'ts lists in parallel
    - Create style guides with batch example collection
 
 3. **Mode-Specific Tutorials**:
+
    - Create tutorials for each SPARC mode simultaneously
    - Build mode transition guides in parallel
    - Generate workflow examples for different scenarios
@@ -80,36 +83,36 @@ const advancedTutorial = [
     tool: 'MultiEdit',
     params: {
       file_path: 'tutorials/sparc-basics.md',
-      edits: generateBasicsTutorial()
-    }
+      edits: generateBasicsTutorial(),
+    },
   },
-  
+
   // Create interactive examples
   {
     tool: 'Write',
     params: {
       file_path: 'tutorials/examples/auth-sparc.js',
-      content: generateInteractiveExample('auth')
-    }
+      content: generateInteractiveExample('auth'),
+    },
   },
-  
+
   // Build exercise files
   {
     tool: 'Write',
     params: {
       file_path: 'tutorials/exercises/tdd-practice.md',
-      content: generateTDDExercises()
-    }
+      content: generateTDDExercises(),
+    },
   },
-  
+
   // Create video script outlines
   {
     tool: 'Write',
     params: {
       file_path: 'tutorials/video-scripts/sparc-intro.md',
-      content: generateVideoScript('introduction')
-    }
-  }
+      content: generateVideoScript('introduction'),
+    },
+  },
 ];
 
 // Execute all tutorial generation in parallel
@@ -119,12 +122,14 @@ await batchtools.execute(advancedTutorial);
 ### Learning Path Generation
 
 1. **Beginner Path** (Parallel Generation):
+
    - Introduction to SPARC concepts
    - Basic mode usage tutorials
    - Simple project walkthroughs
    - Common pitfalls and solutions
 
 2. **Intermediate Path** (Concurrent Creation):
+
    - Mode combination strategies
    - Complex workflow tutorials
    - Performance optimization guides
@@ -137,6 +142,7 @@ await batchtools.execute(advancedTutorial);
    - Production deployment guides
 
 ## Groups/Permissions
+
 - read
 - write
 - batchtools

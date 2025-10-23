@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
  * Hive Mind CLI Commands Index
- * 
+ *
  * Main entry point for all Hive Mind CLI commands
  */
 
-import { Command } from 'commander';
+import { Command } from '../commander-fix.js';
 import { initCommand } from './init.js';
 import { spawnCommand } from './spawn.js';
 import { statusCommand } from './status.js';
@@ -38,5 +38,5 @@ export {
   stopCommand,
   pauseCommand,
   resumeCommand,
-  psCommand
+  psCommand,
 };

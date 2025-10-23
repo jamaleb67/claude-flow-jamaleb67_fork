@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Enterprise Configuration Management for Claude-Flow
  * Features: Security masking, change tracking, multi-format support, credential management
@@ -53,28 +52,20 @@ interface ValidationRule {
  * Security classifications for configuration paths
  */
 const SECURITY_CLASSIFICATIONS: Record<string, SecurityClassification> = {
-  'credentials': { level: 'secret', encrypted: true },
+  credentials: { level: 'secret', encrypted: true },
   'credentials.apiKey': { level: 'secret', maskPattern: '****...****', encrypted: true },
   'credentials.token': { level: 'secret', maskPattern: '****...****', encrypted: true },
   'credentials.password': { level: 'secret', maskPattern: '********', encrypted: true },
   'mcp.apiKey': { level: 'confidential', maskPattern: '****...****' },
   'logging.destination': { level: 'internal' },
-  'orchestrator': { level: 'internal' },
-  'terminal': { level: 'public' },
+  orchestrator: { level: 'internal' },
+  terminal: { level: 'public' },
 };
 
 /**
  * Sensitive configuration paths that should be masked in output
  */
-const SENSITIVE_PATHS = [
-  'credentials',
-  'apiKey',
-  'token',
-  'password',
-  'secret',
-  'key',
-  'auth',
-];
+const SENSITIVE_PATHS = ['credentials', 'apiKey', 'token', 'password', 'secret', 'key', 'auth'];
 
 /**
  * Format parsers for different configuration file types
@@ -83,7 +74,7 @@ const FORMAT_PARSERS: Record<string, FormatParser> = {
   json: {
     parse: JSON.parse,
     stringify: (obj) => JSON.stringify(obj, null, 2),
-    extension: '.json'
+    extension: '.json',
   },
   yaml: {
     parse: (content) => {
@@ -92,19 +83,19 @@ const FORMAT_PARSERS: Record<string, FormatParser> = {
       const result: any = {};
       let current = result;
       const stack: any[] = [result];
-      
+
       for (const line of lines) {
         const trimmed = line.trim();
         if (!trimmed || trimmed.startsWith('#')) continue;
-        
+
         const indent = line.length - line.trimStart().length;
         const colonIndex = trimmed.indexOf(':');
-        
+
         if (colonIndex === -1) continue;
-        
+
         const key = trimmed.substring(0, colonIndex).trim();
         const value = trimmed.substring(colonIndex + 1).trim();
-        
+
         // Simple value parsing
         let parsedValue: any = value;
         if (value === 'true') parsedValue = true;
@@ -113,17 +104,17 @@ const FORMAT_PARSERS: Record<string, FormatParser> = {
         else if (value.startsWith('"') && value.endsWith('"')) {
           parsedValue = value.slice(1, -1);
         }
-        
+
         current[key] = parsedValue;
       }
-      
+
       return result;
     },
     stringify: (obj) => {
       const stringify = (obj: any, indent = 0): string => {
         const spaces = '  '.repeat(indent);
         let result = '';
-        
+
         for (const [key, value] of Object.entries(obj)) {
           if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
             result += `${spaces}${key}:\n${stringify(value, indent + 1)}`;
@@ -132,13 +123,13 @@ const FORMAT_PARSERS: Record<string, FormatParser> = {
             result += `${spaces}${key}: ${formattedValue}\n`;
           }
         }
-        
+
         return result;
       };
-      
+
       return stringify(obj);
     },
-    extension: '.yaml'
+    extension: '.yaml',
   },
   toml: {
     parse: (content) => {
@@ -146,25 +137,25 @@ const FORMAT_PARSERS: Record<string, FormatParser> = {
       const lines = content.split('\n');
       const result: any = {};
       let currentSection = result;
-      
+
       for (const line of lines) {
         const trimmed = line.trim();
         if (!trimmed || trimmed.startsWith('#')) continue;
-        
+
         // Section header
         if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
           const sectionName = trimmed.slice(1, -1);
           currentSection = result[sectionName] = {};
           continue;
         }
-        
+
         // Key-value pair
         const equalsIndex = trimmed.indexOf('=');
         if (equalsIndex === -1) continue;
-        
+
         const key = trimmed.substring(0, equalsIndex).trim();
         const value = trimmed.substring(equalsIndex + 1).trim();
-        
+
         // Simple value parsing
         let parsedValue: any = value;
         if (value === 'true') parsedValue = true;
@@ -173,15 +164,15 @@ const FORMAT_PARSERS: Record<string, FormatParser> = {
         else if (value.startsWith('"') && value.endsWith('"')) {
           parsedValue = value.slice(1, -1);
         }
-        
+
         currentSection[key] = parsedValue;
       }
-      
+
       return result;
     },
     stringify: (obj) => {
       let result = '';
-      
+
       for (const [section, values] of Object.entries(obj)) {
         if (typeof values === 'object' && values !== null && !Array.isArray(values)) {
           result += `[${section}]\n`;
@@ -192,11 +183,11 @@ const FORMAT_PARSERS: Record<string, FormatParser> = {
           result += '\n';
         }
       }
-      
+
       return result;
     },
-    extension: '.toml'
-  }
+    extension: '.toml',
+  },
 };
 
 /**
@@ -325,7 +316,7 @@ export class ConfigManager {
           return 'maxConcurrentAgents should not exceed 2x terminal pool size';
         }
         return null;
-      }
+      },
     });
 
     this.validationRules.set('orchestrator.taskQueueSize', {
@@ -340,28 +331,28 @@ export class ConfigManager {
           return 'taskQueueSize should be at least 10x maxConcurrentAgents';
         }
         return null;
-      }
+      },
     });
 
     // Terminal validation rules
     this.validationRules.set('terminal.type', {
       type: 'string',
       required: true,
-      values: ['auto', 'vscode', 'native']
+      values: ['auto', 'vscode', 'native'],
     });
 
     this.validationRules.set('terminal.poolSize', {
       type: 'number',
       required: true,
       min: 1,
-      max: 50
+      max: 50,
     });
 
     // Memory validation rules
     this.validationRules.set('memory.backend', {
       type: 'string',
       required: true,
-      values: ['sqlite', 'markdown', 'hybrid']
+      values: ['sqlite', 'markdown', 'hybrid'],
     });
 
     this.validationRules.set('memory.cacheSizeMB', {
@@ -374,13 +365,13 @@ export class ConfigManager {
           return 'Large cache sizes may impact system performance';
         }
         return null;
-      }
+      },
     });
 
     // Security validation rules
     this.validationRules.set('security.encryptionEnabled', {
       type: 'boolean',
-      required: true
+      required: true,
     });
 
     // Credentials validation
@@ -392,7 +383,7 @@ export class ConfigManager {
           return 'API key should be at least 16 characters long';
         }
         return null;
-      }
+      },
     });
   }
 
@@ -429,11 +420,11 @@ export class ConfigManager {
    */
   get(maskSensitive = false): Config {
     const config = deepClone(this.config);
-    
+
     if (maskSensitive && this.config.security?.maskSensitiveValues) {
       return this.maskSensitiveValues(config);
     }
-    
+
     return config;
   }
 
@@ -454,18 +445,21 @@ export class ConfigManager {
   /**
    * Updates configuration values with change tracking
    */
-  update(updates: Partial<Config>, options: { user?: string, reason?: string, source?: 'cli' | 'api' | 'file' | 'env' } = {}): Config {
+  update(
+    updates: Partial<Config>,
+    options: { user?: string; reason?: string; source?: 'cli' | 'api' | 'file' | 'env' } = {},
+  ): Config {
     const oldConfig = deepClone(this.config);
-    
+
     // Track changes before applying
     this.trackChanges(oldConfig, updates, options);
-    
+
     // Apply updates
     this.config = deepMergeConfig(this.config, updates);
-    
+
     // Validate the updated configuration
     this.validateWithDependencies(this.config);
-    
+
     return this.get();
   }
 
@@ -487,39 +481,39 @@ export class ConfigManager {
 
     const detectedFormat = format || this.detectFormat(savePath);
     const parser = this.formatParsers[detectedFormat];
-    
+
     if (!parser) {
       throw new ConfigError(`Unsupported format for saving: ${detectedFormat}`);
     }
-    
+
     // Get configuration without sensitive values for saving
     const configToSave = this.getConfigForSaving();
     const content = parser.stringify(configToSave);
-    
+
     await fs.writeFile(savePath, content, 'utf8');
-    
+
     // Record the save operation
     this.recordChange({
       timestamp: new Date().toISOString(),
       path: 'CONFIG_SAVED',
       oldValue: null,
       newValue: savePath,
-      source: 'file'
+      source: 'file',
     });
   }
-  
+
   /**
    * Gets configuration suitable for saving (excludes runtime-only values)
    */
   private getConfigForSaving(): Partial<Config> {
     const config = deepClone(this.config);
-    
+
     // Remove encrypted credentials from the saved config
     // They should be stored separately in a secure location
     if (config.credentials) {
       delete config.credentials;
     }
-    
+
     return config;
   }
 
@@ -549,19 +543,19 @@ export class ConfigManager {
    */
   async loadProfiles(): Promise<void> {
     const profilesDir = join(this.userConfigDir, 'profiles');
-    
+
     try {
       const entries = await fs.readdir(profilesDir, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         if (entry.isFile() && entry.name.endsWith('.json')) {
           const profileName = entry.name.replace('.json', '');
           const profilePath = join(profilesDir, entry.name);
-          
+
           try {
             const content = await fs.readFile(profilePath, 'utf8');
             const profileConfig = safeParseJSON<Partial<Config>>(content);
-            
+
             if (profileConfig) {
               this.profiles.set(profileName, profileConfig);
             }
@@ -580,7 +574,7 @@ export class ConfigManager {
    */
   async applyProfile(profileName: string): Promise<void> {
     await this.loadProfiles();
-    
+
     const profile = this.profiles.get(profileName);
     if (!profile) {
       throw new ConfigError(`Profile '${profileName}' not found`);
@@ -596,16 +590,16 @@ export class ConfigManager {
    */
   async saveProfile(profileName: string, config?: Partial<Config>): Promise<void> {
     await this.ensureUserConfigDir();
-    
+
     const profilesDir = join(this.userConfigDir, 'profiles');
     await fs.mkdir(profilesDir, { recursive: true });
-    
+
     const profileConfig = config || this.config;
     const profilePath = join(profilesDir, `${profileName}.json`);
-    
+
     const content = JSON.stringify(profileConfig, null, 2);
     await fs.writeFile(profilePath, content, 'utf8');
-    
+
     this.profiles.set(profileName, profileConfig);
   }
 
@@ -614,7 +608,7 @@ export class ConfigManager {
    */
   async deleteProfile(profileName: string): Promise<void> {
     const profilePath = join(this.userConfigDir, 'profiles', `${profileName}.json`);
-    
+
     try {
       await fs.unlink(profilePath);
       this.profiles.delete(profileName);
@@ -652,9 +646,13 @@ export class ConfigManager {
   /**
    * Sets a configuration value by path with change tracking and validation
    */
-  set(path: string, value: any, options: { user?: string, reason?: string, source?: 'cli' | 'api' | 'file' | 'env' } = {}): void {
+  set(
+    path: string,
+    value: any,
+    options: { user?: string; reason?: string; source?: 'cli' | 'api' | 'file' | 'env' } = {},
+  ): void {
     const oldValue = this.getValue(path);
-    
+
     // Record the change
     this.recordChange({
       timestamp: new Date().toISOString(),
@@ -663,17 +661,17 @@ export class ConfigManager {
       newValue: value,
       user: options.user,
       reason: options.reason,
-      source: options.source || 'cli'
+      source: options.source || 'cli',
     });
-    
+
     // Encrypt sensitive values
     if (this.isSensitivePath(path) && this.config.security?.encryptionEnabled) {
       value = this.encryptValue(value);
     }
-    
+
     const keys = path.split('.');
     let current: any = this.config;
-    
+
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
       if (!(key in current)) {
@@ -681,9 +679,9 @@ export class ConfigManager {
       }
       current = current[key];
     }
-    
+
     current[keys[keys.length - 1]] = value;
-    
+
     // Validate the path-specific rule and dependencies
     this.validatePath(path, value);
     this.validateWithDependencies(this.config);
@@ -695,7 +693,7 @@ export class ConfigManager {
   getValue(path: string, decrypt = true): any {
     const keys = path.split('.');
     let current: any = this.config;
-    
+
     for (const key of keys) {
       if (current && typeof current === 'object' && key in current) {
         current = current[key];
@@ -703,7 +701,7 @@ export class ConfigManager {
         return undefined;
       }
     }
-    
+
     // Decrypt sensitive values if requested
     if (decrypt && this.isSensitivePath(path) && this.isEncryptedValue(current)) {
       try {
@@ -713,7 +711,7 @@ export class ConfigManager {
         return current;
       }
     }
-    
+
     return current;
   }
 
@@ -804,14 +802,18 @@ export class ConfigManager {
   getDiff(): any {
     const defaultConfig = DEFAULT_CONFIG;
     const diff: any = {};
-    
+
     const findDifferences = (current: any, defaults: any, path: string = '') => {
       for (const key in current) {
         const currentValue = current[key];
         const defaultValue = defaults[key];
         const fullPath = path ? `${path}.${key}` : key;
-        
-        if (typeof currentValue === 'object' && currentValue !== null && !Array.isArray(currentValue)) {
+
+        if (
+          typeof currentValue === 'object' &&
+          currentValue !== null &&
+          !Array.isArray(currentValue)
+        ) {
           if (typeof defaultValue === 'object' && defaultValue !== null) {
             const nestedDiff = {};
             findDifferences(currentValue, defaultValue, fullPath);
@@ -834,7 +836,7 @@ export class ConfigManager {
         }
       }
     };
-    
+
     findDifferences(this.config, defaultConfig);
     return diff;
   }
@@ -859,18 +861,18 @@ export class ConfigManager {
     if (!data.config) {
       throw new ConfigError('Invalid configuration export format');
     }
-    
+
     this.validateWithDependencies(data.config);
     this.config = data.config;
     this.currentProfile = data.profile;
-    
+
     // Record the import operation
     this.recordChange({
       timestamp: new Date().toISOString(),
       path: 'CONFIG_IMPORTED',
       oldValue: null,
       newValue: data.version || 'unknown',
-      source: 'file'
+      source: 'file',
     });
   }
 
@@ -882,13 +884,13 @@ export class ConfigManager {
       const content = await fs.readFile(path, 'utf8');
       const format = this.detectFormat(path, content);
       const parser = this.formatParsers[format];
-      
+
       if (!parser) {
         throw new ConfigError(`Unsupported configuration format: ${format}`);
       }
-      
+
       const config = parser.parse(content) as Partial<Config>;
-      
+
       if (!config) {
         throw new ConfigError(`Invalid ${format.toUpperCase()} in configuration file: ${path}`);
       }
@@ -899,20 +901,22 @@ export class ConfigManager {
         // File doesn't exist, use defaults
         return {};
       }
-      throw new ConfigError(`Failed to load configuration from ${path}: ${(error as Error).message}`);
+      throw new ConfigError(
+        `Failed to load configuration from ${path}: ${(error as Error).message}`,
+      );
     }
   }
-  
+
   /**
    * Detects configuration file format
    */
   private detectFormat(path: string, content?: string): string {
     const ext = path.split('.').pop()?.toLowerCase();
-    
+
     if (ext === 'yaml' || ext === 'yml') return 'yaml';
     if (ext === 'toml') return 'toml';
     if (ext === 'json') return 'json';
-    
+
     // Try to detect from content
     if (content) {
       const trimmed = content.trim();
@@ -920,7 +924,7 @@ export class ConfigManager {
       if (trimmed.includes('=') && trimmed.includes('[')) return 'toml';
       if (trimmed.includes(':') && !trimmed.includes('=')) return 'yaml';
     }
-    
+
     // Default to JSON
     return 'json';
   }
@@ -985,7 +989,12 @@ export class ConfigManager {
 
     // Logging settings
     const logLevel = process.env.CLAUDE_FLOW_LOG_LEVEL;
-    if (logLevel === 'debug' || logLevel === 'info' || logLevel === 'warn' || logLevel === 'error') {
+    if (
+      logLevel === 'debug' ||
+      logLevel === 'info' ||
+      logLevel === 'warn' ||
+      logLevel === 'error'
+    ) {
       config.logging = {
         ...DEFAULT_CONFIG.logging,
         ...config.logging,
@@ -1002,71 +1011,71 @@ export class ConfigManager {
   private validateWithDependencies(config: Config): void {
     const errors: string[] = [];
     const warnings: string[] = [];
-    
+
     // Validate all paths with rules
     for (const [path, rule] of this.validationRules.entries()) {
       const value = this.getValueByPath(config, path);
-      
+
       try {
         this.validatePath(path, value, config);
       } catch (error) {
         errors.push((error as Error).message);
       }
     }
-    
+
     // Additional cross-field validations
     if (config.orchestrator.maxConcurrentAgents > config.terminal.poolSize * 3) {
       warnings.push('High agent-to-terminal ratio may cause resource contention');
     }
-    
+
     if (config.memory.cacheSizeMB > 1000 && config.memory.backend === 'sqlite') {
       warnings.push('Large cache size with SQLite backend may impact performance');
     }
-    
+
     if (config.mcp.transport === 'http' && !config.mcp.tlsEnabled) {
       warnings.push('HTTP transport without TLS is not recommended for production');
     }
-    
+
     // Log warnings
     if (warnings.length > 0 && config.logging?.level === 'debug') {
       console.warn('Configuration warnings:', warnings);
     }
-    
+
     // Throw errors
     if (errors.length > 0) {
       throw new ValidationError(`Configuration validation failed:\n${errors.join('\n')}`);
     }
   }
-  
+
   /**
    * Validates a specific configuration path
    */
   private validatePath(path: string, value: any, config?: Config): void {
     const rule = this.validationRules.get(path);
     if (!rule) return;
-    
+
     const currentConfig = config || this.config;
-    
+
     // Required validation
     if (rule.required && (value === undefined || value === null)) {
       throw new ValidationError(`${path} is required`);
     }
-    
+
     if (value === undefined || value === null) return;
-    
+
     // Type validation
     if (rule.type === 'number' && (typeof value !== 'number' || isNaN(value))) {
       throw new ValidationError(`${path} must be a number`);
     }
-    
+
     if (rule.type === 'string' && typeof value !== 'string') {
       throw new ValidationError(`${path} must be a string`);
     }
-    
+
     if (rule.type === 'boolean' && typeof value !== 'boolean') {
       throw new ValidationError(`${path} must be a boolean`);
     }
-    
+
     // Range validation
     if (typeof value === 'number') {
       if (rule.min !== undefined && value < rule.min) {
@@ -1076,17 +1085,17 @@ export class ConfigManager {
         throw new ValidationError(`${path} must be at most ${rule.max}`);
       }
     }
-    
+
     // Values validation
     if (rule.values && !rule.values.includes(value)) {
       throw new ValidationError(`${path} must be one of: ${rule.values.join(', ')}`);
     }
-    
+
     // Pattern validation
     if (rule.pattern && typeof value === 'string' && !rule.pattern.test(value)) {
       throw new ValidationError(`${path} does not match required pattern`);
     }
-    
+
     // Custom validator
     if (rule.validator) {
       const result = rule.validator(value, currentConfig);
@@ -1095,14 +1104,14 @@ export class ConfigManager {
       }
     }
   }
-  
+
   /**
    * Gets a value from a configuration object by path
    */
   private getValueByPath(obj: any, path: string): any {
     const keys = path.split('.');
     let current = obj;
-    
+
     for (const key of keys) {
       if (current && typeof current === 'object' && key in current) {
         current = current[key];
@@ -1110,10 +1119,10 @@ export class ConfigManager {
         return undefined;
       }
     }
-    
+
     return current;
   }
-  
+
   /**
    * Legacy validate method for backward compatibility
    */
@@ -1126,15 +1135,15 @@ export class ConfigManager {
    */
   private maskSensitiveValues(config: Config): Config {
     const maskedConfig = deepClone(config);
-    
+
     // Recursively mask sensitive paths
     const maskObject = (obj: any, path: string = ''): any => {
       if (!obj || typeof obj !== 'object') return obj;
-      
+
       const masked: any = {};
       for (const [key, value] of Object.entries(obj)) {
         const currentPath = path ? `${path}.${key}` : key;
-        
+
         if (this.isSensitivePath(currentPath)) {
           const classification = SECURITY_CLASSIFICATIONS[currentPath];
           masked[key] = classification?.maskPattern || '****';
@@ -1146,14 +1155,18 @@ export class ConfigManager {
       }
       return masked;
     };
-    
+
     return maskObject(maskedConfig);
   }
 
   /**
    * Tracks changes to configuration
    */
-  private trackChanges(oldConfig: Config, updates: Partial<Config>, options: { user?: string, reason?: string, source?: 'cli' | 'api' | 'file' | 'env' }): void {
+  private trackChanges(
+    oldConfig: Config,
+    updates: Partial<Config>,
+    options: { user?: string; reason?: string; source?: 'cli' | 'api' | 'file' | 'env' },
+  ): void {
     // Simple implementation for tracking changes
     for (const [key, value] of Object.entries(updates)) {
       this.recordChange({
@@ -1163,7 +1176,7 @@ export class ConfigManager {
         newValue: value,
         user: options.user,
         reason: options.reason,
-        source: options.source || 'cli'
+        source: options.source || 'cli',
       });
     }
   }
@@ -1173,7 +1186,7 @@ export class ConfigManager {
    */
   private recordChange(change: ConfigChange): void {
     this.changeHistory.push(change);
-    
+
     // Keep only last 1000 changes
     if (this.changeHistory.length > 1000) {
       this.changeHistory.shift();
@@ -1184,8 +1197,8 @@ export class ConfigManager {
    * Checks if a path contains sensitive information
    */
   private isSensitivePath(path: string): boolean {
-    return SENSITIVE_PATHS.some(sensitive => 
-      path.toLowerCase().includes(sensitive.toLowerCase())
+    return SENSITIVE_PATHS.some((sensitive) =>
+      path.toLowerCase().includes(sensitive.toLowerCase()),
     );
   }
 
@@ -1196,7 +1209,7 @@ export class ConfigManager {
     if (!this.encryptionKey) {
       return value; // Return original if encryption not available
     }
-    
+
     try {
       // Simplified encryption - in production use proper encryption
       const iv = randomBytes(16);
@@ -1218,7 +1231,7 @@ export class ConfigManager {
     if (!this.encryptionKey || !this.isEncryptedValue(encryptedValue)) {
       return encryptedValue;
     }
-    
+
     try {
       const parts = encryptedValue.replace('encrypted:', '').split(':');
       if (parts.length !== 2) return encryptedValue; // Handle old format
@@ -1256,25 +1269,17 @@ function deepClone<T>(obj: T): T {
 }
 
 // Export types for external use
-export type {
-  FormatParser,
-  ConfigChange,
-  SecurityClassification,
-  ValidationRule
-};
+export type { FormatParser, ConfigChange, SecurityClassification, ValidationRule };
 
-export {
-  SENSITIVE_PATHS,
-  SECURITY_CLASSIFICATIONS
-};
+export { SENSITIVE_PATHS, SECURITY_CLASSIFICATIONS };
 
 // Custom deepMerge for Config type
 function deepMergeConfig(target: Config, ...sources: Partial<Config>[]): Config {
   const result = deepClone(target);
-  
+
   for (const source of sources) {
     if (!source) continue;
-    
+
     // Merge each section
     if (source.orchestrator) {
       result.orchestrator = { ...result.orchestrator, ...source.orchestrator };
@@ -1301,6 +1306,6 @@ function deepMergeConfig(target: Config, ...sources: Partial<Config>[]): Config 
       result.security = { ...result.security, ...source.security };
     }
   }
-  
+
   return result;
 }

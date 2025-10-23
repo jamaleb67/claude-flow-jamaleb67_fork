@@ -5,6 +5,7 @@ A comprehensive migration system for existing claude-flow projects to adopt opti
 ## Overview
 
 The migration system provides tools to:
+
 - Analyze existing projects for migration readiness
 - Migrate projects using different strategies (full, selective, merge)
 - Create automatic backups for safe rollback
@@ -33,25 +34,28 @@ npx claude-flow migrate rollback
 
 1. **MigrationAnalyzer** - Analyzes project structure and detects conflicts
 2. **MigrationRunner** - Executes migration strategies
-3. **RollbackManager** - Handles backup creation and restoration  
+3. **RollbackManager** - Handles backup creation and restoration
 4. **MigrationValidator** - Validates successful migrations
 5. **ProgressReporter** - Provides visual feedback during operations
 
 ### Migration Strategies
 
 #### Full Strategy
+
 - **Use Case**: New projects or complete overhaul
 - **Behavior**: Replaces entire `.claude` folder
 - **Risk Level**: High (with backup)
 - **Command**: `--strategy full`
 
-#### Selective Strategy  
+#### Selective Strategy
+
 - **Use Case**: Projects with custom commands (default)
 - **Behavior**: Updates core files, preserves customizations
 - **Risk Level**: Medium
 - **Command**: `--strategy selective --preserve-custom`
 
 #### Merge Strategy
+
 - **Use Case**: Complex projects with custom configurations
 - **Behavior**: Merges configurations, preserves custom commands
 - **Risk Level**: Low
@@ -128,6 +132,7 @@ claude-flow migrate status
 ### Migration Manifest
 
 The system uses a manifest file (`migration-manifest.json`) to define:
+
 - File mappings and transformations
 - Strategy configurations
 - Validation requirements
@@ -162,6 +167,7 @@ Projects can include migration preferences in `CLAUDE.md`:
 
 ```markdown
 ## Migration Configuration
+
 - strategy: selective
 - preserveCustom: true
 - customCommands: ['my-command', 'special-workflow']
@@ -183,7 +189,7 @@ const runner = new MigrationRunner({
   projectPath: './my-project',
   strategy: 'selective',
   preserveCustom: true,
-  dryRun: false
+  dryRun: false,
 });
 
 const result = await runner.run();
@@ -200,7 +206,7 @@ const rollback = new RollbackManager('./my-project');
 // Create backup
 const backup = await rollback.createBackup({
   type: 'pre-migration',
-  description: 'Before optimization update'
+  description: 'Before optimization update',
 });
 
 // List backups
@@ -275,6 +281,7 @@ done
 ### Automatic Backups
 
 Every migration creates automatic backups:
+
 - **Location**: `.claude-backup/` directory
 - **Format**: Timestamped folders with full file content
 - **Retention**: Configurable (default: 30 days, max 10 backups)
@@ -283,6 +290,7 @@ Every migration creates automatic backups:
 ### Conflict Detection
 
 The analyzer detects potential conflicts:
+
 - **Custom Commands**: Commands not in standard set
 - **Modified Files**: Files with custom modifications
 - **Configuration Conflicts**: Incompatible settings
@@ -291,6 +299,7 @@ The analyzer detects potential conflicts:
 ### Rollback Safety
 
 Multiple rollback options:
+
 - **Automatic**: Failed migrations auto-rollback
 - **Manual**: User-initiated rollback to any backup
 - **Validation**: Checksum verification during restore
@@ -301,6 +310,7 @@ Multiple rollback options:
 ### Common Issues
 
 #### Migration Fails with Permission Errors
+
 ```bash
 # Check and fix permissions
 chmod -R u+w .claude/
@@ -308,12 +318,14 @@ claude-flow migrate --strategy selective
 ```
 
 #### Custom Commands Not Preserved
+
 ```bash
 # Use preserve-custom flag
 claude-flow migrate --strategy selective --preserve-custom
 ```
 
 #### Validation Failures
+
 ```bash
 # Run detailed validation
 claude-flow migrate validate --verbose
@@ -323,6 +335,7 @@ ls -la .claude/commands/
 ```
 
 #### Rollback Not Working
+
 ```bash
 # List available backups
 claude-flow migrate rollback --list
@@ -334,6 +347,7 @@ cat .claude-backup/*/backup-manifest.json
 ### Debug Mode
 
 Enable detailed logging:
+
 ```bash
 export DEBUG=true
 claude-flow migrate --verbose
@@ -342,6 +356,7 @@ claude-flow migrate --verbose
 ### Log Files
 
 Migration logs are stored in:
+
 - **Development**: Console output
 - **Production**: `logs/migration.log`
 
@@ -386,11 +401,11 @@ Automate migrations in CI/CD pipelines:
 steps:
   - name: Analyze Migration
     run: claude-flow migrate analyze --output analysis.json
-  
+
   - name: Run Migration
     run: claude-flow migrate --strategy selective --force
-  
-  - name: Validate Migration  
+
+  - name: Validate Migration
     run: claude-flow migrate validate
 ```
 
@@ -406,6 +421,7 @@ steps:
 ### Benchmarks
 
 Typical performance metrics:
+
 - **Analysis**: ~100ms for standard project
 - **Full Migration**: ~500ms for complete replacement
 - **Selective Migration**: ~200ms preserving customizations
@@ -451,7 +467,7 @@ npm run build:migration
 # Unit tests
 npm test src/migration/tests/
 
-# Integration tests  
+# Integration tests
 npm run test:integration
 
 # End-to-end tests

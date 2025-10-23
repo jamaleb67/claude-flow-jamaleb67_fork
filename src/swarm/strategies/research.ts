@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../../utils/error-handler.js';
 /**
  * Optimized Research Strategy Implementation
  * Provides intelligent research capabilities with parallel processing,
@@ -10,8 +9,13 @@ import type { DecompositionResult, StrategyMetrics } from './base.js';
 import { Logger } from '../../core/logger.js';
 import { generateId } from '../../utils/helpers.js';
 import {
-  SwarmObjective, TaskDefinition, TaskId, TaskType, TaskPriority,
-  SwarmConfig, SWARM_CONSTANTS
+  SwarmObjective,
+  TaskDefinition,
+  TaskId,
+  TaskType,
+  TaskPriority,
+  SwarmConfig,
+  SWARM_CONSTANTS,
 } from '../types.js';
 
 // Research-specific interfaces
@@ -104,7 +108,7 @@ export class ResearchStrategy extends BaseStrategy {
     averageResponseTime: 0,
     credibilityScores: [] as number[],
     clusteringAccuracy: 0,
-    parallelEfficiency: 0
+    parallelEfficiency: 0,
   };
 
   constructor(config: Partial<SwarmConfig> = {}) {
@@ -121,7 +125,7 @@ export class ResearchStrategy extends BaseStrategy {
         taskScheduling: 'priority',
         loadBalancing: 'work-sharing',
         faultTolerance: 'retry',
-        communication: 'direct'
+        communication: 'direct',
       },
       maxAgents: 8,
       maxTasks: 50,
@@ -144,7 +148,7 @@ export class ResearchStrategy extends BaseStrategy {
         alertThresholds: {},
         exportEnabled: false,
         exportFormat: 'json',
-        exportDestination: 'file'
+        exportDestination: 'file',
       },
       memory: {
         namespace: 'research',
@@ -153,14 +157,14 @@ export class ResearchStrategy extends BaseStrategy {
           read: 'swarm',
           write: 'swarm',
           delete: 'team',
-          share: 'swarm'
+          share: 'swarm',
         },
         persistent: true,
         backupEnabled: false,
         distributed: false,
         consistency: 'eventual',
         cacheEnabled: true,
-        compressionEnabled: false
+        compressionEnabled: false,
       },
       security: {
         authenticationRequired: false,
@@ -171,7 +175,7 @@ export class ResearchStrategy extends BaseStrategy {
         auditEnabled: false,
         auditLevel: 'info',
         inputValidation: true,
-        outputSanitization: true
+        outputSanitization: true,
       },
       performance: {
         maxConcurrency: 10,
@@ -184,16 +188,16 @@ export class ResearchStrategy extends BaseStrategy {
         predictiveLoading: false,
         resourcePooling: true,
         connectionPooling: true,
-        memoryPooling: false
-      }
+        memoryPooling: false,
+      },
     };
-    
+
     const mergedConfig = { ...defaultConfig, ...config };
     super(mergedConfig);
-    
+
     this.logger = new Logger(
       { level: 'info', format: 'text', destination: 'console' },
-      { component: 'ResearchStrategy' }
+      { component: 'ResearchStrategy' },
     );
 
     // Initialize connection pool
@@ -202,27 +206,27 @@ export class ResearchStrategy extends BaseStrategy {
       idle: 0,
       max: config.performance?.maxConcurrency || 10,
       timeout: 30000,
-      connections: new Map()
+      connections: new Map(),
     };
 
     this.logger.info('ResearchStrategy initialized with optimizations', {
       maxConcurrency: this.connectionPool.max,
-      cacheEnabled: config.performance?.cacheEnabled !== false
+      cacheEnabled: config.performance?.cacheEnabled !== false,
     });
   }
 
   async decomposeObjective(objective: SwarmObjective): Promise<DecompositionResult> {
     this.logger.info('Decomposing research objective', {
       objectiveId: objective.id,
-      description: objective.description
+      description: objective.description,
     });
 
     const tasks: TaskDefinition[] = [];
     const dependencies = new Map<string, string[]>();
-    
+
     // Extract research parameters from objective
     const researchParams = this.extractResearchParameters(objective.description);
-    
+
     // Create research query planning task
     const queryPlanningTask = this.createResearchTask(
       'query-planning',
@@ -244,8 +248,8 @@ Focus on creating queries that will yield high-quality, credible results.`,
         priority: 'high' as TaskPriority,
         estimatedDuration: 5 * 60 * 1000, // 5 minutes
         requiredCapabilities: ['research', 'analysis'],
-        researchParams
-      }
+        researchParams,
+      },
     );
     tasks.push(queryPlanningTask);
 
@@ -271,8 +275,8 @@ Collect diverse, high-quality sources relevant to the research objective.`,
         estimatedDuration: 10 * 60 * 1000, // 10 minutes
         requiredCapabilities: ['web-search', 'research'],
         dependencies: [queryPlanningTask.id.id],
-        researchParams
-      }
+        researchParams,
+      },
     );
     tasks.push(webSearchTask);
     dependencies.set(webSearchTask.id.id, [queryPlanningTask.id.id]);
@@ -299,8 +303,8 @@ Use parallel processing for efficient data extraction.`,
         estimatedDuration: 8 * 60 * 1000, // 8 minutes
         requiredCapabilities: ['analysis', 'research'],
         dependencies: [webSearchTask.id.id],
-        researchParams
-      }
+        researchParams,
+      },
     );
     tasks.push(dataExtractionTask);
     dependencies.set(dataExtractionTask.id.id, [webSearchTask.id.id]);
@@ -327,8 +331,8 @@ Provide a structured analysis of the research findings.`,
         estimatedDuration: 6 * 60 * 1000, // 6 minutes
         requiredCapabilities: ['analysis', 'research'],
         dependencies: [dataExtractionTask.id.id],
-        researchParams
-      }
+        researchParams,
+      },
     );
     tasks.push(clusteringTask);
     dependencies.set(clusteringTask.id.id, [dataExtractionTask.id.id]);
@@ -356,21 +360,22 @@ Ensure the report is well-structured and actionable.`,
         estimatedDuration: 7 * 60 * 1000, // 7 minutes
         requiredCapabilities: ['documentation', 'analysis'],
         dependencies: [clusteringTask.id.id],
-        researchParams
-      }
+        researchParams,
+      },
     );
     tasks.push(synthesisTask);
     dependencies.set(synthesisTask.id.id, [clusteringTask.id.id]);
 
-    const totalDuration = tasks.reduce((sum, task) => 
-      sum + (task.constraints.timeoutAfter || 0), 0
+    const totalDuration = tasks.reduce(
+      (sum, task) => sum + (task.constraints.timeoutAfter || 0),
+      0,
     );
 
     this.logger.info('Research objective decomposed', {
       objectiveId: objective.id,
       taskCount: tasks.length,
       estimatedDuration: totalDuration,
-      parallelTasks: tasks.filter(t => !dependencies.has(t.id.id)).length
+      parallelTasks: tasks.filter((t) => !dependencies.has(t.id.id)).length,
     });
 
     return {
@@ -389,15 +394,15 @@ Ensure the report is well-structured and actionable.`,
         memory: SWARM_CONSTANTS.DEFAULT_MEMORY_LIMIT * 1.5,
         cpu: SWARM_CONSTANTS.DEFAULT_CPU_LIMIT * 1.2,
         network: 'high',
-        storage: 'medium'
-      }
+        storage: 'medium',
+      },
     };
   }
 
   // Research-specific optimizations for task execution
   async optimizeTaskExecution(task: TaskDefinition, agent: any): Promise<any> {
     const startTime = Date.now();
-    
+
     try {
       // Apply research-specific optimizations based on task type
       switch (task.type) {
@@ -427,19 +432,17 @@ Ensure the report is well-structured and actionable.`,
 
     // Execute parallel web searches with rate limiting
     const queries = this.generateSearchQueries(task.description);
-    const searchPromises = queries.map(query => 
-      this.executeRateLimitedSearch(query, agent)
-    );
+    const searchPromises = queries.map((query) => this.executeRateLimitedSearch(query, agent));
 
     const results = await Promise.allSettled(searchPromises);
     const successfulResults = results
-      .filter(r => r.status === 'fulfilled')
-      .map(r => (r as PromiseFulfilledResult<any>).value)
+      .filter((r) => r.status === 'fulfilled')
+      .map((r) => (r as PromiseFulfilledResult<any>).value)
       .flat();
 
     // Rank and filter results by credibility
     const rankedResults = await this.rankResultsByCredibility(successfulResults);
-    
+
     // Cache results
     this.setCache(cacheKey, rankedResults, 3600000); // 1 hour TTL
     this.researchMetrics.cacheMisses++;
@@ -448,7 +451,7 @@ Ensure the report is well-structured and actionable.`,
       results: rankedResults,
       totalFound: successfulResults.length,
       queriesExecuted: queries.length,
-      credibilityScores: rankedResults.map(r => r.credibilityScore)
+      credibilityScores: rankedResults.map((r) => r.credibilityScore),
     };
   }
 
@@ -457,20 +460,20 @@ Ensure the report is well-structured and actionable.`,
 
     // Get connection from pool
     const connection = await this.getPooledConnection();
-    
+
     try {
       // Parallel data extraction with deduplication
       const extractionPromises = this.createParallelExtractionTasks(task, agent);
       const extractedData = await Promise.all(extractionPromises);
-      
+
       // Deduplicate results
       const deduplicatedData = this.deduplicateResults(extractedData.flat());
-      
+
       return {
         extractedData: deduplicatedData,
         totalExtracted: extractedData.flat().length,
         uniqueResults: deduplicatedData.length,
-        deduplicationRate: 1 - (deduplicatedData.length / extractedData.flat().length)
+        deduplicationRate: 1 - deduplicatedData.length / extractedData.flat().length,
       };
     } finally {
       this.releasePooledConnection(connection);
@@ -483,7 +486,7 @@ Ensure the report is well-structured and actionable.`,
     // Implement semantic clustering with caching
     const data = task.input?.extractedData || [];
     const cacheKey = this.generateCacheKey('clustering', JSON.stringify(data));
-    
+
     const cached = this.getFromCache(cacheKey);
     if (cached) {
       return cached;
@@ -491,7 +494,7 @@ Ensure the report is well-structured and actionable.`,
 
     // Perform semantic clustering
     const clusters = await this.performSemanticClustering(data);
-    
+
     // Cache clustering results
     this.setCache(cacheKey, clusters, 7200000); // 2 hours TTL
 
@@ -499,7 +502,7 @@ Ensure the report is well-structured and actionable.`,
       clusters,
       clusterCount: clusters.length,
       averageClusterSize: clusters.reduce((sum, c) => sum + c.results.length, 0) / clusters.length,
-      coherenceScore: clusters.reduce((sum, c) => sum + c.coherenceScore, 0) / clusters.length
+      coherenceScore: clusters.reduce((sum, c) => sum + c.coherenceScore, 0) / clusters.length,
     };
   }
 
@@ -510,7 +513,7 @@ Ensure the report is well-structured and actionable.`,
     return {
       status: 'completed',
       optimizations: ['caching', 'rate-limiting', 'connection-pooling'],
-      executionTime: Date.now()
+      executionTime: Date.now(),
     };
   }
 
@@ -521,16 +524,18 @@ Ensure the report is well-structured and actionable.`,
       domains: this.extractDomains(description),
       keywords: this.extractKeywords(description),
       timeframe: this.extractTimeframe(description),
-      sourceTypes: this.extractSourceTypes(description)
+      sourceTypes: this.extractSourceTypes(description),
     };
   }
 
   private extractDomains(description: string): string[] {
     // Extract relevant domains from description
     const domains = [];
-    if (description.includes('academic') || description.includes('research')) domains.push('academic');
+    if (description.includes('academic') || description.includes('research'))
+      domains.push('academic');
     if (description.includes('news') || description.includes('current')) domains.push('news');
-    if (description.includes('technical') || description.includes('documentation')) domains.push('technical');
+    if (description.includes('technical') || description.includes('documentation'))
+      domains.push('technical');
     return domains.length > 0 ? domains : ['general'];
   }
 
@@ -539,7 +544,7 @@ Ensure the report is well-structured and actionable.`,
     return description
       .toLowerCase()
       .split(/\s+/)
-      .filter(word => word.length > 3)
+      .filter((word) => word.length > 3)
       .slice(0, 10);
   }
 
@@ -548,7 +553,7 @@ Ensure the report is well-structured and actionable.`,
     const now = new Date();
     return {
       start: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000), // 1 year ago
-      end: now
+      end: now,
     };
   }
 
@@ -559,7 +564,7 @@ Ensure the report is well-structured and actionable.`,
   private generateSearchQueries(description: string): ResearchQuery[] {
     const baseQuery = description.substring(0, 100);
     const keywords = this.extractKeywords(description);
-    
+
     return [
       {
         id: generateId('query'),
@@ -567,7 +572,7 @@ Ensure the report is well-structured and actionable.`,
         keywords: keywords.slice(0, 5),
         domains: ['general'],
         priority: 1,
-        timestamp: new Date()
+        timestamp: new Date(),
       },
       {
         id: generateId('query'),
@@ -575,7 +580,7 @@ Ensure the report is well-structured and actionable.`,
         keywords: [...keywords.slice(0, 3), 'research', 'study'],
         domains: ['academic'],
         priority: 2,
-        timestamp: new Date()
+        timestamp: new Date(),
       },
       {
         id: generateId('query'),
@@ -583,14 +588,17 @@ Ensure the report is well-structured and actionable.`,
         keywords: [...keywords.slice(0, 3), 'best', 'practices'],
         domains: ['technical'],
         priority: 2,
-        timestamp: new Date()
-      }
+        timestamp: new Date(),
+      },
     ];
   }
 
-  private async executeRateLimitedSearch(query: ResearchQuery, agent: any): Promise<ResearchResult[]> {
+  private async executeRateLimitedSearch(
+    query: ResearchQuery,
+    agent: any,
+  ): Promise<ResearchResult[]> {
     const domain = query.domains[0] || 'general';
-    
+
     // Check rate limits
     if (!this.checkRateLimit(domain)) {
       await this.waitForRateLimit(domain);
@@ -599,7 +607,7 @@ Ensure the report is well-structured and actionable.`,
     // Simulate web search with retry logic
     let attempts = 0;
     const maxAttempts = 3;
-    
+
     while (attempts < maxAttempts) {
       try {
         // Simulate search execution
@@ -612,7 +620,7 @@ Ensure the report is well-structured and actionable.`,
         await this.exponentialBackoff(attempts);
       }
     }
-    
+
     return [];
   }
 
@@ -620,7 +628,7 @@ Ensure the report is well-structured and actionable.`,
     // Simulate web search results
     const resultCount = Math.floor(Math.random() * 10) + 5;
     const results: ResearchResult[] = [];
-    
+
     for (let i = 0; i < resultCount; i++) {
       results.push({
         id: generateId('result'),
@@ -633,18 +641,18 @@ Ensure the report is well-structured and actionable.`,
         relevanceScore: Math.random() * 0.3 + 0.7, // 0.7-1.0
         sourceType: query.domains[0] || 'general',
         extractedAt: new Date(),
-        metadata: { queryKeywords: query.keywords }
+        metadata: { queryKeywords: query.keywords },
       });
     }
-    
+
     return results;
   }
 
   private async rankResultsByCredibility(results: ResearchResult[]): Promise<ResearchResult[]> {
     // Sort by combined credibility and relevance score
     return results.sort((a, b) => {
-      const scoreA = (a.credibilityScore * 0.6) + (a.relevanceScore * 0.4);
-      const scoreB = (b.credibilityScore * 0.6) + (b.relevanceScore * 0.4);
+      const scoreA = a.credibilityScore * 0.6 + a.relevanceScore * 0.4;
+      const scoreB = b.credibilityScore * 0.6 + b.relevanceScore * 0.4;
       return scoreB - scoreA;
     });
   }
@@ -654,28 +662,28 @@ Ensure the report is well-structured and actionable.`,
     const results = task.input?.results || [];
     const batchSize = Math.ceil(results.length / this.connectionPool.max);
     const batches = [];
-    
+
     for (let i = 0; i < results.length; i += batchSize) {
       const batch = results.slice(i, i + batchSize);
       batches.push(this.extractDataFromBatch(batch));
     }
-    
+
     return batches;
   }
 
   private async extractDataFromBatch(batch: ResearchResult[]): Promise<any[]> {
     // Simulate parallel data extraction
-    return batch.map(result => ({
+    return batch.map((result) => ({
       id: result.id,
       extractedData: `Extracted data from ${result.title}`,
       insights: [`Insight 1 from ${result.title}`, `Insight 2 from ${result.title}`],
-      metadata: result.metadata
+      metadata: result.metadata,
     }));
   }
 
   private deduplicateResults(results: any[]): any[] {
     const seen = new Set();
-    return results.filter(result => {
+    return results.filter((result) => {
       const key = result.extractedData || result.id;
       if (seen.has(key)) return false;
       seen.add(key);
@@ -687,20 +695,22 @@ Ensure the report is well-structured and actionable.`,
     // Simulate semantic clustering
     const clusterCount = Math.min(Math.ceil(data.length / 5), 10);
     const clusters: ResearchCluster[] = [];
-    
+
     for (let i = 0; i < clusterCount; i++) {
       const clusterData = data.slice(i * 5, (i + 1) * 5);
       clusters.push({
         id: generateId('cluster'),
         topic: `Research Topic ${i + 1}`,
         results: clusterData,
-        centroid: Array(10).fill(0).map(() => Math.random()),
+        centroid: Array(10)
+          .fill(0)
+          .map(() => Math.random()),
         coherenceScore: Math.random() * 0.3 + 0.7,
         keywords: [`keyword${i}1`, `keyword${i}2`],
-        summary: `Summary of cluster ${i + 1}`
+        summary: `Summary of cluster ${i + 1}`,
       });
     }
-    
+
     return clusters;
   }
 
@@ -709,7 +719,7 @@ Ensure the report is well-structured and actionable.`,
     if (this.connectionPool.active >= this.connectionPool.max) {
       await this.waitForConnection();
     }
-    
+
     this.connectionPool.active++;
     return { id: generateId('connection'), timestamp: new Date() };
   }
@@ -720,7 +730,7 @@ Ensure the report is well-structured and actionable.`,
   }
 
   private async waitForConnection(): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const checkConnection = () => {
         if (this.connectionPool.active < this.connectionPool.max) {
           resolve();
@@ -741,7 +751,7 @@ Ensure the report is well-structured and actionable.`,
         windowStart: new Date(),
         windowSize: 60000, // 1 minute
         maxRequests: 10,
-        backoffMultiplier: 1
+        backoffMultiplier: 1,
       });
       return true;
     }
@@ -767,12 +777,12 @@ Ensure the report is well-structured and actionable.`,
     if (!limiter) return;
 
     const waitTime = limiter.windowSize * limiter.backoffMultiplier;
-    await new Promise(resolve => setTimeout(resolve, waitTime));
+    await new Promise((resolve) => setTimeout(resolve, waitTime));
   }
 
   private async exponentialBackoff(attempt: number): Promise<void> {
     const delay = Math.pow(2, attempt) * 1000;
-    await new Promise(resolve => setTimeout(resolve, delay));
+    await new Promise((resolve) => setTimeout(resolve, delay));
   }
 
   // Caching methods
@@ -802,7 +812,7 @@ Ensure the report is well-structured and actionable.`,
       timestamp: new Date(),
       ttl,
       accessCount: 0,
-      lastAccessed: new Date()
+      lastAccessed: new Date(),
     });
 
     // Cleanup old entries if cache is too large
@@ -814,7 +824,7 @@ Ensure the report is well-structured and actionable.`,
   private cleanupCache(): void {
     const entries = Array.from(this.researchCache.entries());
     entries.sort((a, b) => a[1].lastAccessed.getTime() - b[1].lastAccessed.getTime());
-    
+
     // Remove oldest 20% of entries
     const toRemove = Math.floor(entries.length * 0.2);
     for (let i = 0; i < toRemove; i++) {
@@ -827,13 +837,13 @@ Ensure the report is well-structured and actionable.`,
     type: TaskType,
     name: string,
     instructions: string,
-    options: any = {}
+    options: any = {},
   ): TaskDefinition {
     const taskId: TaskId = {
       id: generateId('task'),
       swarmId: 'research-swarm',
       sequence: 1,
-      priority: 1
+      priority: 1,
     };
 
     return {
@@ -845,14 +855,14 @@ Ensure the report is well-structured and actionable.`,
       requirements: {
         capabilities: options.requiredCapabilities || ['research'],
         tools: ['WebFetchTool', 'WebSearch'],
-        permissions: ['read', 'write']
+        permissions: ['read', 'write'],
       },
       constraints: {
         dependencies: options.dependencies || [],
         dependents: [],
         conflicts: [],
         maxRetries: 3,
-        timeoutAfter: options.estimatedDuration || 300000
+        timeoutAfter: options.estimatedDuration || 300000,
       },
       priority: options.priority || 'medium',
       input: options.researchParams || {},
@@ -862,19 +872,21 @@ Ensure the report is well-structured and actionable.`,
       createdAt: new Date(),
       updatedAt: new Date(),
       attempts: [],
-      statusHistory: [{
-        timestamp: new Date(),
-        from: 'created',
-        to: 'created',
-        reason: 'Task created',
-        triggeredBy: 'system'
-      }]
+      statusHistory: [
+        {
+          timestamp: new Date(),
+          from: 'created',
+          to: 'created',
+          reason: 'Task created',
+          triggeredBy: 'system',
+        },
+      ],
     };
   }
 
   private updateResearchMetrics(taskType: string, duration: number): void {
     this.researchMetrics.queriesExecuted++;
-    this.researchMetrics.averageResponseTime = 
+    this.researchMetrics.averageResponseTime =
       (this.researchMetrics.averageResponseTime + duration) / 2;
   }
 
@@ -884,9 +896,10 @@ Ensure the report is well-structured and actionable.`,
     let batchIndex = 0;
 
     while (processed.size < tasks.length) {
-      const batchTasks = tasks.filter(task => 
-        !processed.has(task.id.id) && 
-        task.constraints.dependencies.every(dep => processed.has(dep.id))
+      const batchTasks = tasks.filter(
+        (task) =>
+          !processed.has(task.id.id) &&
+          task.constraints.dependencies.every((dep) => processed.has(dep.id)),
       );
 
       if (batchTasks.length === 0) break; // Prevent infinite loop
@@ -895,16 +908,16 @@ Ensure the report is well-structured and actionable.`,
         id: `research-batch-${batchIndex++}`,
         tasks: batchTasks,
         canRunInParallel: batchTasks.length > 1,
-        estimatedDuration: Math.max(...batchTasks.map(t => t.constraints.timeoutAfter || 0)),
+        estimatedDuration: Math.max(...batchTasks.map((t) => t.constraints.timeoutAfter || 0)),
         requiredResources: {
           agents: batchTasks.length,
           memory: batchTasks.length * 512, // MB
-          cpu: batchTasks.length * 0.5 // CPU cores
-        }
+          cpu: batchTasks.length * 0.5, // CPU cores
+        },
       };
 
       batches.push(batch);
-      batchTasks.forEach(task => processed.add(task.id.id));
+      batchTasks.forEach((task) => processed.add(task.id.id));
     }
 
     return batches;
@@ -924,35 +937,42 @@ Ensure the report is well-structured and actionable.`,
       cacheHits: this.researchMetrics.cacheHits,
       cacheMisses: this.researchMetrics.cacheMisses,
       credibilityScores: credibilityScoresRecord,
-      cacheHitRate: this.researchMetrics.cacheHits / (this.researchMetrics.cacheHits + this.researchMetrics.cacheMisses || 1),
-      averageCredibilityScore: this.researchMetrics.credibilityScores.length > 0 
-        ? this.researchMetrics.credibilityScores.reduce((a, b) => a + b, 0) / this.researchMetrics.credibilityScores.length 
-        : 0,
+      cacheHitRate:
+        this.researchMetrics.cacheHits /
+        (this.researchMetrics.cacheHits + this.researchMetrics.cacheMisses || 1),
+      averageCredibilityScore:
+        this.researchMetrics.credibilityScores.length > 0
+          ? this.researchMetrics.credibilityScores.reduce((a, b) => a + b, 0) /
+            this.researchMetrics.credibilityScores.length
+          : 0,
       connectionPoolUtilization: this.connectionPool.active / this.connectionPool.max,
-      cacheSize: this.researchCache.size
+      cacheSize: this.researchCache.size,
     };
   }
 
   // Progressive refinement methods
-  async refineResearchScope(objective: SwarmObjective, intermediateResults: any[]): Promise<SwarmObjective> {
+  async refineResearchScope(
+    objective: SwarmObjective,
+    intermediateResults: any[],
+  ): Promise<SwarmObjective> {
     this.logger.info('Refining research scope based on intermediate results', {
       objectiveId: objective.id,
-      resultsCount: intermediateResults.length
+      resultsCount: intermediateResults.length,
     });
 
     // Analyze intermediate results to refine scope
     const refinedObjective = { ...objective };
-    
+
     // Update requirements based on findings
     if (intermediateResults.length > 0) {
-      const avgCredibility = intermediateResults
-        .map(r => r.credibilityScore || 0.5)
-        .reduce((a, b) => a + b, 0) / intermediateResults.length;
-      
+      const avgCredibility =
+        intermediateResults.map((r) => r.credibilityScore || 0.5).reduce((a, b) => a + b, 0) /
+        intermediateResults.length;
+
       if (avgCredibility < 0.7) {
         refinedObjective.requirements.qualityThreshold = Math.max(
           refinedObjective.requirements.qualityThreshold,
-          0.8
+          0.8,
         );
       }
     }
@@ -975,14 +995,14 @@ Ensure the report is well-structured and actionable.`,
       if (agent.capabilities?.research) score += 0.4;
       if (agent.capabilities?.webSearch) score += 0.3;
       if (agent.capabilities?.analysis) score += 0.2;
-      
+
       // Check for specific research task types
       if (task.type === 'research' && agent.type === 'researcher') score += 0.3;
       if (task.type === 'analysis' && agent.type === 'analyst') score += 0.3;
       if (task.type === 'research' && agent.capabilities?.webSearch) score += 0.4;
 
       // Consider current workload
-      score *= (1 - (agent.workload || 0));
+      score *= 1 - (agent.workload || 0);
 
       if (score > bestScore) {
         bestScore = score;
@@ -997,16 +1017,16 @@ Ensure the report is well-structured and actionable.`,
     const allocations: any[] = [];
 
     // Group tasks by type for optimal allocation
-    const researchTasks = tasks.filter(t => t.type === 'research');
-    const analysisTasks = tasks.filter(t => t.type === 'analysis');
-    const otherTasks = tasks.filter(t => !['research', 'analysis'].includes(t.type as string));
+    const researchTasks = tasks.filter((t) => t.type === 'research');
+    const analysisTasks = tasks.filter((t) => t.type === 'analysis');
+    const otherTasks = tasks.filter((t) => !['research', 'analysis'].includes(t.type as string));
 
     for (const agent of agents) {
       const allocation = {
         agentId: agent.id?.id || agent.id,
         tasks: [] as string[],
         estimatedWorkload: 0,
-        capabilities: this.getAgentCapabilitiesList(agent)
+        capabilities: this.getAgentCapabilitiesList(agent),
       };
 
       // Allocate tasks based on agent capabilities

@@ -28,9 +28,9 @@ export const createOptimizedSwarmStack = (config?: {
   const executor = new OptimizedExecutor({
     ...config?.executor,
     connectionPool: config?.connectionPool,
-    fileOperations: config?.fileManager
+    fileOperations: config?.fileManager,
   });
-  
+
   return {
     connectionPool,
     fileManager,
@@ -39,6 +39,6 @@ export const createOptimizedSwarmStack = (config?: {
       await executor.shutdown();
       await fileManager.waitForPendingOperations();
       await connectionPool.drain();
-    }
+    },
   };
 };

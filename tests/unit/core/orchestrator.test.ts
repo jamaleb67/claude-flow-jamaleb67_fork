@@ -14,13 +14,13 @@ import {
   spy,
   assertSpyCalls,
   FakeTime,
-} from '../../test.utils.ts';
+} from '../../../test.utils';
 import { Orchestrator } from '../../../src/core/orchestrator.ts';
 import { SystemEvents } from '../../../src/utils/types.ts';
 import { InitializationError, SystemError, ShutdownError } from '../../../src/utils/errors.ts';
 import { createMocks, MockEventBus } from '../../mocks/index.ts';
-import { TestDataBuilder } from '../../test.utils.ts';
-import { cleanupTestEnv, setupTestEnv } from '../../test.config.ts';
+import { TestDataBuilder } from '../../../test.utils';
+import { cleanupTestEnv, setupTestEnv } from '../../../test.config';
 
 describe('Orchestrator', () => {
   let orchestrator: Orchestrator;

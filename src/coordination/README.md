@@ -5,6 +5,7 @@ A comprehensive, scalable, and fault-tolerant coordination system for multi-agen
 ## Overview
 
 The coordination system provides:
+
 - **Task Scheduling**: Intelligent agent selection and priority handling
 - **Resource Management**: Distributed locking with deadlock detection
 - **Message Passing**: Inter-agent communication with reliability
@@ -90,10 +91,9 @@ const resourceManager = new ResourceManager(config, eventBus, logger);
 try {
   // Acquire with timeout and priority
   await resourceManager.acquire('database-lock', agentId, priority);
-  
+
   // Critical section
   await performDatabaseOperation();
-  
 } finally {
   await resourceManager.release('database-lock', agentId);
 }
@@ -106,12 +106,16 @@ Dynamic load balancing:
 ```typescript
 import { WorkStealingCoordinator } from './coordination/index.ts';
 
-const workStealing = new WorkStealingCoordinator({
-  enabled: true,
-  stealThreshold: 3,    // Trigger when difference > 3 tasks
-  maxStealBatch: 2,     // Steal up to 2 tasks at once
-  stealInterval: 5000,  // Check every 5 seconds
-}, eventBus, logger);
+const workStealing = new WorkStealingCoordinator(
+  {
+    enabled: true,
+    stealThreshold: 3, // Trigger when difference > 3 tasks
+    maxStealBatch: 2, // Steal up to 2 tasks at once
+    stealInterval: 5000, // Check every 5 seconds
+  },
+  eventBus,
+  logger,
+);
 
 // Update agent workload
 workStealing.updateAgentWorkload(agentId, {
@@ -159,12 +163,17 @@ Fault tolerance and cascade failure prevention:
 ```typescript
 import { CircuitBreaker, CircuitState } from './coordination/index.ts';
 
-const breaker = new CircuitBreaker('external-api', {
-  failureThreshold: 5,    // Open after 5 failures
-  successThreshold: 3,    // Close after 3 successes in half-open
-  timeout: 60000,         // Try half-open after 60s
-  halfOpenLimit: 2,       // Max 2 requests in half-open
-}, logger, eventBus);
+const breaker = new CircuitBreaker(
+  'external-api',
+  {
+    failureThreshold: 5, // Open after 5 failures
+    successThreshold: 3, // Close after 3 successes in half-open
+    timeout: 60000, // Try half-open after 60s
+    halfOpenLimit: 2, // Max 2 requests in half-open
+  },
+  logger,
+  eventBus,
+);
 
 // Execute with protection
 try {
@@ -193,17 +202,19 @@ const resolver = new ConflictResolver(logger, eventBus);
 resolver.registerStrategy(new PriorityResolutionStrategy());
 
 // Report conflict
-const conflict = await resolver.reportResourceConflict(
-  'shared-file',
-  ['agent1', 'agent2', 'agent3']
-);
+const conflict = await resolver.reportResourceConflict('shared-file', [
+  'agent1',
+  'agent2',
+  'agent3',
+]);
 
 // Resolve using priority strategy
-const resolution = await resolver.resolveConflict(
-  conflict.id,
-  'priority',
-  { agentPriorities: new Map([['agent1', 10], ['agent2', 5]]) }
-);
+const resolution = await resolver.resolveConflict(conflict.id, 'priority', {
+  agentPriorities: new Map([
+    ['agent1', 10],
+    ['agent2', 5],
+  ]),
+});
 
 console.log(`Winner: ${resolution.winner}`); // agent1 (higher priority)
 ```
@@ -228,8 +239,9 @@ console.log({
 });
 
 // Get metric history
-const history = metrics.getMetricHistory('task.completed', 
-  new Date(Date.now() - 3600000) // Last hour
+const history = metrics.getMetricHistory(
+  'task.completed',
+  new Date(Date.now() - 3600000), // Last hour
 );
 ```
 
@@ -237,11 +249,11 @@ const history = metrics.getMetricHistory('task.completed',
 
 ```typescript
 interface CoordinationConfig {
-  maxRetries: number;           // Task retry attempts
-  retryDelay: number;          // Base retry delay (ms)
-  deadlockDetection: boolean;   // Enable deadlock detection
-  resourceTimeout: number;      // Resource acquisition timeout (ms)
-  messageTimeout: number;       // Message delivery timeout (ms)
+  maxRetries: number; // Task retry attempts
+  retryDelay: number; // Base retry delay (ms)
+  deadlockDetection: boolean; // Enable deadlock detection
+  resourceTimeout: number; // Resource acquisition timeout (ms)
+  messageTimeout: number; // Message delivery timeout (ms)
 }
 
 const config: CoordinationConfig = {
@@ -292,30 +304,35 @@ eventBus.on('circuitbreaker:state-change', ({ name, from, to }) => {
 ## Best Practices
 
 ### Task Design
+
 - Keep tasks small and focused
 - Minimize dependencies between tasks
 - Use appropriate priority levels
 - Include timeout information
 
 ### Resource Management
+
 - Always use try/finally for resource cleanup
 - Set appropriate timeouts
 - Use meaningful resource IDs
 - Avoid holding multiple resources simultaneously when possible
 
 ### Agent Registration
+
 - Register agents with accurate capability information
 - Update workload metrics regularly
 - Handle agent failures gracefully
 - Implement proper cleanup on termination
 
 ### Error Handling
+
 - Use circuit breakers for external dependencies
 - Implement proper retry logic
 - Log errors with sufficient context
 - Gracefully degrade functionality when possible
 
 ### Monitoring
+
 - Monitor key metrics regularly
 - Set up alerting for deadlocks and conflicts
 - Track agent utilization and task throughput
@@ -339,18 +356,21 @@ deno test --coverage=coverage tests/unit/coordination/
 ## Performance Characteristics
 
 ### Scalability
+
 - **Agents**: Supports 100+ concurrent agents
 - **Tasks**: Handles 1000+ tasks in queue
 - **Resources**: Manages 500+ shared resources
 - **Messages**: Processes 10,000+ messages/minute
 
 ### Latency
+
 - **Task Assignment**: < 10ms (99th percentile)
 - **Resource Acquisition**: < 50ms (99th percentile)
 - **Message Delivery**: < 5ms (99th percentile)
 - **Conflict Resolution**: < 100ms (99th percentile)
 
 ### Reliability
+
 - **Deadlock Detection**: Sub-second detection
 - **Circuit Breaker**: Configurable failure thresholds
 - **Retry Logic**: Exponential backoff with jitter
@@ -361,16 +381,19 @@ deno test --coverage=coverage tests/unit/coordination/
 ### Common Issues
 
 1. **Deadlocks**
+
    - Enable deadlock detection
    - Reduce resource holding time
    - Use consistent resource ordering
 
 2. **Performance Issues**
+
    - Enable work stealing
    - Monitor agent utilization
    - Optimize task granularity
 
 3. **Resource Contention**
+
    - Increase resource timeout
    - Implement priority queuing
    - Use optimistic locking where possible

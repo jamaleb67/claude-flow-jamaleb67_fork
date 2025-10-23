@@ -1,48 +1,29 @@
-import { getErrorMessage } from '../../utils/error-handler.js';
 /**
- * Comprehensive help system for Claude-Flow CLI
+ * Standardized help system for Claude-Flow CLI
+ * Follows Unix/Linux conventions for help output
  */
 
-import { Command } from 'commander';
+import { Command } from '../commander-fix.js';
+import { HelpFormatter, CommandInfo, CommandItem, OptionItem } from '../help-formatter.js';
 import chalk from 'chalk';
-import * as Table from 'cli-table3';
+import Table from 'cli-table3';
 import inquirer from 'inquirer';
 
 export const helpCommand = new Command()
-  .description('Comprehensive help system with examples and tutorials')
-  .argument('[topic:string]')
-  .option('-i, --interactive', 'Start interactive help mode')
-  .option('-e, --examples', 'Show examples for the topic')
-  .option('--tutorial', 'Show tutorial for the topic')
-  .option('--all', 'Show all available help topics')
-  .action(async (options: any, topic: string | undefined) => {
-    if (options.interactive) {
-      await startInteractiveHelp();
-    } else if (options.all) {
-      showAllTopics();
-    } else if (topic) {
-      await showTopicHelp(topic, options);
+  .name('help')
+  .description('Show help information')
+  .argument('[command]', 'Command to show help for')
+  .option('--all', 'Show all available commands')
+  .action(async (command?: string, options?: any) => {
+    if (command) {
+      showCommandHelp(command);
     } else {
       showMainHelp();
     }
   });
 
-interface HelpTopic {
-  name: string;
-  description: string;
-  category: 'basic' | 'advanced' | 'workflow' | 'configuration' | 'troubleshooting';
-  examples?: HelpExample[];
-  tutorial?: string[];
-  related?: string[];
-}
-
-interface HelpExample {
-  description: string;
-  command: string;
-  explanation?: string;
-}
-
-const HELP_TOPICS: HelpTopic[] = [
+// Command-specific help definitions will be added here as needed
+const HELP_TOPICS = [
   {
     name: 'getting-started',
     description: 'Basic introduction to Claude-Flow',
@@ -67,9 +48,9 @@ const HELP_TOPICS: HelpTopic[] = [
       'You can also use the interactive REPL mode:',
       '   claude-flow repl',
       '',
-      'For more help, try: claude-flow help <topic>'
+      'For more help, try: claude-flow help <topic>',
     ],
-    related: ['agents', 'tasks', 'configuration']
+    related: ['agents', 'tasks', 'configuration'],
   },
   {
     name: 'agents',
@@ -79,23 +60,24 @@ const HELP_TOPICS: HelpTopic[] = [
       {
         description: 'Spawn a research agent',
         command: 'claude-flow agent spawn researcher --name "Research Assistant"',
-        explanation: 'Creates a new research agent with specialized capabilities for information gathering'
+        explanation:
+          'Creates a new research agent with specialized capabilities for information gathering',
       },
       {
         description: 'List all active agents',
         command: 'claude-flow agent list',
-        explanation: 'Shows all currently running agents with their status and task counts'
+        explanation: 'Shows all currently running agents with their status and task counts',
       },
       {
         description: 'Get detailed agent information',
         command: 'claude-flow agent info agent-001',
-        explanation: 'Displays comprehensive information about a specific agent'
+        explanation: 'Displays comprehensive information about a specific agent',
       },
       {
         description: 'Terminate an agent',
         command: 'claude-flow agent terminate agent-001',
-        explanation: 'Safely shuts down an agent and reassigns its tasks'
-      }
+        explanation: 'Safely shuts down an agent and reassigns its tasks',
+      },
     ],
     tutorial: [
       'Agents are the core workers in Claude-Flow. Each agent has:',
@@ -116,9 +98,9 @@ const HELP_TOPICS: HelpTopic[] = [
       '• Use descriptive names for your agents',
       '• Match agent types to your workflow needs',
       '• Monitor agent performance with "claude-flow status"',
-      '• Terminate idle agents to free resources'
+      '• Terminate idle agents to free resources',
     ],
-    related: ['tasks', 'workflows', 'coordination']
+    related: ['tasks', 'workflows', 'coordination'],
   },
   {
     name: 'tasks',
@@ -128,28 +110,29 @@ const HELP_TOPICS: HelpTopic[] = [
       {
         description: 'Create a research task',
         command: 'claude-flow task create research "Find papers on quantum computing" --priority 5',
-        explanation: 'Creates a high-priority research task with specific instructions'
+        explanation: 'Creates a high-priority research task with specific instructions',
       },
       {
         description: 'Create a task with dependencies',
-        command: 'claude-flow task create analysis "Analyze research results" --dependencies task-001',
-        explanation: 'Creates a task that waits for task-001 to complete before starting'
+        command:
+          'claude-flow task create analysis "Analyze research results" --dependencies task-001',
+        explanation: 'Creates a task that waits for task-001 to complete before starting',
       },
       {
         description: 'Assign task to specific agent',
         command: 'claude-flow task create implementation "Write API client" --assign agent-003',
-        explanation: 'Directly assigns a task to a specific agent'
+        explanation: 'Directly assigns a task to a specific agent',
       },
       {
         description: 'Monitor task progress',
         command: 'claude-flow task status task-001',
-        explanation: 'Shows detailed status and progress information for a task'
+        explanation: 'Shows detailed status and progress information for a task',
       },
       {
         description: 'Cancel a running task',
         command: 'claude-flow task cancel task-001 --reason "Requirements changed"',
-        explanation: 'Stops a task and provides a reason for cancellation'
-      }
+        explanation: 'Stops a task and provides a reason for cancellation',
+      },
     ],
     tutorial: [
       'Tasks are units of work that agents execute. Key concepts:',
@@ -174,9 +157,9 @@ const HELP_TOPICS: HelpTopic[] = [
       '• Tasks can depend on other tasks',
       '• Dependencies must complete before task starts',
       '• Use for sequential workflows',
-      '• Circular dependencies are not allowed'
+      '• Circular dependencies are not allowed',
     ],
-    related: ['agents', 'workflows', 'coordination']
+    related: ['agents', 'workflows', 'coordination'],
   },
   {
     name: 'claude',
@@ -186,28 +169,29 @@ const HELP_TOPICS: HelpTopic[] = [
       {
         description: 'Spawn Claude with web research capabilities',
         command: 'claude-flow claude spawn "implement user authentication" --research --parallel',
-        explanation: 'Creates a Claude instance with WebFetchTool and BatchTool for parallel web research'
+        explanation:
+          'Creates a Claude instance with WebFetchTool and BatchTool for parallel web research',
       },
       {
         description: 'Spawn Claude without permission prompts',
         command: 'claude-flow claude spawn "fix payment bug" --no-permissions',
-        explanation: 'Runs Claude with --dangerously-skip-permissions flag to avoid interruptions'
+        explanation: 'Runs Claude with --dangerously-skip-permissions flag to avoid interruptions',
       },
       {
         description: 'Spawn Claude with custom tools',
         command: 'claude-flow claude spawn "analyze codebase" --tools "View,Edit,GrepTool,LS"',
-        explanation: 'Specifies exactly which tools Claude can use for the task'
+        explanation: 'Specifies exactly which tools Claude can use for the task',
       },
       {
         description: 'Spawn Claude with test coverage target',
         command: 'claude-flow claude spawn "write unit tests" --coverage 95 --commit feature',
-        explanation: 'Sets test coverage goal to 95% and commits after each feature'
+        explanation: 'Sets test coverage goal to 95% and commits after each feature',
       },
       {
         description: 'Dry run to preview command',
         command: 'claude-flow claude spawn "build API" --mode backend-only --dry-run',
-        explanation: 'Shows what would be executed without actually running Claude'
-      }
+        explanation: 'Shows what would be executed without actually running Claude',
+      },
     ],
     tutorial: [
       'The claude spawn command launches Claude instances with specific configurations.',
@@ -235,9 +219,9 @@ const HELP_TOPICS: HelpTopic[] = [
       '• API development: --mode backend-only --coverage 90',
       '• Bug fixing: --no-permissions --verbose',
       '• Research tasks: --research --parallel',
-      '• Test writing: --coverage 95 --commit feature'
+      '• Test writing: --coverage 95 --commit feature',
     ],
-    related: ['agents', 'tasks', 'workflows']
+    related: ['agents', 'tasks', 'workflows'],
   },
   {
     name: 'workflows',
@@ -247,28 +231,28 @@ const HELP_TOPICS: HelpTopic[] = [
       {
         description: 'Run a workflow from file',
         command: 'claude-flow workflow run research-pipeline.json --watch',
-        explanation: 'Executes a workflow definition and monitors progress in real-time'
+        explanation: 'Executes a workflow definition and monitors progress in real-time',
       },
       {
         description: 'Validate workflow before running',
         command: 'claude-flow workflow validate my-workflow.json --strict',
-        explanation: 'Checks workflow syntax and dependencies without executing'
+        explanation: 'Checks workflow syntax and dependencies without executing',
       },
       {
         description: 'Generate workflow template',
         command: 'claude-flow workflow template research --output research-workflow.json',
-        explanation: 'Creates a pre-configured workflow template for research tasks'
+        explanation: 'Creates a pre-configured workflow template for research tasks',
       },
       {
         description: 'Monitor running workflows',
         command: 'claude-flow workflow list --all',
-        explanation: 'Shows all workflows including completed ones'
+        explanation: 'Shows all workflows including completed ones',
       },
       {
         description: 'Stop a running workflow',
         command: 'claude-flow workflow stop workflow-001 --force',
-        explanation: 'Immediately stops all tasks in a workflow'
-      }
+        explanation: 'Immediately stops all tasks in a workflow',
+      },
     ],
     tutorial: [
       'Workflows orchestrate multiple tasks and agents. Structure:',
@@ -309,9 +293,9 @@ const HELP_TOPICS: HelpTopic[] = [
       '• Start with simple workflows',
       '• Use descriptive task names',
       '• Plan dependencies carefully',
-      '• Test with --dry-run first'
+      '• Test with --dry-run first',
     ],
-    related: ['tasks', 'agents', 'templates']
+    related: ['tasks', 'agents', 'templates'],
   },
   {
     name: 'configuration',
@@ -321,28 +305,28 @@ const HELP_TOPICS: HelpTopic[] = [
       {
         description: 'Initialize default configuration',
         command: 'claude-flow config init --template development',
-        explanation: 'Creates a configuration file optimized for development'
+        explanation: 'Creates a configuration file optimized for development',
       },
       {
         description: 'View current configuration',
         command: 'claude-flow config show --diff',
-        explanation: 'Shows only settings that differ from defaults'
+        explanation: 'Shows only settings that differ from defaults',
       },
       {
         description: 'Update a setting',
         command: 'claude-flow config set orchestrator.maxConcurrentAgents 20',
-        explanation: 'Changes the maximum number of concurrent agents'
+        explanation: 'Changes the maximum number of concurrent agents',
       },
       {
         description: 'Save configuration profile',
         command: 'claude-flow config profile save production',
-        explanation: 'Saves current settings as a named profile'
+        explanation: 'Saves current settings as a named profile',
       },
       {
         description: 'Load configuration profile',
         command: 'claude-flow config profile load development',
-        explanation: 'Switches to a previously saved configuration profile'
-      }
+        explanation: 'Switches to a previously saved configuration profile',
+      },
     ],
     tutorial: [
       'Configuration controls all aspects of Claude-Flow behavior.',
@@ -375,9 +359,9 @@ const HELP_TOPICS: HelpTopic[] = [
       'Environment Variables:',
       '• CLAUDE_FLOW_LOG_LEVEL: Override log level',
       '• CLAUDE_FLOW_MAX_AGENTS: Override agent limit',
-      '• CLAUDE_FLOW_MCP_PORT: Override MCP port'
+      '• CLAUDE_FLOW_MCP_PORT: Override MCP port',
     ],
-    related: ['profiles', 'environment', 'troubleshooting']
+    related: ['profiles', 'environment', 'troubleshooting'],
   },
   {
     name: 'monitoring',
@@ -387,23 +371,23 @@ const HELP_TOPICS: HelpTopic[] = [
       {
         description: 'Check system status',
         command: 'claude-flow status --watch',
-        explanation: 'Continuously monitors system health and updates every few seconds'
+        explanation: 'Continuously monitors system health and updates every few seconds',
       },
       {
         description: 'Start monitoring dashboard',
         command: 'claude-flow monitor --interval 5',
-        explanation: 'Opens a live dashboard with real-time metrics and graphs'
+        explanation: 'Opens a live dashboard with real-time metrics and graphs',
       },
       {
         description: 'View component-specific status',
         command: 'claude-flow status --component orchestrator',
-        explanation: 'Shows detailed status for a specific system component'
+        explanation: 'Shows detailed status for a specific system component',
       },
       {
         description: 'Monitor in compact mode',
         command: 'claude-flow monitor --compact --no-graphs',
-        explanation: 'Simplified monitoring view without visual graphs'
-      }
+        explanation: 'Simplified monitoring view without visual graphs',
+      },
     ],
     tutorial: [
       'Claude-Flow provides comprehensive monitoring capabilities.',
@@ -431,9 +415,9 @@ const HELP_TOPICS: HelpTopic[] = [
       '• High CPU: Too many concurrent tasks',
       '• High Memory: Large cache or memory leaks',
       '• Failed Tasks: Agent or system issues',
-      '• Slow Performance: Resource constraints'
+      '• Slow Performance: Resource constraints',
     ],
-    related: ['status', 'performance', 'troubleshooting']
+    related: ['status', 'performance', 'troubleshooting'],
   },
   {
     name: 'sessions',
@@ -442,29 +426,30 @@ const HELP_TOPICS: HelpTopic[] = [
     examples: [
       {
         description: 'Save current session',
-        command: 'claude-flow session save "Development Session" --description "Working on API integration"',
-        explanation: 'Saves all current agents, tasks, and memory state'
+        command:
+          'claude-flow session save "Development Session" --description "Working on API integration"',
+        explanation: 'Saves all current agents, tasks, and memory state',
       },
       {
         description: 'List saved sessions',
         command: 'claude-flow session list',
-        explanation: 'Shows all saved sessions with creation dates and metadata'
+        explanation: 'Shows all saved sessions with creation dates and metadata',
       },
       {
         description: 'Restore a session',
         command: 'claude-flow session restore session-001 --merge',
-        explanation: 'Restores session state, merging with current state'
+        explanation: 'Restores session state, merging with current state',
       },
       {
         description: 'Export session to file',
         command: 'claude-flow session export session-001 backup.json --include-memory',
-        explanation: 'Creates a portable backup including agent memory'
+        explanation: 'Creates a portable backup including agent memory',
       },
       {
         description: 'Clean up old sessions',
         command: 'claude-flow session clean --older-than 30 --dry-run',
-        explanation: 'Shows what sessions would be deleted (older than 30 days)'
-      }
+        explanation: 'Shows what sessions would be deleted (older than 30 days)',
+      },
     ],
     tutorial: [
       'Sessions capture the complete state of your Claude-Flow environment.',
@@ -493,9 +478,9 @@ const HELP_TOPICS: HelpTopic[] = [
       '• Use descriptive names and tags',
       '• Regular cleanup of old sessions',
       '• Export important sessions as backups',
-      '• Test restore before relying on sessions'
+      '• Test restore before relying on sessions',
     ],
-    related: ['backup', 'state', 'persistence']
+    related: ['backup', 'state', 'persistence'],
   },
   {
     name: 'repl',
@@ -505,18 +490,18 @@ const HELP_TOPICS: HelpTopic[] = [
       {
         description: 'Start REPL mode',
         command: 'claude-flow repl',
-        explanation: 'Opens interactive command line with tab completion'
+        explanation: 'Opens interactive command line with tab completion',
       },
       {
         description: 'REPL with custom history file',
         command: 'claude-flow repl --history-file .my-history',
-        explanation: 'Uses a specific file for command history'
+        explanation: 'Uses a specific file for command history',
       },
       {
         description: 'Skip welcome banner',
         command: 'claude-flow repl --no-banner',
-        explanation: 'Starts REPL in minimal mode'
-      }
+        explanation: 'Starts REPL in minimal mode',
+      },
     ],
     tutorial: [
       'The REPL (Read-Eval-Print Loop) provides an interactive interface.',
@@ -541,9 +526,9 @@ const HELP_TOPICS: HelpTopic[] = [
       '• Check connection status regularly',
       '• Use "help <command>" for detailed help',
       '• History is saved between sessions',
-      '• Ctrl+C or "exit" to quit'
+      '• Ctrl+C or "exit" to quit',
     ],
-    related: ['completion', 'interactive', 'commands']
+    related: ['completion', 'interactive', 'commands'],
   },
   {
     name: 'troubleshooting',
@@ -553,23 +538,23 @@ const HELP_TOPICS: HelpTopic[] = [
       {
         description: 'Check system health',
         command: 'claude-flow status --component all',
-        explanation: 'Comprehensive health check of all components'
+        explanation: 'Comprehensive health check of all components',
       },
       {
         description: 'Enable debug logging',
         command: 'claude-flow start --log-level debug',
-        explanation: 'Start with verbose logging for debugging'
+        explanation: 'Start with verbose logging for debugging',
       },
       {
         description: 'Validate configuration',
         command: 'claude-flow config validate claude-flow.config.json --strict',
-        explanation: 'Check configuration file for errors'
+        explanation: 'Check configuration file for errors',
       },
       {
         description: 'Reset to defaults',
         command: 'claude-flow config reset --confirm',
-        explanation: 'Restore default configuration settings'
-      }
+        explanation: 'Restore default configuration settings',
+      },
     ],
     tutorial: [
       'Common issues and solutions:',
@@ -603,89 +588,241 @@ const HELP_TOPICS: HelpTopic[] = [
       '• claude-flow status: System health check',
       '• claude-flow config validate: Configuration check',
       '• claude-flow --verbose: Enable detailed logging',
-      '• claude-flow monitor: Real-time diagnostics'
+      '• claude-flow monitor: Real-time diagnostics',
     ],
-    related: ['monitoring', 'configuration', 'debugging']
-  }
+    related: ['monitoring', 'configuration', 'debugging'],
+  },
 ];
 
 function showMainHelp(): void {
-  console.log(chalk.cyan.bold('Claude-Flow Help System'));
-  console.log('─'.repeat(50));
-  console.log();
-  
-  console.log(chalk.white('Claude-Flow is an advanced AI agent orchestration system.'));
-  console.log(chalk.white('Use this help system to learn about features and best practices.'));
-  console.log();
-  
-  console.log(chalk.yellow.bold('Quick Start:'));
-  console.log(chalk.gray('  claude-flow help getting-started    # Beginner tutorial'));
-  console.log(chalk.gray('  claude-flow help --interactive      # Interactive help mode'));
-  console.log(chalk.gray('  claude-flow help <topic>            # Specific topic help'));
-  console.log();
-  
-  console.log(chalk.yellow.bold('Help Categories:'));
-  
-  const categories = {
-    basic: 'Essential concepts and commands',
-    workflow: 'Building and managing workflows',
-    configuration: 'System configuration and profiles',
-    advanced: 'Advanced features and monitoring',
-    troubleshooting: 'Problem diagnosis and solutions'
+  const mainHelp: CommandInfo = {
+    name: 'claude-flow',
+    description: 'Advanced AI agent orchestration system',
+    usage: `claude-flow <command> [<args>] [options]
+    claude-flow <command> --help
+    claude-flow --version`,
+    commands: [
+      {
+        name: 'hive-mind',
+        description: 'Manage hive mind swarm intelligence',
+      },
+      {
+        name: 'init',
+        description: 'Initialize Claude Flow configuration',
+      },
+      {
+        name: 'start',
+        description: 'Start orchestration system',
+      },
+      {
+        name: 'swarm',
+        description: 'Execute multi-agent swarm coordination',
+      },
+      {
+        name: 'agent',
+        description: 'Manage individual agents',
+      },
+      {
+        name: 'sparc',
+        description: 'Execute SPARC development modes',
+      },
+      {
+        name: 'memory',
+        description: 'Manage persistent memory operations',
+      },
+      {
+        name: 'github',
+        description: 'Automate GitHub workflows',
+      },
+      {
+        name: 'status',
+        description: 'Show system status and health',
+      },
+      {
+        name: 'config',
+        description: 'Manage configuration settings',
+      },
+      {
+        name: 'session',
+        description: 'Manage sessions and state persistence',
+      },
+      {
+        name: 'help',
+        description: 'Show help information',
+      },
+    ],
+    globalOptions: [
+      {
+        flags: '--config <path>',
+        description: 'Configuration file path',
+        defaultValue: '.claude/config.json',
+      },
+      {
+        flags: '--verbose',
+        description: 'Enable verbose output',
+      },
+      {
+        flags: '--quiet',
+        description: 'Suppress non-error output',
+      },
+      {
+        flags: '--json',
+        description: 'Output in JSON format',
+      },
+      {
+        flags: '--help',
+        description: 'Show help information',
+      },
+      {
+        flags: '--version',
+        description: 'Show version information',
+      },
+    ],
+    examples: [
+      'claude-flow init --sparc',
+      'claude-flow hive-mind wizard',
+      'claude-flow swarm "Build REST API"',
+      'claude-flow status --json',
+    ],
   };
-  
-  for (const [category, description] of Object.entries(categories)) {
-    console.log();
-    console.log(chalk.cyan.bold(`${category.toUpperCase()}:`));
-    console.log(chalk.white(`  ${description}`));
-    
-    const topics = HELP_TOPICS.filter(t => t.category === category);
-    for (const topic of topics) {
-      console.log(chalk.gray(`    ${topic.name.padEnd(20)} ${topic.description}`));
-    }
+
+  console.log(HelpFormatter.formatHelp(mainHelp));
+}
+
+function showCommandHelp(command: string): void {
+  const commandHelp = getCommandHelp(command);
+  if (commandHelp) {
+    console.log(HelpFormatter.formatHelp(commandHelp));
+  } else {
+    console.error(
+      HelpFormatter.formatError(
+        `Unknown command: ${command}`,
+        'claude-flow help',
+        'claude-flow help [command]',
+      ),
+    );
   }
-  
-  console.log();
-  console.log(chalk.gray('Use "claude-flow help <topic>" for detailed information.'));
-  console.log(chalk.gray('Use "claude-flow help --all" to see all topics.'));
+}
+
+function getCommandHelp(command: string): CommandInfo | null {
+  const commandHelpMap: Record<string, CommandInfo> = {
+    'hive-mind': {
+      name: 'claude-flow hive-mind',
+      description: 'Manage hive mind swarm intelligence',
+      usage: 'claude-flow hive-mind <subcommand> [options]',
+      commands: [
+        { name: 'init', description: 'Initialize hive mind system' },
+        { name: 'spawn', description: 'Create intelligent swarm with objective' },
+        { name: 'status', description: 'View active swarms and metrics' },
+        { name: 'stop', description: 'Stop a running swarm' },
+        { name: 'ps', description: 'List all running processes' },
+        { name: 'resume', description: 'Resume a paused swarm' },
+        { name: 'wizard', description: 'Interactive setup wizard' },
+      ],
+      options: [
+        {
+          flags: '--queen-type <type>',
+          description: 'Queen coordination type',
+          defaultValue: 'adaptive',
+          validValues: ['strategic', 'tactical', 'adaptive'],
+        },
+        {
+          flags: '--workers <count>',
+          description: 'Number of worker agents',
+          defaultValue: '5',
+        },
+        {
+          flags: '--timeout <seconds>',
+          description: 'Operation timeout',
+          defaultValue: '300',
+        },
+        {
+          flags: '--no-consensus',
+          description: 'Disable consensus requirements',
+        },
+        {
+          flags: '--help',
+          description: 'Show this help message',
+        },
+      ],
+      examples: [
+        'claude-flow hive-mind spawn "Build REST API" --queen-type strategic',
+        'claude-flow hive-mind status --json',
+        'claude-flow hive-mind stop swarm-123',
+      ],
+    },
+    agent: {
+      name: 'claude-flow agent',
+      description: 'Manage individual agents',
+      usage: 'claude-flow agent <action> [options]',
+      commands: [
+        { name: 'spawn', description: 'Create a new agent' },
+        { name: 'list', description: 'List all active agents' },
+        { name: 'info', description: 'Show agent details' },
+        { name: 'terminate', description: 'Stop an agent' },
+      ],
+      options: [
+        {
+          flags: '--type <type>',
+          description: 'Agent type',
+          validValues: ['coordinator', 'researcher', 'coder', 'analyst', 'tester'],
+        },
+        {
+          flags: '--name <name>',
+          description: 'Agent name',
+        },
+        {
+          flags: '--json',
+          description: 'Output in JSON format',
+        },
+        {
+          flags: '--help',
+          description: 'Show this help message',
+        },
+      ],
+      examples: [
+        'claude-flow agent spawn researcher --name "Research Bot"',
+        'claude-flow agent list --json',
+        'claude-flow agent terminate agent-123',
+      ],
+    },
+  };
+
+  return commandHelpMap[command] || null;
 }
 
 function showAllTopics(): void {
   console.log(chalk.cyan.bold('All Help Topics'));
   console.log('─'.repeat(50));
-  
-  const table = new Table.default({
+
+  const table = new (Table as any)({
     head: ['Topic', 'Category', 'Description'],
-    style: { head: ['cyan'] }
+    style: { head: ['cyan'] },
   });
 
   for (const topic of HELP_TOPICS) {
-    table.push([
-      chalk.cyan(topic.name),
-      chalk.yellow(topic.category),
-      topic.description
-    ]);
+    table.push([chalk.cyan(topic.name), chalk.yellow(topic.category), topic.description]);
   }
-  
+
   console.log(table.toString());
-  
+
   console.log();
   console.log(chalk.gray('Use "claude-flow help <topic>" for detailed information.'));
 }
 
 async function showTopicHelp(topicName: string, options: any): Promise<void> {
-  const topic = HELP_TOPICS.find(t => t.name === topicName);
-  
+  const topic = HELP_TOPICS.find((t) => t.name === topicName);
+
   if (!topic) {
     console.log(chalk.red(`Help topic '${topicName}' not found.`));
     console.log();
-    
+
     // Suggest similar topics
-    const similar = HELP_TOPICS.filter(t => 
-      t.name.includes(topicName) || 
-      t.description.toLowerCase().includes(topicName.toLowerCase())
+    const similar = HELP_TOPICS.filter(
+      (t) =>
+        t.name.includes(topicName) || t.description.toLowerCase().includes(topicName.toLowerCase()),
     );
-    
+
     if (similar.length > 0) {
       console.log(chalk.gray('Did you mean:'));
       for (const suggestion of similar) {
@@ -696,12 +833,12 @@ async function showTopicHelp(topicName: string, options: any): Promise<void> {
     }
     return;
   }
-  
+
   console.log(chalk.cyan.bold(`Help: ${topic.name}`));
   console.log('─'.repeat(50));
   console.log(chalk.white(topic.description));
   console.log();
-  
+
   if (options.tutorial && topic.tutorial) {
     console.log(chalk.yellow.bold('Tutorial:'));
     console.log('─'.repeat(20));
@@ -716,7 +853,7 @@ async function showTopicHelp(topicName: string, options: any): Promise<void> {
     }
     console.log();
   }
-  
+
   if (options.examples && topic.examples) {
     console.log(chalk.yellow.bold('Examples:'));
     console.log('─'.repeat(20));
@@ -729,7 +866,7 @@ async function showTopicHelp(topicName: string, options: any): Promise<void> {
       console.log();
     }
   }
-  
+
   if (!options.examples && !options.tutorial) {
     // Show both by default
     if (topic.tutorial) {
@@ -747,7 +884,7 @@ async function showTopicHelp(topicName: string, options: any): Promise<void> {
       console.log(chalk.gray('Use --tutorial for complete tutorial.'));
       console.log();
     }
-    
+
     if (topic.examples) {
       console.log(chalk.yellow.bold('Common Examples:'));
       console.log('─'.repeat(20));
@@ -764,7 +901,7 @@ async function showTopicHelp(topicName: string, options: any): Promise<void> {
       console.log();
     }
   }
-  
+
   if (topic.related && topic.related.length > 0) {
     console.log(chalk.yellow.bold('Related Topics:'));
     console.log('─'.repeat(20));
@@ -779,7 +916,7 @@ async function startInteractiveHelp(): Promise<void> {
   console.log(chalk.cyan.bold('Interactive Help Mode'));
   console.log('─'.repeat(30));
   console.log();
-  
+
   while (true) {
     const categories = [
       { name: 'Getting Started', value: 'getting-started' },
@@ -792,39 +929,45 @@ async function startInteractiveHelp(): Promise<void> {
       { name: 'REPL Mode', value: 'repl' },
       { name: 'Troubleshooting', value: 'troubleshooting' },
       { name: 'Browse All Topics', value: 'all' },
-      { name: 'Exit', value: 'exit' }
+      { name: 'Exit', value: 'exit' },
     ];
-    
-    const result = await inquirer.prompt([{
-      type: 'list',
-      name: 'choice',
-      message: 'What would you like help with?',
-      choices: categories,
-    }]);
-    
+
+    const result = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'choice',
+        message: 'What would you like help with?',
+        choices: categories,
+      },
+    ]);
+
     const choice = result.choice;
-    
+
     if (choice === 'exit') {
       console.log(chalk.gray('Goodbye!'));
       break;
     }
-    
+
     console.log();
-    
+
     if (choice === 'all') {
       showAllTopics();
     } else {
       await showTopicHelp(choice, { tutorial: true, examples: true });
     }
-    
+
     console.log();
     console.log(chalk.gray('Press Enter to continue...'));
-    await new Promise(resolve => {
-      const stdin = Deno.stdin;
-      const buffer = new Uint8Array(1);
-      stdin.read(buffer).then(() => resolve(undefined));
+    await new Promise((resolve) => {
+      process.stdin.setRawMode(true);
+      process.stdin.resume();
+      process.stdin.once('data', () => {
+        process.stdin.setRawMode(false);
+        process.stdin.pause();
+        resolve(undefined);
+      });
     });
-    
+
     console.clear();
   }
 }

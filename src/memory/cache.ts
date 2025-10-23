@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Memory cache implementation with LRU eviction
  */
@@ -32,7 +31,7 @@ export class MemoryCache {
    */
   get(id: string): MemoryEntry | undefined {
     const entry = this.cache.get(id);
-    
+
     if (!entry) {
       this.misses++;
       return undefined;
@@ -41,7 +40,7 @@ export class MemoryCache {
     // Update access time
     entry.lastAccessed = Date.now();
     this.hits++;
-    
+
     return entry.data;
   }
 
@@ -89,14 +88,14 @@ export class MemoryCache {
    */
   getByPrefix(prefix: string): MemoryEntry[] {
     const results: MemoryEntry[] = [];
-    
+
     for (const [id, entry] of this.cache) {
       if (id.startsWith(prefix)) {
         entry.lastAccessed = Date.now();
         results.push(entry.data);
       }
     }
-    
+
     return results;
   }
 
@@ -105,13 +104,13 @@ export class MemoryCache {
    */
   getDirtyEntries(): MemoryEntry[] {
     const dirtyEntries: MemoryEntry[] = [];
-    
+
     for (const entry of this.cache.values()) {
       if (entry.dirty) {
         dirtyEntries.push(entry.data);
       }
     }
-    
+
     return dirtyEntries;
   }
 
@@ -131,7 +130,7 @@ export class MemoryCache {
    * Gets all entries
    */
   getAllEntries(): MemoryEntry[] {
-    return Array.from(this.cache.values()).map(entry => entry.data);
+    return Array.from(this.cache.values()).map((entry) => entry.data);
   }
 
   /**
@@ -177,40 +176,41 @@ export class MemoryCache {
   private calculateSize(entry: MemoryEntry): number {
     // Rough estimate of memory size
     let size = 0;
-    
+
     // String fields
     size += entry.id.length * 2; // UTF-16
     size += entry.agentId.length * 2;
     size += entry.sessionId.length * 2;
     size += entry.type.length * 2;
     size += entry.content.length * 2;
-    
+
     // Tags
     size += entry.tags.reduce((sum, tag) => sum + tag.length * 2, 0);
-    
+
     // JSON objects (rough estimate)
     size += JSON.stringify(entry.context).length * 2;
     if (entry.metadata) {
       size += JSON.stringify(entry.metadata).length * 2;
     }
-    
+
     // Fixed size fields
     size += 8; // timestamp
     size += 4; // version
     size += 100; // overhead
-    
+
     return size;
   }
 
   private evict(requiredSpace: number): void {
-    this.logger.debug('Cache eviction triggered', { 
+    this.logger.debug('Cache eviction triggered', {
       requiredSpace,
       currentSize: this.currentSize,
     });
 
     // Sort entries by last accessed time (oldest first)
-    const entries = Array.from(this.cache.entries())
-      .sort((a, b) => a[1].lastAccessed - b[1].lastAccessed);
+    const entries = Array.from(this.cache.entries()).sort(
+      (a, b) => a[1].lastAccessed - b[1].lastAccessed,
+    );
 
     let freedSpace = 0;
     const evicted: string[] = [];
@@ -231,7 +231,7 @@ export class MemoryCache {
       evicted.push(id);
     }
 
-    this.logger.debug('Cache entries evicted', { 
+    this.logger.debug('Cache entries evicted', {
       count: evicted.length,
       freedSpace,
     });

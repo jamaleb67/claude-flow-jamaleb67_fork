@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Advanced Memory Management System with comprehensive capabilities
  * Includes indexing, compression, cross-agent sharing, and intelligent cleanup
@@ -186,12 +185,12 @@ export class AdvancedMemoryManager extends EventEmitter {
   private readonly indexPath: string;
   private readonly backupPath: string;
   private readonly archivePath: string;
-  
+
   private entries = new Map<string, MemoryEntry>();
   private index: MemoryIndex;
   private cache = new Map<string, { entry: MemoryEntry; expiry: number }>();
   private retentionPolicies = new Map<string, RetentionPolicy>();
-  
+
   private logger: ILogger;
   private config: {
     maxMemorySize: number;
@@ -210,9 +209,12 @@ export class AdvancedMemoryManager extends EventEmitter {
   private operationMetrics = new Map<string, { count: number; totalTime: number }>();
   private cleanupInterval?: NodeJS.Timeout;
 
-  constructor(config: Partial<typeof AdvancedMemoryManager.prototype.config> = {}, logger: ILogger) {
+  constructor(
+    config: Partial<typeof AdvancedMemoryManager.prototype.config> = {},
+    logger: ILogger,
+  ) {
     super();
-    
+
     this.logger = logger;
     this.config = {
       maxMemorySize: 1024 * 1024 * 1024, // 1GB
@@ -225,7 +227,7 @@ export class AdvancedMemoryManager extends EventEmitter {
       persistenceEnabled: true,
       compressionThreshold: 1024, // 1KB
       backupRetention: 7, // days
-      ...config
+      ...config,
     };
 
     // Setup file paths
@@ -249,7 +251,7 @@ export class AdvancedMemoryManager extends EventEmitter {
       fs.mkdir(this.dataPath, { recursive: true }),
       fs.mkdir(this.indexPath, { recursive: true }),
       fs.mkdir(this.backupPath, { recursive: true }),
-      fs.mkdir(this.archivePath, { recursive: true })
+      fs.mkdir(this.archivePath, { recursive: true }),
     ]);
 
     // Load persisted data
@@ -299,18 +301,18 @@ export class AdvancedMemoryManager extends EventEmitter {
       accessLevel?: 'private' | 'shared' | 'public';
       ttl?: number;
       compress?: boolean;
-    } = {}
+    } = {},
   ): Promise<string> {
     const startTime = Date.now();
-    
+
     try {
       const entryId = generateId('entry');
       const now = new Date();
-      
+
       // Process value (compression, serialization)
       const processedValue = await this.processValue(value, options.compress);
       const size = this.calculateSize(processedValue);
-      
+
       // Create entry
       const entry: MemoryEntry = {
         id: entryId,
@@ -331,29 +333,28 @@ export class AdvancedMemoryManager extends EventEmitter {
         compressed: processedValue.compressed,
         checksum: this.calculateChecksum(processedValue.value),
         references: [],
-        dependencies: []
+        dependencies: [],
       };
 
       // Store entry
       this.entries.set(entryId, entry);
-      
+
       // Update index
       if (this.config.indexingEnabled) {
         this.updateIndex(entry, 'create');
       }
-      
+
       // Update cache
       this.updateCache(key, entry);
-      
+
       // Apply retention policies
       await this.applyRetentionPolicies(entry);
 
       this.logger.debug('Memory entry stored', { entryId, key, namespace: entry.namespace });
       this.emit('memory:entry-stored', { entry });
-      
+
       this.recordMetric('store', Date.now() - startTime);
       return entryId;
-
     } catch (error) {
       this.recordMetric('store-error', Date.now() - startTime);
       throw error;
@@ -365,10 +366,10 @@ export class AdvancedMemoryManager extends EventEmitter {
     options: {
       namespace?: string;
       updateLastAccessed?: boolean;
-    } = {}
+    } = {},
   ): Promise<MemoryEntry | null> {
     const startTime = Date.now();
-    
+
     try {
       // Check cache first
       const cached = this.cache.get(key);
@@ -406,7 +407,6 @@ export class AdvancedMemoryManager extends EventEmitter {
 
       this.recordMetric('retrieve', Date.now() - startTime);
       return entry;
-
     } catch (error) {
       this.recordMetric('retrieve-error', Date.now() - startTime);
       throw error;
@@ -420,10 +420,10 @@ export class AdvancedMemoryManager extends EventEmitter {
       namespace?: string;
       merge?: boolean;
       updateMetadata?: Record<string, any>;
-    } = {}
+    } = {},
   ): Promise<boolean> {
     const startTime = Date.now();
-    
+
     try {
       const entry = await this.retrieve(key, { namespace: options.namespace });
       if (!entry) {
@@ -433,20 +433,20 @@ export class AdvancedMemoryManager extends EventEmitter {
 
       // Process new value
       const processedValue = await this.processValue(value, entry.compressed);
-      
+
       // Update entry
       if (options.merge && typeof entry.value === 'object' && typeof value === 'object') {
         entry.value = { ...entry.value, ...processedValue.value };
       } else {
         entry.value = processedValue.value;
       }
-      
+
       entry.updatedAt = new Date();
       entry.lastAccessedAt = new Date();
       entry.version++;
       entry.size = this.calculateSize(entry.value);
       entry.checksum = this.calculateChecksum(entry.value);
-      
+
       if (options.updateMetadata) {
         entry.metadata = { ...entry.metadata, ...options.updateMetadata };
       }
@@ -461,10 +461,9 @@ export class AdvancedMemoryManager extends EventEmitter {
 
       this.logger.debug('Memory entry updated', { entryId: entry.id, key });
       this.emit('memory:entry-updated', { entry });
-      
+
       this.recordMetric('update', Date.now() - startTime);
       return true;
-
     } catch (error) {
       this.recordMetric('update-error', Date.now() - startTime);
       throw error;
@@ -473,7 +472,7 @@ export class AdvancedMemoryManager extends EventEmitter {
 
   async deleteEntry(entryId: string): Promise<boolean> {
     const startTime = Date.now();
-    
+
     try {
       const entry = this.entries.get(entryId);
       if (!entry) {
@@ -483,21 +482,20 @@ export class AdvancedMemoryManager extends EventEmitter {
 
       // Remove from storage
       this.entries.delete(entryId);
-      
+
       // Update index
       if (this.config.indexingEnabled) {
         this.updateIndex(entry, 'delete');
       }
-      
+
       // Remove from cache
       this.cache.delete(entry.key);
 
       this.logger.debug('Memory entry deleted', { entryId, key: entry.key });
       this.emit('memory:entry-deleted', { entryId });
-      
+
       this.recordMetric('delete', Date.now() - startTime);
       return true;
-
     } catch (error) {
       this.recordMetric('delete-error', Date.now() - startTime);
       throw error;
@@ -512,7 +510,7 @@ export class AdvancedMemoryManager extends EventEmitter {
     aggregations?: Record<string, any>;
   }> {
     const startTime = Date.now();
-    
+
     try {
       let candidateEntries: MemoryEntry[] = [];
 
@@ -524,13 +522,13 @@ export class AdvancedMemoryManager extends EventEmitter {
       }
 
       // Apply filters
-      let filteredEntries = candidateEntries.filter(entry => {
+      let filteredEntries = candidateEntries.filter((entry) => {
         return this.matchesQuery(entry, options);
       });
 
       // Remove expired entries
       if (!options.includeExpired) {
-        filteredEntries = filteredEntries.filter(entry => {
+        filteredEntries = filteredEntries.filter((entry) => {
           if (entry.expiresAt && entry.expiresAt < new Date()) {
             // Schedule for deletion
             setTimeout(() => this.deleteEntry(entry.id), 0);
@@ -548,7 +546,7 @@ export class AdvancedMemoryManager extends EventEmitter {
           const aVal = this.getPropertyValue(a, options.sortBy!);
           const bVal = this.getPropertyValue(b, options.sortBy!);
           const multiplier = options.sortOrder === 'desc' ? -1 : 1;
-          
+
           if (aVal < bVal) return -1 * multiplier;
           if (aVal > bVal) return 1 * multiplier;
           return 0;
@@ -561,7 +559,7 @@ export class AdvancedMemoryManager extends EventEmitter {
       const paginatedEntries = filteredEntries.slice(offset, offset + limit);
 
       // Update last accessed times
-      paginatedEntries.forEach(entry => {
+      paginatedEntries.forEach((entry) => {
         entry.lastAccessedAt = new Date();
       });
 
@@ -572,13 +570,12 @@ export class AdvancedMemoryManager extends EventEmitter {
       }
 
       this.recordMetric('query', Date.now() - startTime);
-      
+
       return {
         entries: paginatedEntries,
         total,
-        aggregations
+        aggregations,
       };
-
     } catch (error) {
       this.recordMetric('query-error', Date.now() - startTime);
       throw error;
@@ -587,13 +584,16 @@ export class AdvancedMemoryManager extends EventEmitter {
 
   // === EXPORT OPERATIONS ===
 
-  async export(filePath: string, options: ExportOptions): Promise<{
+  async export(
+    filePath: string,
+    options: ExportOptions,
+  ): Promise<{
     entriesExported: number;
     fileSize: number;
     checksum: string;
   }> {
     const startTime = Date.now();
-    
+
     try {
       this.logger.info('Starting memory export', { filePath, format: options.format });
 
@@ -607,7 +607,7 @@ export class AdvancedMemoryManager extends EventEmitter {
 
       // Prepare export data
       let exportData: any;
-      
+
       switch (options.format) {
         case 'json':
           exportData = this.prepareJsonExport(entries, options);
@@ -643,16 +643,16 @@ export class AdvancedMemoryManager extends EventEmitter {
       const stats = await fs.stat(filePath);
       const checksum = this.calculateChecksum(exportData);
 
-      this.logger.info('Memory export completed', { 
+      this.logger.info('Memory export completed', {
         entriesExported: entries.length,
         fileSize: stats.size,
-        checksum 
+        checksum,
       });
 
-      this.emit('memory:exported', { 
-        filePath, 
-        entriesExported: entries.length, 
-        fileSize: stats.size 
+      this.emit('memory:exported', {
+        filePath,
+        entriesExported: entries.length,
+        fileSize: stats.size,
       });
 
       this.recordMetric('export', Date.now() - startTime);
@@ -660,9 +660,8 @@ export class AdvancedMemoryManager extends EventEmitter {
       return {
         entriesExported: entries.length,
         fileSize: stats.size,
-        checksum
+        checksum,
       };
-
     } catch (error) {
       this.recordMetric('export-error', Date.now() - startTime);
       throw error;
@@ -671,14 +670,17 @@ export class AdvancedMemoryManager extends EventEmitter {
 
   // === IMPORT OPERATIONS ===
 
-  async import(filePath: string, options: ImportOptions): Promise<{
+  async import(
+    filePath: string,
+    options: ImportOptions,
+  ): Promise<{
     entriesImported: number;
     entriesSkipped: number;
     entriesUpdated: number;
     conflicts: string[];
   }> {
     const startTime = Date.now();
-    
+
     try {
       this.logger.info('Starting memory import', { filePath, format: options.format });
 
@@ -718,7 +720,7 @@ export class AdvancedMemoryManager extends EventEmitter {
         entriesImported: 0,
         entriesSkipped: 0,
         entriesUpdated: 0,
-        conflicts: [] as string[]
+        conflicts: [] as string[],
       };
 
       for (const item of importData) {
@@ -726,14 +728,16 @@ export class AdvancedMemoryManager extends EventEmitter {
           // Dry run - just check for conflicts
           const existing = this.findEntryByKey(item.key, item.namespace);
           if (existing) {
-            results.conflicts.push(`Key '${item.key}' already exists in namespace '${item.namespace}'`);
+            results.conflicts.push(
+              `Key '${item.key}' already exists in namespace '${item.namespace}'`,
+            );
           }
           continue;
         }
 
         try {
           const result = await this.importSingleEntry(item, options);
-          
+
           switch (result.action) {
             case 'imported':
               results.entriesImported++;
@@ -749,16 +753,17 @@ export class AdvancedMemoryManager extends EventEmitter {
               break;
           }
         } catch (error) {
-          results.conflicts.push(`Error importing '${item.key}': ${(error instanceof Error ? error.message : String(error))}`);
+          results.conflicts.push(
+            `Error importing '${item.key}': ${error instanceof Error ? error.message : String(error)}`,
+          );
         }
       }
 
       this.logger.info('Memory import completed', results);
       this.emit('memory:imported', results);
-      
+
       this.recordMetric('import', Date.now() - startTime);
       return results;
-
     } catch (error) {
       this.recordMetric('import-error', Date.now() - startTime);
       throw error;
@@ -769,7 +774,7 @@ export class AdvancedMemoryManager extends EventEmitter {
 
   async getStatistics(): Promise<MemoryStatistics> {
     const startTime = Date.now();
-    
+
     try {
       const stats = this.calculateStatistics();
       this.recordMetric('stats', Date.now() - startTime);
@@ -790,7 +795,7 @@ export class AdvancedMemoryManager extends EventEmitter {
     actions: string[];
   }> {
     const startTime = Date.now();
-    
+
     try {
       this.logger.info('Starting memory cleanup', options);
 
@@ -799,7 +804,7 @@ export class AdvancedMemoryManager extends EventEmitter {
         entriesArchived: 0,
         entriesCompressed: 0,
         spaceSaved: 0,
-        actions: [] as string[]
+        actions: [] as string[],
       };
 
       // Get all entries for processing
@@ -808,10 +813,10 @@ export class AdvancedMemoryManager extends EventEmitter {
 
       // Phase 1: Remove expired entries
       if (options.removeExpired !== false) {
-        const expiredEntries = allEntries.filter(entry => 
-          entry.expiresAt && entry.expiresAt < now
+        const expiredEntries = allEntries.filter(
+          (entry) => entry.expiresAt && entry.expiresAt < now,
         );
-        
+
         for (const entry of expiredEntries) {
           if (!options.dryRun) {
             await this.deleteEntry(entry.id);
@@ -819,7 +824,7 @@ export class AdvancedMemoryManager extends EventEmitter {
           results.entriesRemoved++;
           results.spaceSaved += entry.size;
         }
-        
+
         if (expiredEntries.length > 0) {
           results.actions.push(`Removed ${expiredEntries.length} expired entries`);
         }
@@ -827,9 +832,9 @@ export class AdvancedMemoryManager extends EventEmitter {
 
       // Phase 2: Remove old entries
       if (options.removeOlderThan) {
-        const cutoffDate = new Date(now.getTime() - (options.removeOlderThan * 24 * 60 * 60 * 1000));
-        const oldEntries = allEntries.filter(entry => entry.createdAt < cutoffDate);
-        
+        const cutoffDate = new Date(now.getTime() - options.removeOlderThan * 24 * 60 * 60 * 1000);
+        const oldEntries = allEntries.filter((entry) => entry.createdAt < cutoffDate);
+
         for (const entry of oldEntries) {
           if (!options.dryRun) {
             await this.deleteEntry(entry.id);
@@ -837,17 +842,19 @@ export class AdvancedMemoryManager extends EventEmitter {
           results.entriesRemoved++;
           results.spaceSaved += entry.size;
         }
-        
+
         if (oldEntries.length > 0) {
-          results.actions.push(`Removed ${oldEntries.length} entries older than ${options.removeOlderThan} days`);
+          results.actions.push(
+            `Removed ${oldEntries.length} entries older than ${options.removeOlderThan} days`,
+          );
         }
       }
 
       // Phase 3: Remove unaccessed entries
       if (options.removeUnaccessed) {
-        const cutoffDate = new Date(now.getTime() - (options.removeUnaccessed * 24 * 60 * 60 * 1000));
-        const unaccessedEntries = allEntries.filter(entry => entry.lastAccessedAt < cutoffDate);
-        
+        const cutoffDate = new Date(now.getTime() - options.removeUnaccessed * 24 * 60 * 60 * 1000);
+        const unaccessedEntries = allEntries.filter((entry) => entry.lastAccessedAt < cutoffDate);
+
         for (const entry of unaccessedEntries) {
           if (!options.dryRun) {
             await this.deleteEntry(entry.id);
@@ -855,24 +862,27 @@ export class AdvancedMemoryManager extends EventEmitter {
           results.entriesRemoved++;
           results.spaceSaved += entry.size;
         }
-        
+
         if (unaccessedEntries.length > 0) {
-          results.actions.push(`Removed ${unaccessedEntries.length} entries not accessed in ${options.removeUnaccessed} days`);
+          results.actions.push(
+            `Removed ${unaccessedEntries.length} entries not accessed in ${options.removeUnaccessed} days`,
+          );
         }
       }
 
       // Phase 4: Archive old entries
       if (options.archiveOld?.enabled) {
-        const cutoffDate = new Date(now.getTime() - (options.archiveOld.olderThan * 24 * 60 * 60 * 1000));
-        const archiveEntries = allEntries.filter(entry => 
-          entry.createdAt < cutoffDate && 
-          !entry.expiresAt // Don't archive entries that will expire
+        const cutoffDate = new Date(
+          now.getTime() - options.archiveOld.olderThan * 24 * 60 * 60 * 1000,
         );
-        
+        const archiveEntries = allEntries.filter(
+          (entry) => entry.createdAt < cutoffDate && !entry.expiresAt, // Don't archive entries that will expire
+        );
+
         if (archiveEntries.length > 0 && !options.dryRun) {
           await this.archiveEntries(archiveEntries, options.archiveOld.archivePath);
         }
-        
+
         results.entriesArchived = archiveEntries.length;
         if (archiveEntries.length > 0) {
           results.actions.push(`Archived ${archiveEntries.length} old entries`);
@@ -881,10 +891,10 @@ export class AdvancedMemoryManager extends EventEmitter {
 
       // Phase 5: Compress eligible entries
       if (options.compressEligible !== false && this.config.autoCompress) {
-        const uncompressedEntries = allEntries.filter(entry => 
-          !entry.compressed && entry.size > this.config.compressionThreshold
+        const uncompressedEntries = allEntries.filter(
+          (entry) => !entry.compressed && entry.size > this.config.compressionThreshold,
         );
-        
+
         for (const entry of uncompressedEntries) {
           if (!options.dryRun) {
             const originalSize = entry.size;
@@ -896,7 +906,7 @@ export class AdvancedMemoryManager extends EventEmitter {
           }
           results.entriesCompressed++;
         }
-        
+
         if (uncompressedEntries.length > 0) {
           results.actions.push(`Compressed ${uncompressedEntries.length} entries`);
         }
@@ -909,7 +919,9 @@ export class AdvancedMemoryManager extends EventEmitter {
           results.entriesRemoved += policyResults.removed;
           results.spaceSaved += policyResults.spaceSaved;
           if (policyResults.removed > 0) {
-            results.actions.push(`Retention policy '${policy.namespace}': removed ${policyResults.removed} entries`);
+            results.actions.push(
+              `Retention policy '${policy.namespace}': removed ${policyResults.removed} entries`,
+            );
           }
         }
       }
@@ -933,17 +945,16 @@ export class AdvancedMemoryManager extends EventEmitter {
       }
 
       // Rebuild index if significant changes
-      if ((results.entriesRemoved + results.entriesArchived) > 100 && !options.dryRun) {
+      if (results.entriesRemoved + results.entriesArchived > 100 && !options.dryRun) {
         await this.rebuildIndex();
         results.actions.push('Rebuilt search index');
       }
 
       this.logger.info('Memory cleanup completed', results);
       this.emit('memory:cleanup-completed', results);
-      
+
       this.recordMetric('cleanup', Date.now() - startTime);
       return results;
-
     } catch (error) {
       this.recordMetric('cleanup-error', Date.now() - startTime);
       throw error;
@@ -959,16 +970,22 @@ export class AdvancedMemoryManager extends EventEmitter {
       types: new Map(),
       namespaces: new Map(),
       owners: new Map(),
-      fullText: new Map()
+      fullText: new Map(),
     };
   }
 
-  private async processValue(value: any, compress?: boolean): Promise<{ value: any; compressed: boolean }> {
+  private async processValue(
+    value: any,
+    compress?: boolean,
+  ): Promise<{ value: any; compressed: boolean }> {
     let processedValue = value;
     let isCompressed = false;
 
     // Auto-compress if enabled and value is large enough
-    if ((compress || this.config.autoCompress) && this.calculateSize(value) > this.config.compressionThreshold) {
+    if (
+      (compress || this.config.autoCompress) &&
+      this.calculateSize(value) > this.config.compressionThreshold
+    ) {
       processedValue = await this.compressValue(value);
       isCompressed = true;
     }
@@ -1022,25 +1039,25 @@ export class AdvancedMemoryManager extends EventEmitter {
     if (operation === 'delete') {
       // Remove from all indices
       this.removeFromIndex(this.index.keys, key, id);
-      tags.forEach(tag => this.removeFromIndex(this.index.tags, tag, id));
+      tags.forEach((tag) => this.removeFromIndex(this.index.tags, tag, id));
       this.removeFromIndex(this.index.types, type, id);
       this.removeFromIndex(this.index.namespaces, namespace, id);
       this.removeFromIndex(this.index.owners, owner, id);
-      
+
       // Remove from full-text index
       const words = this.extractWords(value);
-      words.forEach(word => this.removeFromIndex(this.index.fullText, word, id));
+      words.forEach((word) => this.removeFromIndex(this.index.fullText, word, id));
     } else {
       // Add to indices
       this.addToIndex(this.index.keys, key, id);
-      tags.forEach(tag => this.addToIndex(this.index.tags, tag, id));
+      tags.forEach((tag) => this.addToIndex(this.index.tags, tag, id));
       this.addToIndex(this.index.types, type, id);
       this.addToIndex(this.index.namespaces, namespace, id);
       this.addToIndex(this.index.owners, owner, id);
-      
+
       // Add to full-text index
       const words = this.extractWords(value);
-      words.forEach(word => this.addToIndex(this.index.fullText, word, id));
+      words.forEach((word) => this.addToIndex(this.index.fullText, word, id));
     }
   }
 
@@ -1069,27 +1086,28 @@ export class AdvancedMemoryManager extends EventEmitter {
 
   private extractWords(value: any): string[] {
     const text = typeof value === 'string' ? value : JSON.stringify(value);
-    return text.toLowerCase()
+    return text
+      .toLowerCase()
       .replace(/[^\w\s]/g, ' ')
       .split(/\s+/)
-      .filter(word => word.length > 2);
+      .filter((word) => word.length > 2);
   }
 
   private updateCache(key: string, entry: MemoryEntry): void {
     if (this.cache.size >= this.config.cacheSize) {
       this.evictCache();
     }
-    
+
     this.cache.set(key, {
       entry: { ...entry },
-      expiry: Date.now() + this.config.cacheTtl
+      expiry: Date.now() + this.config.cacheTtl,
     });
   }
 
   private evictCache(): void {
     const entries = Array.from(this.cache.entries());
     entries.sort((a, b) => a[1].expiry - b[1].expiry);
-    
+
     const toRemove = entries.slice(0, Math.floor(this.config.cacheSize * 0.1));
     toRemove.forEach(([key]) => this.cache.delete(key));
   }
@@ -1110,41 +1128,41 @@ export class AdvancedMemoryManager extends EventEmitter {
         compressionRatio: 0,
         indexSize: 0,
         memoryUsage: 0,
-        diskUsage: 0
+        diskUsage: 0,
       },
       distribution: {
         byNamespace: {},
         byType: {},
         byOwner: {},
-        byAccessLevel: {}
+        byAccessLevel: {},
       },
       temporal: {
         entriesCreatedLast24h: 0,
         entriesUpdatedLast24h: 0,
-        entriesAccessedLast24h: 0
+        entriesAccessedLast24h: 0,
       },
       performance: {
         averageQueryTime: 0,
         averageWriteTime: 0,
         cacheHitRatio: 0,
-        indexEfficiency: 0
+        indexEfficiency: 0,
       },
       health: {
         expiredEntries: 0,
         orphanedReferences: 0,
         duplicateKeys: 0,
         corruptedEntries: 0,
-        recommendedCleanup: false
+        recommendedCleanup: false,
       },
       optimization: {
         suggestions: [],
         potentialSavings: {
           compression: 0,
           cleanup: 0,
-          deduplication: 0
+          deduplication: 0,
         },
-        indexOptimization: []
-      }
+        indexOptimization: [],
+      },
     };
   }
 
@@ -1162,50 +1180,57 @@ export class AdvancedMemoryManager extends EventEmitter {
     if (options.type && entry.type !== options.type) return false;
     if (options.owner && entry.owner !== options.owner) return false;
     if (options.accessLevel && entry.accessLevel !== options.accessLevel) return false;
-    
+
     if (options.tags && options.tags.length > 0) {
-      const hasAllTags = options.tags.every(tag => entry.tags.includes(tag));
+      const hasAllTags = options.tags.every((tag) => entry.tags.includes(tag));
       if (!hasAllTags) return false;
     }
-    
+
     if (options.keyPattern) {
       const regex = new RegExp(options.keyPattern, 'i');
       if (!regex.test(entry.key)) return false;
     }
-    
+
     if (options.valueSearch) {
       const valueStr = JSON.stringify(entry.value).toLowerCase();
       if (!valueStr.includes(options.valueSearch.toLowerCase())) return false;
     }
-    
+
     // Date range checks
     if (options.createdAfter && entry.createdAt < options.createdAfter) return false;
     if (options.createdBefore && entry.createdAt > options.createdBefore) return false;
     if (options.updatedAfter && entry.updatedAt < options.updatedAfter) return false;
     if (options.updatedBefore && entry.updatedAt > options.updatedBefore) return false;
-    
+
     // Size checks
     if (options.sizeGreaterThan && entry.size <= options.sizeGreaterThan) return false;
     if (options.sizeLessThan && entry.size >= options.sizeLessThan) return false;
-    
+
     return true;
   }
 
   private getPropertyValue(entry: MemoryEntry, property: string): any {
     switch (property) {
-      case 'key': return entry.key;
-      case 'createdAt': return entry.createdAt.getTime();
-      case 'updatedAt': return entry.updatedAt.getTime();
-      case 'lastAccessedAt': return entry.lastAccessedAt.getTime();
-      case 'size': return entry.size;
-      case 'type': return entry.type;
-      default: return entry.key;
+      case 'key':
+        return entry.key;
+      case 'createdAt':
+        return entry.createdAt.getTime();
+      case 'updatedAt':
+        return entry.updatedAt.getTime();
+      case 'lastAccessedAt':
+        return entry.lastAccessedAt.getTime();
+      case 'size':
+        return entry.size;
+      case 'type':
+        return entry.type;
+      default:
+        return entry.key;
     }
   }
 
   private generateAggregations(entries: MemoryEntry[], aggregateBy: string): Record<string, any> {
     const aggregations: Record<string, any> = {};
-    
+
     switch (aggregateBy) {
       case 'namespace':
         aggregations.namespaces = this.aggregateByProperty(entries, 'namespace');
@@ -1220,13 +1245,16 @@ export class AdvancedMemoryManager extends EventEmitter {
         aggregations.tags = this.aggregateByTags(entries);
         break;
     }
-    
+
     return aggregations;
   }
 
-  private aggregateByProperty(entries: MemoryEntry[], property: keyof MemoryEntry): Record<string, { count: number; totalSize: number }> {
+  private aggregateByProperty(
+    entries: MemoryEntry[],
+    property: keyof MemoryEntry,
+  ): Record<string, { count: number; totalSize: number }> {
     const result: Record<string, { count: number; totalSize: number }> = {};
-    
+
     for (const entry of entries) {
       const value = String(entry[property]);
       if (!result[value]) {
@@ -1235,13 +1263,15 @@ export class AdvancedMemoryManager extends EventEmitter {
       result[value].count++;
       result[value].totalSize += entry.size;
     }
-    
+
     return result;
   }
 
-  private aggregateByTags(entries: MemoryEntry[]): Record<string, { count: number; totalSize: number }> {
+  private aggregateByTags(
+    entries: MemoryEntry[],
+  ): Record<string, { count: number; totalSize: number }> {
     const result: Record<string, { count: number; totalSize: number }> = {};
-    
+
     for (const entry of entries) {
       for (const tag of entry.tags) {
         if (!result[tag]) {
@@ -1251,7 +1281,7 @@ export class AdvancedMemoryManager extends EventEmitter {
         result[tag].totalSize += entry.size;
       }
     }
-    
+
     return result;
   }
 
@@ -1263,40 +1293,40 @@ export class AdvancedMemoryManager extends EventEmitter {
         exportedAt: new Date().toISOString(),
         version: '1.0',
         totalEntries: entries.length,
-        format: 'json'
+        format: 'json',
       },
-      entries: options.includeMetadata 
-        ? entries 
-        : entries.map(entry => ({
+      entries: options.includeMetadata
+        ? entries
+        : entries.map((entry) => ({
             key: entry.key,
             value: entry.value,
             type: entry.type,
             namespace: entry.namespace,
-            tags: entry.tags
-          }))
+            tags: entry.tags,
+          })),
     };
-    
+
     return JSON.stringify(exportData, null, 2);
   }
 
   private prepareCsvExport(entries: MemoryEntry[], options: ExportOptions): string {
     // CSV export implementation
     const headers = ['key', 'value', 'type', 'namespace', 'tags'];
-    const rows = entries.map(entry => [
+    const rows = entries.map((entry) => [
       entry.key,
       JSON.stringify(entry.value),
       entry.type,
       entry.namespace,
-      entry.tags.join(';')
+      entry.tags.join(';'),
     ]);
-    
-    return [headers, ...rows].map(row => row.join(',')).join('\n');
+
+    return [headers, ...rows].map((row) => row.join(',')).join('\n');
   }
 
   private prepareXmlExport(entries: MemoryEntry[], options: ExportOptions): string {
     // XML export implementation
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<memory>\n';
-    
+
     for (const entry of entries) {
       xml += `  <entry>\n`;
       xml += `    <key>${this.escapeXml(entry.key)}</key>\n`;
@@ -1306,7 +1336,7 @@ export class AdvancedMemoryManager extends EventEmitter {
       xml += `    <tags>${this.escapeXml(entry.tags.join(','))}</tags>\n`;
       xml += `  </entry>\n`;
     }
-    
+
     xml += '</memory>';
     return xml;
   }
@@ -1314,15 +1344,15 @@ export class AdvancedMemoryManager extends EventEmitter {
   private prepareYamlExport(entries: MemoryEntry[], options: ExportOptions): string {
     // YAML export implementation - simplified
     let yaml = 'memory:\n';
-    
+
     for (const entry of entries) {
       yaml += `  - key: "${entry.key}"\n`;
       yaml += `    value: ${JSON.stringify(entry.value)}\n`;
       yaml += `    type: "${entry.type}"\n`;
       yaml += `    namespace: "${entry.namespace}"\n`;
-      yaml += `    tags: [${entry.tags.map(t => `"${t}"`).join(', ')}]\n`;
+      yaml += `    tags: [${entry.tags.map((t) => `"${t}"`).join(', ')}]\n`;
     }
-    
+
     return yaml;
   }
 
@@ -1345,18 +1375,18 @@ export class AdvancedMemoryManager extends EventEmitter {
     const lines = content.split('\n');
     const headers = lines[0].split(',');
     const entries = [];
-    
+
     for (let i = 1; i < lines.length; i++) {
       const values = lines[i].split(',');
       const entry: any = {};
-      
+
       for (let j = 0; j < headers.length; j++) {
         entry[headers[j]] = values[j];
       }
-      
+
       entries.push(entry);
     }
-    
+
     return entries;
   }
 
@@ -1371,15 +1401,18 @@ export class AdvancedMemoryManager extends EventEmitter {
   }
 
   private validateImportData(data: any[]): any[] {
-    return data.filter(item => {
+    return data.filter((item) => {
       return item.key && item.value !== undefined;
     });
   }
 
-  private transformImportData(data: any[], transformation: NonNullable<ImportOptions['transformation']>): any[] {
-    return data.map(item => {
+  private transformImportData(
+    data: any[],
+    transformation: NonNullable<ImportOptions['transformation']>,
+  ): any[] {
+    return data.map((item) => {
       const transformed = { ...item };
-      
+
       // Apply key mapping
       if (transformation.keyMapping) {
         for (const [oldKey, newKey] of Object.entries(transformation.keyMapping)) {
@@ -1389,27 +1422,30 @@ export class AdvancedMemoryManager extends EventEmitter {
           }
         }
       }
-      
+
       // Apply value transformation
       if (transformation.valueTransformation) {
         transformed.value = transformation.valueTransformation(transformed.value);
       }
-      
+
       // Extract metadata
       if (transformation.metadataExtraction) {
         transformed.metadata = transformation.metadataExtraction(transformed);
       }
-      
+
       return transformed;
     });
   }
 
-  private async importSingleEntry(item: any, options: ImportOptions): Promise<{
+  private async importSingleEntry(
+    item: any,
+    options: ImportOptions,
+  ): Promise<{
     action: 'imported' | 'updated' | 'skipped' | 'conflict';
     message?: string;
   }> {
     const existing = this.findEntryByKey(item.key, item.namespace || options.namespace);
-    
+
     if (existing) {
       switch (options.conflictResolution) {
         case 'skip':
@@ -1418,9 +1454,9 @@ export class AdvancedMemoryManager extends EventEmitter {
           await this.update(item.key, item.value, { namespace: item.namespace });
           return { action: 'updated' };
         case 'merge':
-          await this.update(item.key, item.value, { 
-            namespace: item.namespace, 
-            merge: true 
+          await this.update(item.key, item.value, {
+            namespace: item.namespace,
+            merge: true,
           });
           return { action: 'updated' };
         case 'rename':
@@ -1429,13 +1465,13 @@ export class AdvancedMemoryManager extends EventEmitter {
             namespace: item.namespace,
             type: item.type,
             tags: item.tags,
-            metadata: item.metadata
+            metadata: item.metadata,
           });
           return { action: 'imported' };
         default:
-          return { 
-            action: 'conflict', 
-            message: `Key '${item.key}' already exists` 
+          return {
+            action: 'conflict',
+            message: `Key '${item.key}' already exists`,
           };
       }
     } else {
@@ -1443,7 +1479,7 @@ export class AdvancedMemoryManager extends EventEmitter {
         namespace: item.namespace || options.namespace,
         type: item.type,
         tags: item.tags,
-        metadata: item.metadata
+        metadata: item.metadata,
       });
       return { action: 'imported' };
     }
@@ -1454,54 +1490,63 @@ export class AdvancedMemoryManager extends EventEmitter {
   private calculateStatistics(): MemoryStatistics {
     const entries = Array.from(this.entries.values());
     const now = new Date();
-    const last24h = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+    const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
     const stats: MemoryStatistics = {
       overview: {
         totalEntries: entries.length,
         totalSize: entries.reduce((sum, entry) => sum + entry.size, 0),
-        compressedEntries: entries.filter(entry => entry.compressed).length,
+        compressedEntries: entries.filter((entry) => entry.compressed).length,
         compressionRatio: 0,
         indexSize: this.calculateIndexSize(),
         memoryUsage: process.memoryUsage().heapUsed,
-        diskUsage: 0 // Would be calculated from actual file system
+        diskUsage: 0, // Would be calculated from actual file system
       },
       distribution: {
         byNamespace: this.calculateDistribution(entries, 'namespace'),
         byType: this.calculateDistribution(entries, 'type'),
         byOwner: this.calculateDistribution(entries, 'owner'),
-        byAccessLevel: this.calculateDistribution(entries, 'accessLevel')
+        byAccessLevel: this.calculateDistribution(entries, 'accessLevel'),
       },
       temporal: {
-        entriesCreatedLast24h: entries.filter(e => e.createdAt >= last24h).length,
-        entriesUpdatedLast24h: entries.filter(e => e.updatedAt >= last24h).length,
-        entriesAccessedLast24h: entries.filter(e => e.lastAccessedAt >= last24h).length,
-        oldestEntry: entries.length > 0 ? 
-          entries.reduce((oldest, entry) => 
-            entry.createdAt < oldest.createdAt ? entry : oldest
-          ).createdAt : undefined,
-        newestEntry: entries.length > 0 ? 
-          entries.reduce((newest, entry) => 
-            entry.createdAt > newest.createdAt ? entry : newest
-          ).createdAt : undefined
+        entriesCreatedLast24h: entries.filter((e) => e.createdAt >= last24h).length,
+        entriesUpdatedLast24h: entries.filter((e) => e.updatedAt >= last24h).length,
+        entriesAccessedLast24h: entries.filter((e) => e.lastAccessedAt >= last24h).length,
+        oldestEntry:
+          entries.length > 0
+            ? entries.reduce((oldest, entry) =>
+                entry.createdAt < oldest.createdAt ? entry : oldest,
+              ).createdAt
+            : undefined,
+        newestEntry:
+          entries.length > 0
+            ? entries.reduce((newest, entry) =>
+                entry.createdAt > newest.createdAt ? entry : newest,
+              ).createdAt
+            : undefined,
       },
       performance: this.calculatePerformanceMetrics(),
       health: this.calculateHealthMetrics(entries, now),
-      optimization: this.generateOptimizationSuggestions(entries)
+      optimization: this.generateOptimizationSuggestions(entries),
     };
 
     // Calculate compression ratio
-    const uncompressedSize = entries.filter(e => !e.compressed).reduce((sum, e) => sum + e.size, 0);
-    const compressedSize = entries.filter(e => e.compressed).reduce((sum, e) => sum + e.size, 0);
-    stats.overview.compressionRatio = uncompressedSize > 0 ? 
-      (uncompressedSize - compressedSize) / uncompressedSize : 0;
+    const uncompressedSize = entries
+      .filter((e) => !e.compressed)
+      .reduce((sum, e) => sum + e.size, 0);
+    const compressedSize = entries.filter((e) => e.compressed).reduce((sum, e) => sum + e.size, 0);
+    stats.overview.compressionRatio =
+      uncompressedSize > 0 ? (uncompressedSize - compressedSize) / uncompressedSize : 0;
 
     return stats;
   }
 
-  private calculateDistribution(entries: MemoryEntry[], property: keyof MemoryEntry): Record<string, { count: number; size: number }> {
+  private calculateDistribution(
+    entries: MemoryEntry[],
+    property: keyof MemoryEntry,
+  ): Record<string, { count: number; size: number }> {
     const distribution: Record<string, { count: number; size: number }> = {};
-    
+
     for (const entry of entries) {
       const value = String(entry[property]);
       if (!distribution[value]) {
@@ -1510,7 +1555,7 @@ export class AdvancedMemoryManager extends EventEmitter {
       distribution[value].count++;
       distribution[value].size += entry.size;
     }
-    
+
     return distribution;
   }
 
@@ -1526,73 +1571,79 @@ export class AdvancedMemoryManager extends EventEmitter {
     const queryMetrics = this.operationMetrics.get('query') || { count: 0, totalTime: 0 };
     const writeMetrics = this.operationMetrics.get('store') || { count: 0, totalTime: 0 };
     const cacheMetrics = this.operationMetrics.get('retrieve-cache') || { count: 0, totalTime: 0 };
-    const totalRetrieves = (this.operationMetrics.get('retrieve') || { count: 0 }).count + cacheMetrics.count;
+    const totalRetrieves =
+      (this.operationMetrics.get('retrieve') || { count: 0 }).count + cacheMetrics.count;
 
     return {
       averageQueryTime: queryMetrics.count > 0 ? queryMetrics.totalTime / queryMetrics.count : 0,
       averageWriteTime: writeMetrics.count > 0 ? writeMetrics.totalTime / writeMetrics.count : 0,
       cacheHitRatio: totalRetrieves > 0 ? cacheMetrics.count / totalRetrieves : 0,
-      indexEfficiency: this.config.indexingEnabled ? 0.95 : 0 // Placeholder
+      indexEfficiency: this.config.indexingEnabled ? 0.95 : 0, // Placeholder
     };
   }
 
   private calculateHealthMetrics(entries: MemoryEntry[], now: Date): MemoryStatistics['health'] {
-    const expiredEntries = entries.filter(e => e.expiresAt && e.expiresAt < now).length;
+    const expiredEntries = entries.filter((e) => e.expiresAt && e.expiresAt < now).length;
     const duplicateKeys = this.findDuplicateKeys(entries);
-    
+
     return {
       expiredEntries,
       orphanedReferences: 0, // Would be calculated by checking references
       duplicateKeys: duplicateKeys.length,
       corruptedEntries: 0, // Would be calculated by validating checksums
-      recommendedCleanup: expiredEntries > 10 || duplicateKeys.length > 5
+      recommendedCleanup: expiredEntries > 10 || duplicateKeys.length > 5,
     };
   }
 
-  private generateOptimizationSuggestions(entries: MemoryEntry[]): MemoryStatistics['optimization'] {
+  private generateOptimizationSuggestions(
+    entries: MemoryEntry[],
+  ): MemoryStatistics['optimization'] {
     const suggestions: string[] = [];
     const potentialSavings = { compression: 0, cleanup: 0, deduplication: 0 };
-    
+
     // Compression suggestions
-    const uncompressedLarge = entries.filter(e => 
-      !e.compressed && e.size > this.config.compressionThreshold
+    const uncompressedLarge = entries.filter(
+      (e) => !e.compressed && e.size > this.config.compressionThreshold,
     );
     if (uncompressedLarge.length > 0) {
       suggestions.push(`${uncompressedLarge.length} entries could benefit from compression`);
       potentialSavings.compression = uncompressedLarge.reduce((sum, e) => sum + e.size * 0.6, 0);
     }
-    
+
     // Cleanup suggestions
     const now = new Date();
-    const oldEntries = entries.filter(e => 
-      now.getTime() - e.lastAccessedAt.getTime() > (30 * 24 * 60 * 60 * 1000)
+    const oldEntries = entries.filter(
+      (e) => now.getTime() - e.lastAccessedAt.getTime() > 30 * 24 * 60 * 60 * 1000,
     );
     if (oldEntries.length > 0) {
       suggestions.push(`${oldEntries.length} entries haven't been accessed in 30+ days`);
       potentialSavings.cleanup = oldEntries.reduce((sum, e) => sum + e.size, 0);
     }
-    
+
     // Deduplication suggestions
     const duplicates = this.findDuplicateKeys(entries);
     if (duplicates.length > 0) {
       suggestions.push(`${duplicates.length} duplicate keys found`);
-      potentialSavings.deduplication = duplicates.reduce((sum, group) => 
-        sum + group.entries.slice(1).reduce((s, e) => s + e.size, 0), 0
+      potentialSavings.deduplication = duplicates.reduce(
+        (sum, group) => sum + group.entries.slice(1).reduce((s, e) => s + e.size, 0),
+        0,
       );
     }
-    
+
     return {
       suggestions,
       potentialSavings,
-      indexOptimization: this.config.indexingEnabled ? 
-        ['Consider periodic index rebuilding for optimal performance'] : 
-        ['Enable indexing for better query performance']
+      indexOptimization: this.config.indexingEnabled
+        ? ['Consider periodic index rebuilding for optimal performance']
+        : ['Enable indexing for better query performance'],
     };
   }
 
-  private findDuplicateKeys(entries: MemoryEntry[]): Array<{ key: string; namespace: string; entries: MemoryEntry[] }> {
+  private findDuplicateKeys(
+    entries: MemoryEntry[],
+  ): Array<{ key: string; namespace: string; entries: MemoryEntry[] }> {
     const keyMap = new Map<string, MemoryEntry[]>();
-    
+
     for (const entry of entries) {
       const compositeKey = `${entry.namespace}:${entry.key}`;
       if (!keyMap.has(compositeKey)) {
@@ -1600,7 +1651,7 @@ export class AdvancedMemoryManager extends EventEmitter {
       }
       keyMap.get(compositeKey)!.push(entry);
     }
-    
+
     const duplicates: Array<{ key: string; namespace: string; entries: MemoryEntry[] }> = [];
     for (const [compositeKey, entryList] of keyMap) {
       if (entryList.length > 1) {
@@ -1608,7 +1659,7 @@ export class AdvancedMemoryManager extends EventEmitter {
         duplicates.push({ key, namespace, entries: entryList });
       }
     }
-    
+
     return duplicates;
   }
 
@@ -1626,13 +1677,13 @@ export class AdvancedMemoryManager extends EventEmitter {
   private policyMatches(policy: RetentionPolicy, entry: MemoryEntry): boolean {
     if (policy.namespace && entry.namespace !== policy.namespace) return false;
     if (policy.type && entry.type !== policy.type) return false;
-    if (policy.tags && !policy.tags.every(tag => entry.tags.includes(tag))) return false;
+    if (policy.tags && !policy.tags.every((tag) => entry.tags.includes(tag))) return false;
     return true;
   }
 
   private async enforceRetentionPolicy(policy: RetentionPolicy, entry: MemoryEntry): Promise<void> {
     const now = new Date();
-    
+
     // Check age limit
     if (policy.maxAge) {
       const ageInDays = (now.getTime() - entry.createdAt.getTime()) / (24 * 60 * 60 * 1000);
@@ -1641,40 +1692,45 @@ export class AdvancedMemoryManager extends EventEmitter {
         return;
       }
     }
-    
+
     // Count and size limits would require more complex logic
     // This is a simplified implementation
   }
 
-  private async applyRetentionPolicy(policy: CleanupOptions['retentionPolicies'][0], dryRun?: boolean): Promise<{ removed: number; spaceSaved: number }> {
-    const matchingEntries = Array.from(this.entries.values()).filter(entry => {
+  private async applyRetentionPolicy(
+    policy: CleanupOptions['retentionPolicies'][0],
+    dryRun?: boolean,
+  ): Promise<{ removed: number; spaceSaved: number }> {
+    const matchingEntries = Array.from(this.entries.values()).filter((entry) => {
       if (policy.namespace && entry.namespace !== policy.namespace) return false;
       return true;
     });
-    
+
     let toRemove: MemoryEntry[] = [];
     const now = new Date();
-    
+
     // Apply age limit
     if (policy.maxAge) {
-      const cutoffDate = new Date(now.getTime() - (policy.maxAge * 24 * 60 * 60 * 1000));
-      toRemove = matchingEntries.filter(entry => entry.createdAt < cutoffDate);
+      const cutoffDate = new Date(now.getTime() - policy.maxAge * 24 * 60 * 60 * 1000);
+      toRemove = matchingEntries.filter((entry) => entry.createdAt < cutoffDate);
     }
-    
+
     // Apply count limit
     if (policy.maxCount && matchingEntries.length > policy.maxCount) {
       const sorted = matchingEntries.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
       toRemove = sorted.slice(0, matchingEntries.length - policy.maxCount);
     }
-    
+
     // Apply size limit
     if (policy.sizeLimit) {
       const totalSize = matchingEntries.reduce((sum, entry) => sum + entry.size, 0);
       if (totalSize > policy.sizeLimit) {
-        const sorted = matchingEntries.sort((a, b) => a.lastAccessedAt.getTime() - b.lastAccessedAt.getTime());
+        const sorted = matchingEntries.sort(
+          (a, b) => a.lastAccessedAt.getTime() - b.lastAccessedAt.getTime(),
+        );
         let currentSize = totalSize;
         toRemove = [];
-        
+
         for (const entry of sorted) {
           if (currentSize <= policy.sizeLimit) break;
           toRemove.push(entry);
@@ -1682,15 +1738,15 @@ export class AdvancedMemoryManager extends EventEmitter {
         }
       }
     }
-    
+
     const spaceSaved = toRemove.reduce((sum, entry) => sum + entry.size, 0);
-    
+
     if (!dryRun) {
       for (const entry of toRemove) {
         await this.deleteEntry(entry.id);
       }
     }
-    
+
     return { removed: toRemove.length, spaceSaved };
   }
 
@@ -1699,39 +1755,43 @@ export class AdvancedMemoryManager extends EventEmitter {
     return 0;
   }
 
-  private async removeDuplicateEntries(dryRun?: boolean): Promise<{ removed: number; spaceSaved: number }> {
+  private async removeDuplicateEntries(
+    dryRun?: boolean,
+  ): Promise<{ removed: number; spaceSaved: number }> {
     const duplicates = this.findDuplicateKeys(Array.from(this.entries.values()));
     let removed = 0;
     let spaceSaved = 0;
-    
+
     for (const duplicate of duplicates) {
       // Keep the newest entry, remove others
-      const sorted = duplicate.entries.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+      const sorted = duplicate.entries.sort(
+        (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime(),
+      );
       const toRemove = sorted.slice(1);
-      
+
       for (const entry of toRemove) {
         spaceSaved += entry.size;
         removed++;
-        
+
         if (!dryRun) {
           await this.deleteEntry(entry.id);
         }
       }
     }
-    
+
     return { removed, spaceSaved };
   }
 
   private async archiveEntries(entries: MemoryEntry[], archivePath: string): Promise<void> {
     const archiveData = {
       archivedAt: new Date().toISOString(),
-      entries: entries
+      entries: entries,
     };
-    
+
     const archiveFile = join(archivePath, `archive-${Date.now()}.json`);
     await fs.mkdir(dirname(archiveFile), { recursive: true });
     await fs.writeFile(archiveFile, JSON.stringify(archiveData, null, 2));
-    
+
     // Remove archived entries from active memory
     for (const entry of entries) {
       await this.deleteEntry(entry.id);
@@ -1740,13 +1800,13 @@ export class AdvancedMemoryManager extends EventEmitter {
 
   private async rebuildIndex(): Promise<void> {
     this.logger.info('Rebuilding memory index');
-    
+
     this.index = this.createEmptyIndex();
-    
+
     for (const entry of this.entries.values()) {
       this.updateIndex(entry, 'create');
     }
-    
+
     this.logger.info('Memory index rebuilt successfully');
   }
 
@@ -1756,7 +1816,7 @@ export class AdvancedMemoryManager extends EventEmitter {
         await this.cleanup({
           removeExpired: true,
           removeUnaccessed: 7, // Remove entries not accessed in 7 days
-          compressEligible: true
+          compressEligible: true,
         });
       } catch (error) {
         this.logger.error('Auto cleanup failed', error);
@@ -1770,12 +1830,12 @@ export class AdvancedMemoryManager extends EventEmitter {
     try {
       const dataFile = join(this.dataPath, 'entries.json');
       const indexFile = join(this.indexPath, 'index.json');
-      
+
       // Load entries
       try {
         const entriesData = await fs.readFile(dataFile, 'utf-8');
         const entriesArray = JSON.parse(entriesData);
-        
+
         for (const entryData of entriesArray) {
           // Convert date strings back to Date objects
           entryData.createdAt = new Date(entryData.createdAt);
@@ -1784,21 +1844,20 @@ export class AdvancedMemoryManager extends EventEmitter {
           if (entryData.expiresAt) {
             entryData.expiresAt = new Date(entryData.expiresAt);
           }
-          
+
           this.entries.set(entryData.id, entryData);
         }
-        
+
         this.logger.info(`Loaded ${entriesArray.length} entries from persistence`);
       } catch (error) {
         // File doesn't exist or is corrupted
         this.logger.info('No persisted entries found, starting fresh');
       }
-      
+
       // Rebuild index
       if (this.config.indexingEnabled) {
         await this.rebuildIndex();
       }
-      
     } catch (error) {
       this.logger.error('Failed to load persisted data', error);
     }
@@ -1808,10 +1867,9 @@ export class AdvancedMemoryManager extends EventEmitter {
     try {
       const dataFile = join(this.dataPath, 'entries.json');
       const entriesArray = Array.from(this.entries.values());
-      
+
       await fs.writeFile(dataFile, JSON.stringify(entriesArray, null, 2));
       this.logger.info(`Persisted ${entriesArray.length} entries`);
-      
     } catch (error) {
       this.logger.error('Failed to persist data', error);
     }
@@ -1821,20 +1879,19 @@ export class AdvancedMemoryManager extends EventEmitter {
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const backupFile = join(this.backupPath, `backup-${timestamp}.json`);
-      
+
       const backup = {
         timestamp: new Date().toISOString(),
         version: '1.0',
         entries: Array.from(this.entries.values()),
-        statistics: await this.getStatistics()
+        statistics: await this.getStatistics(),
       };
-      
+
       await fs.writeFile(backupFile, JSON.stringify(backup, null, 2));
       this.logger.info(`Created backup: ${backupFile}`);
-      
+
       // Clean old backups
       await this.cleanOldBackups();
-      
     } catch (error) {
       this.logger.error('Failed to create backup', error);
     }
@@ -1843,29 +1900,28 @@ export class AdvancedMemoryManager extends EventEmitter {
   private async cleanOldBackups(): Promise<void> {
     try {
       const files = await fs.readdir(this.backupPath);
-      const backupFiles = files.filter(f => f.startsWith('backup-') && f.endsWith('.json'));
-      
+      const backupFiles = files.filter((f) => f.startsWith('backup-') && f.endsWith('.json'));
+
       if (backupFiles.length <= this.config.backupRetention) {
         return;
       }
-      
+
       // Sort by creation time and remove oldest
       const fileStats = await Promise.all(
-        backupFiles.map(async file => ({
+        backupFiles.map(async (file) => ({
           file,
-          stat: await fs.stat(join(this.backupPath, file))
-        }))
+          stat: await fs.stat(join(this.backupPath, file)),
+        })),
       );
-      
+
       fileStats.sort((a, b) => a.stat.mtime.getTime() - b.stat.mtime.getTime());
-      
+
       const toDelete = fileStats.slice(0, fileStats.length - this.config.backupRetention);
-      
+
       for (const { file } of toDelete) {
         await fs.unlink(join(this.backupPath, file));
         this.logger.debug(`Deleted old backup: ${file}`);
       }
-      
     } catch (error) {
       this.logger.error('Failed to clean old backups', error);
     }
@@ -1878,7 +1934,10 @@ export class AdvancedMemoryManager extends EventEmitter {
     return data;
   }
 
-  private async encryptData(data: string, encryption: NonNullable<ExportOptions['encryption']>): Promise<string> {
+  private async encryptData(
+    data: string,
+    encryption: NonNullable<ExportOptions['encryption']>,
+  ): Promise<string> {
     // In a real implementation, you would use a proper encryption library
     return data;
   }
@@ -1904,7 +1963,7 @@ export class AdvancedMemoryManager extends EventEmitter {
   async listTags(): Promise<string[]> {
     const tags = new Set<string>();
     for (const entry of this.entries.values()) {
-      entry.tags.forEach(tag => tags.add(tag));
+      entry.tags.forEach((tag) => tags.add(tag));
     }
     return Array.from(tags).sort();
   }
@@ -1924,14 +1983,12 @@ export class AdvancedMemoryManager extends EventEmitter {
 
   async clear(namespace?: string): Promise<number> {
     const entries = Array.from(this.entries.values());
-    const toDelete = namespace 
-      ? entries.filter(entry => entry.namespace === namespace)
-      : entries;
-    
+    const toDelete = namespace ? entries.filter((entry) => entry.namespace === namespace) : entries;
+
     for (const entry of toDelete) {
       await this.deleteEntry(entry.id);
     }
-    
+
     return toDelete.length;
   }
 
@@ -1941,7 +1998,7 @@ export class AdvancedMemoryManager extends EventEmitter {
 
   async updateConfiguration(updates: Partial<typeof this.config>): Promise<void> {
     this.config = { ...this.config, ...updates };
-    
+
     // Apply configuration changes
     if (updates.autoCleanup !== undefined) {
       if (updates.autoCleanup && !this.cleanupInterval) {
@@ -1951,7 +2008,7 @@ export class AdvancedMemoryManager extends EventEmitter {
         this.cleanupInterval = undefined;
       }
     }
-    
+
     this.emit('memory:configuration-updated', { config: this.config });
   }
 }

@@ -9,7 +9,11 @@
 
 ## Parameters
 ```json
-{"iterations": 10}
+{
+  "pattern_type": "coordination",
+  "training_data": "task decomposition patterns",
+  "epochs": 50
+}
 ```
 
 ## Description
@@ -25,9 +29,10 @@ Training improves:
 ## Example Usage
 
 **In Claude Code:**
-1. Use the tool: `mcp__claude-flow__neural_train`
-2. With parameters: `{"iterations": 10}`
-3. Claude Code then executes the coordinated plan using its native tools
+1. Train coordination patterns: Use tool `mcp__claude-flow__neural_train` with parameters `{"pattern_type": "coordination", "training_data": "successful task patterns", "epochs": 50}`
+2. Train optimization patterns: Use tool `mcp__claude-flow__neural_train` with parameters `{"pattern_type": "optimization", "training_data": "performance metrics", "epochs": 30}`
+3. Check training status: Use tool `mcp__claude-flow__neural_status`
+4. Analyze patterns: Use tool `mcp__claude-flow__neural_patterns` with parameters `{"action": "analyze"}`
 
 ## Important Reminders
 - ✅ This tool provides coordination and structure
@@ -37,6 +42,6 @@ Training improves:
 - ❌ The tool does NOT execute commands
 
 ## See Also
-- Main documentation: /claude.md
+- Main documentation: /CLAUDE.md
 - Other commands in this category
 - Workflow examples in /workflows/

@@ -1,10 +1,9 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * JSON-based persistence layer for Claude-Flow
  */
 
-import { join } from "path";
-import { mkdir, access, readFile, writeFile } from "fs/promises";
+import { join } from 'path';
+import { mkdir, access, readFile, writeFile } from 'fs/promises';
 
 export interface PersistedAgent {
   id: string;
@@ -43,8 +42,8 @@ export class JsonPersistenceManager {
   private dataPath: string;
   private data: PersistenceData;
 
-  constructor(dataDir: string = "./memory") {
-    this.dataPath = join(dataDir, "claude-flow-data.json");
+  constructor(dataDir: string = './memory') {
+    this.dataPath = join(dataDir, 'claude-flow-data.json');
     this.data = {
       agents: [],
       tasks: [],
@@ -54,16 +53,16 @@ export class JsonPersistenceManager {
 
   async initialize(): Promise<void> {
     // Ensure directory exists
-    await mkdir(join(this.dataPath, ".."), { recursive: true });
-    
+    await mkdir(join(this.dataPath, '..'), { recursive: true });
+
     // Load existing data if available
     try {
       await access(this.dataPath);
-      const content = await readFile(this.dataPath, "utf-8");
+      const content = await readFile(this.dataPath, 'utf-8');
       this.data = JSON.parse(content);
     } catch (error) {
       // File doesn't exist or can't be read, keep default empty data
-      console.error("Failed to load persistence data:", error);
+      console.error('Failed to load persistence data:', error);
     }
   }
 
@@ -75,17 +74,17 @@ export class JsonPersistenceManager {
   // Agent operations
   async saveAgent(agent: PersistedAgent): Promise<void> {
     // Remove existing agent if updating
-    this.data.agents = this.data.agents.filter(a => a.id !== agent.id);
+    this.data.agents = this.data.agents.filter((a) => a.id !== agent.id);
     this.data.agents.push(agent);
     await this.save();
   }
 
   async getAgent(id: string): Promise<PersistedAgent | null> {
-    return this.data.agents.find(a => a.id === id) || null;
+    return this.data.agents.find((a) => a.id === id) || null;
   }
 
   async getActiveAgents(): Promise<PersistedAgent[]> {
-    return this.data.agents.filter(a => a.status === 'active' || a.status === 'idle');
+    return this.data.agents.filter((a) => a.status === 'active' || a.status === 'idle');
   }
 
   async getAllAgents(): Promise<PersistedAgent[]> {
@@ -93,7 +92,7 @@ export class JsonPersistenceManager {
   }
 
   async updateAgentStatus(id: string, status: string): Promise<void> {
-    const agent = this.data.agents.find(a => a.id === id);
+    const agent = this.data.agents.find((a) => a.id === id);
     if (agent) {
       agent.status = status;
       await this.save();
@@ -103,20 +102,18 @@ export class JsonPersistenceManager {
   // Task operations
   async saveTask(task: PersistedTask): Promise<void> {
     // Remove existing task if updating
-    this.data.tasks = this.data.tasks.filter(t => t.id !== task.id);
+    this.data.tasks = this.data.tasks.filter((t) => t.id !== task.id);
     this.data.tasks.push(task);
     await this.save();
   }
 
   async getTask(id: string): Promise<PersistedTask | null> {
-    return this.data.tasks.find(t => t.id === id) || null;
+    return this.data.tasks.find((t) => t.id === id) || null;
   }
 
   async getActiveTasks(): Promise<PersistedTask[]> {
-    return this.data.tasks.filter(t => 
-      t.status === 'pending' || 
-      t.status === 'in_progress' || 
-      t.status === 'assigned'
+    return this.data.tasks.filter(
+      (t) => t.status === 'pending' || t.status === 'in_progress' || t.status === 'assigned',
     );
   }
 
@@ -125,7 +122,7 @@ export class JsonPersistenceManager {
   }
 
   async updateTaskStatus(id: string, status: string, assignedAgent?: string): Promise<void> {
-    const task = this.data.tasks.find(t => t.id === id);
+    const task = this.data.tasks.find((t) => t.id === id);
     if (task) {
       task.status = status;
       if (assignedAgent !== undefined) {
@@ -139,7 +136,7 @@ export class JsonPersistenceManager {
   }
 
   async updateTaskProgress(id: string, progress: number): Promise<void> {
-    const task = this.data.tasks.find(t => t.id === id);
+    const task = this.data.tasks.find((t) => t.id === id);
     if (task) {
       task.progress = progress;
       await this.save();
@@ -154,20 +151,16 @@ export class JsonPersistenceManager {
     pendingTasks: number;
     completedTasks: number;
   }> {
-    const activeAgents = this.data.agents.filter(a => 
-      a.status === 'active' || a.status === 'idle'
+    const activeAgents = this.data.agents.filter(
+      (a) => a.status === 'active' || a.status === 'idle',
     ).length;
-    
-    const pendingTasks = this.data.tasks.filter(t => 
-      t.status === 'pending' || 
-      t.status === 'in_progress' || 
-      t.status === 'assigned'
+
+    const pendingTasks = this.data.tasks.filter(
+      (t) => t.status === 'pending' || t.status === 'in_progress' || t.status === 'assigned',
     ).length;
-    
-    const completedTasks = this.data.tasks.filter(t => 
-      t.status === 'completed'
-    ).length;
-    
+
+    const completedTasks = this.data.tasks.filter((t) => t.status === 'completed').length;
+
     return {
       totalAgents: this.data.agents.length,
       activeAgents,

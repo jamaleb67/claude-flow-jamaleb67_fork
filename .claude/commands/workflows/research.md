@@ -26,7 +26,22 @@ Sets up different analytical approaches for Claude Code to use.
 ### 3. Execute Coordinated Research
 ```
 Tool: mcp__claude-flow__task_orchestrate
-Parameters: {"task": "Research modern web frameworks performance", "strategy": "adaptive"}
+Parameters: {
+  "task": "Research modern web frameworks performance",
+  "strategy": "adaptive",
+  "priority": "medium"
+}
+```
+
+### 4. Store Research Findings
+```
+Tool: mcp__claude-flow__memory_usage
+Parameters: {
+  "action": "store",
+  "key": "research_findings",
+  "value": "framework performance analysis results",
+  "namespace": "research"
+}
 ```
 
 ## What Claude Code Actually Does
@@ -37,3 +52,12 @@ Parameters: {"task": "Research modern web frameworks performance", "strategy": "
 5. Stores insights in memory for future reference
 
 Remember: The swarm coordinates HOW Claude Code researches, not WHAT it finds.
+
+## CLI Usage
+```bash
+# Start research workflow via CLI
+npx claude-flow workflow research "modern web frameworks"
+
+# Export research workflow
+npx claude-flow workflow export research --format json
+```

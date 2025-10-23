@@ -3,30 +3,57 @@
  * Provides clear, actionable command documentation
  */
 
-export const VERSION = '2.0.0-alpha.60';
+import { HelpFormatter } from './help-formatter.js';
+import { VERSION } from '../core/version.js';
+
+export { VERSION };
 
 export const MAIN_HELP = `
 🌊 Claude-Flow v${VERSION} - Enterprise-Grade AI Agent Orchestration Platform
 
-🎯 ENTERPRISE FEATURES: Complete ruv-swarm integration with 87 MCP tools, neural networking, and production-ready infrastructure
-🐝 NEW: Advanced Hive Mind System with Queen-led coordination, collective intelligence, and unlimited scaling
-⚡ ALPHA 60: Fixed Claude Code integration with hive-mind spawn, proper session directory management, and improved coordination
+🚀 v2.5.0-alpha.130 - SDK Integration & Performance Breakthrough
+
+🔥 NEW IN v2.5.0-alpha.130:
+  ⚡ 10-20x Faster Agent Spawning - Parallel agent execution with session forking
+  🎮 Real-Time Query Control - Pause, resume, terminate queries mid-execution
+  🔄 Dynamic Model Switching - Change Claude models during execution (cost optimization)
+  🔐 Dynamic Permissions - Change permission modes on-the-fly
+  📊 90 MCP Tools - 87 existing + 3 new Phase 4 tools
+  🚄 500-2000x Potential Speedup - Combined performance stack (In-Process + Parallel + Hooks)
+
+🎯 ENTERPRISE FEATURES:
+  • Complete ruv-swarm integration with 90+ MCP tools
+  • Flow Nexus cloud platform with distributed sandboxes
+  • Claude Code SDK integration for maximum performance
+  • Production-ready infrastructure with enterprise reliability
 
 USAGE:
+  npx claude-flow <command> [options]    # Run latest alpha version
+  npx claude-flow <command> --help       # Get detailed help for any command
+  npx claude-flow --help                 # Show this help
+  
+  # After local install:
   claude-flow <command> [options]
   claude-flow <command> --help    # Get detailed help for any command
 
 🚀 QUICK START:
   # First time setup (creates CLAUDE.md & .claude/commands)
-  npx claude-flow@alpha init --sparc
+  npx claude-flow init
   
-  # 🐝 HIVE MIND QUICK START (NEW!):
+  # 🌐 FLOW NEXUS CLOUD (NEW!):
+  mcp__flow-nexus__user_register         # Register for cloud features
+  mcp__flow-nexus__user_login            # Login to access sandboxes & neural networks
+  mcp__flow-nexus__sandbox_create        # Create cloud execution environments
+  
+  # 🐝 HIVE MIND QUICK START:
   claude-flow hive-mind wizard          # Interactive setup wizard
   claude-flow hive-mind spawn "objective"  # Create intelligent swarm
+  claude-flow hive-mind spawn "Build API" --claude  # Open Claude Code CLI
   
   # After setup, use without npx:
-  claude-flow start --ui --swarm         # Start with swarm intelligence UI
+  claude-flow start --swarm              # Start with swarm intelligence
   claude-flow swarm "build REST API"     # Deploy multi-agent workflow
+  claude-flow swarm "create service" --claude  # Open Claude Code CLI with swarm
 
 🐝 HIVE MIND COMMANDS (NEW!):
   hive-mind wizard         🎯 Interactive setup wizard (RECOMMENDED)
@@ -37,18 +64,36 @@ USAGE:
 
 📋 CORE COMMANDS:
   init                     Initialize Claude Flow v2.0.0 (creates CLAUDE.md & .claude/commands)
-  start [--ui] [--swarm]   Start orchestration system
+                          --monitoring enables token usage tracking
+  start [--swarm]          Start orchestration system
   swarm <objective>        Multi-agent swarm coordination
   agent <action>           Agent management (spawn, list, terminate)
-  sparc <mode>             SPARC development modes (17 available)
-  memory <action>          Persistent memory operations
+    • agent booster        Ultra-fast code editing (352x faster, $0 cost)
+      - edit <file>        Edit single file with local WASM processing
+      - batch <pattern>    Batch edit multiple files (1000 files in 1 sec)
+      - benchmark          Validate 352x speed claim with tests
+    • agent memory         ReasoningBank learning memory (46% faster, 88% success)
+      - init               Initialize ReasoningBank database
+      - status             Show memory statistics
+      - list               List stored memories
+  sparc <mode>             SPARC development modes (13 available)
+  memory <action>          ReasoningBank persistent memory system
+  proxy <action>           OpenRouter proxy server (85-98% cost savings)
+    - start                Start proxy server
+    - status               Check proxy status
+    - config               Configuration guide
   github <mode>            GitHub workflow automation (6 modes)
   status                   System status and health
+  
+🔍 VERIFICATION COMMANDS (NEW!):
+  verify <subcommand>      Truth verification system (0.95 threshold)
+  truth                    View truth scores and reliability metrics
+  pair [--start]           Collaborative development with real-time verification
   
 📋 SWARM INTELLIGENCE COMMANDS:
   training <command>       Neural pattern learning & model updates (3 commands)
   coordination <command>   Swarm & agent orchestration (3 commands)
-  analysis <command>       Performance & usage analytics (3 commands)
+  analysis <command>       Performance & token usage analytics (real tracking!)
   automation <command>     Intelligent agent & workflow management (3 commands)
   hooks <command>          Lifecycle event management (5 commands)
   migrate-hooks            Migrate settings.json to Claude Code 1.0.51+ format
@@ -60,24 +105,131 @@ USAGE:
   config <action>          System configuration
   mcp <action>             MCP server management
   batch <action>           Batch operations
+  stream-chain <workflow>  Stream-JSON chaining for multi-agent pipelines
+
+🔥 NEW MCP TOOLS (v2.5.0-alpha.130):
+  Available via Claude Code after installing:
+    claude mcp add claude-flow npx claude-flow@alpha mcp start
+
+  mcp__claude-flow__agents_spawn_parallel    Spawn agents in parallel (10-20x faster)
+    • Spawn multiple agents concurrently
+    • 10-20x speedup vs sequential spawning
+    • Example: 3 agents in 150ms instead of 2250ms
+
+  mcp__claude-flow__query_control            Control running queries in real-time
+    • Actions: pause, resume, terminate
+    • Change model mid-execution (Sonnet → Haiku for cost savings)
+    • Change permissions dynamically
+    • Execute commands in query context
+
+  mcp__claude-flow__query_list               List active queries with status
+    • View all running queries
+    • Monitor query status and performance
+    • Filter by active or include history
 
 🔍 GET HELP:
-  claude-flow --help                Show this help
-  claude-flow help                  Show this help
-  claude-flow help <command>        Detailed command help
-  claude-flow <command> --help      Detailed command help
+  npx claude-flow --help                Show this help
+  npx claude-flow <command> --help      Detailed command help
 
 🎯 RECOMMENDED FOR NEW USERS:
-  claude-flow hive-mind wizard     # Start here! Interactive guided setup
-  claude-flow init --sparc         # Initialize with SPARC methodology
-  claude-flow help hive-mind       # Learn about Hive Mind features
+  npx claude-flow hive-mind wizard     # Start here! Interactive guided setup
+  npx claude-flow init                 # Initialize Claude Flow
+  npx claude-flow help hive-mind       # Learn about Hive Mind features
+  npx claude-flow swarm "Build API" --claude  # Quick start with Claude Code CLI
 
 📚 Documentation: https://github.com/ruvnet/claude-flow
 🐝 Hive Mind Guide: https://github.com/ruvnet/claude-flow/tree/main/docs/hive-mind
 🐝 ruv-swarm: https://github.com/ruvnet/ruv-FANN/tree/main/ruv-swarm
+💬 Discord Community: https://discord.agentics.org
+
+💖 Created by rUv with love: https://github.com/ruvnet
 `;
 
 export const COMMAND_HELP = {
+  verify: `
+🔍 VERIFY COMMAND - Truth Verification System
+
+USAGE:
+  claude-flow verify <subcommand> [options]
+
+DESCRIPTION:
+  Enforce truth and accuracy in multi-agent operations with a 0.95 threshold.
+  "Truth is enforced, not assumed" - every agent claim is verified.
+
+SUBCOMMANDS:
+  init <mode>        Initialize verification system
+                     Modes: strict (0.95), moderate (0.85), development (0.75)
+  verify <task>      Run verification on specific task or agent
+  status             Show verification system status and metrics
+  rollback           Trigger manual rollback to last good state
+
+OPTIONS:
+  --threshold <n>    Custom accuracy threshold (0.0-1.0)
+  --agent <type>     Specify agent type for verification
+  --auto-rollback    Enable automatic rollback on failures
+  --verbose          Detailed verification output
+  --json             Output in JSON format
+
+EXAMPLES:
+  claude-flow verify init strict                  # Production mode
+  claude-flow verify verify task-123 --agent coder
+  claude-flow verify status --recent 10
+  claude-flow verify rollback --checkpoint last
+`,
+  truth: `
+📊 TRUTH COMMAND - Truth Score Analytics
+
+USAGE:
+  claude-flow truth [options]
+
+DESCRIPTION:
+  View and analyze truth scores, reliability metrics, and verification history.
+  Provides insights into agent accuracy and system reliability.
+
+OPTIONS:
+  --report           Generate detailed truth score report
+  --analyze          Analyze failure patterns and trends
+  --agent <type>     Filter by specific agent type
+  --taskId <id>      Check specific task truth score
+  --threshold <n>    Filter scores below threshold
+  --json             Output in JSON format
+  --export <file>    Export report to file
+
+EXAMPLES:
+  claude-flow truth                        # Show current scores
+  claude-flow truth --report               # Detailed report
+  claude-flow truth --analyze              # Pattern analysis
+  claude-flow truth --agent coder --detailed
+  claude-flow truth --json | jq .averageScore
+`,
+  pair: `
+👥 PAIR COMMAND - Collaborative Development Mode
+
+USAGE:
+  claude-flow pair [options]
+
+DESCRIPTION:
+  Real-time collaborative development with AI verification.
+  Continuous validation with instant feedback and auto-rollback.
+
+OPTIONS:
+  --start            Start new pair programming session
+  --mode <type>      Set verification mode:
+                     strict (0.95), standard (0.85), development (0.75)
+  --threshold <n>    Custom accuracy threshold (0.0-1.0)
+  --verify           Enable real-time verification
+  --monitor          Show real-time metrics dashboard
+  --auto-rollback    Enable automatic rollback on failures
+  --summary          View session summary
+  --export <file>    Export session metrics
+
+EXAMPLES:
+  claude-flow pair --start                 # Start session
+  claude-flow pair --start --mode strict   # Production pairing
+  claude-flow pair --threshold 0.90        # Custom threshold
+  claude-flow pair --summary               # View session stats
+  claude-flow pair --monitor --verify      # Real-time monitoring
+`,
   swarm: `
 🧠 SWARM COMMAND - Multi-Agent AI Coordination
 
@@ -89,15 +241,16 @@ DESCRIPTION:
   Agents work in parallel with neural optimization and real-time coordination.
 
 OPTIONS:
-  --strategy <type>    Execution strategy: research, development, analysis, 
+  --strategy <type>    Execution strategy: research, development, analysis,
                        testing, optimization, maintenance
-  --mode <type>        Coordination mode: centralized, distributed, 
+  --mode <type>        Coordination mode: centralized, distributed,
                        hierarchical, mesh, hybrid
   --max-agents <n>     Maximum number of agents (default: 5)
   --parallel           Enable parallel execution (2.8-4.4x speed improvement)
   --monitor            Real-time swarm monitoring
-  --ui                 Interactive user interface
   --background         Run in background with progress tracking
+  --claude             Open Claude Code CLI
+  --executor           Use built-in executor instead of Claude Code
   --analysis           Enable analysis/read-only mode (no code changes)
   --read-only          Enable read-only mode (alias for --analysis)
 
@@ -105,7 +258,9 @@ EXAMPLES:
   claude-flow swarm "Build a REST API with authentication"
   claude-flow swarm "Research cloud architecture patterns" --strategy research
   claude-flow swarm "Optimize database queries" --max-agents 3 --parallel
-  claude-flow swarm "Develop feature X" --strategy development --monitor --ui
+  claude-flow swarm "Develop feature X" --strategy development --monitor
+  claude-flow swarm "Build API" --claude  # Open Claude Code CLI
+  claude-flow swarm "Create service" --executor  # Use built-in executor
   claude-flow swarm "Analyze codebase for security issues" --analysis
   claude-flow swarm "Review architecture patterns" --read-only --strategy research
 
@@ -143,6 +298,7 @@ DESCRIPTION:
   Each mode handles specific aspects of repository management.
 
 MODES:
+  init                Initialize GitHub-enhanced checkpoint system (NEW!)
   gh-coordinator      GitHub workflow orchestration and CI/CD
   pr-manager          Pull request management with reviews
   issue-tracker       Issue management and project coordination
@@ -157,6 +313,7 @@ OPTIONS:
   --config <file>     Custom configuration file
 
 EXAMPLES:
+  claude-flow github init                                        # Initialize GitHub checkpoint hooks
   claude-flow github pr-manager "create feature PR with tests"
   claude-flow github gh-coordinator "setup CI/CD pipeline" --auto-approve
   claude-flow github release-manager "prepare v2.0.0 release"
@@ -284,7 +441,11 @@ USAGE:
 
 DESCRIPTION:
   Initialize Claude Flow v2.0.0 in your project with full MCP integration.
-  By default creates enhanced setup with CLAUDE.md and .claude/commands.
+  By default creates standard setup with local Git checkpoints.
+  
+  TWO INITIALIZATION MODES:
+  • claude-flow init         Standard init with local Git checkpoints
+  • claude-flow github init  GitHub-enhanced with automatic releases (NEW!)
 
 OPTIONS:
   --force          Overwrite existing configuration
@@ -325,10 +486,12 @@ WHAT claude-flow init CREATES (DEFAULT):
   • Enterprise security features
 
 EXAMPLES:
-  npx claude-flow@2.0.0 init              # Default: Full v2.0.0 setup
-  claude-flow init                        # Initialize with enhanced features
+  npx claude-flow init              # Standard init with local checkpoints
+  npx claude-flow github init       # GitHub-enhanced init with releases
   claude-flow init --force                # Overwrite existing configuration
+  claude-flow github init --force         # Force GitHub mode (overwrite)
   claude-flow init --dry-run              # Preview what will be created
+  claude-flow init --monitoring           # Initialize with token tracking
   claude-flow init --sparc                # SPARC enterprise setup
   claude-flow init --minimal              # Basic setup only
 `,
@@ -340,10 +503,9 @@ USAGE:
   claude-flow start [options]
 
 DESCRIPTION:
-  Start the Claude Flow orchestration system with optional UI and swarm intelligence.
+  Start the Claude Flow orchestration system with optional swarm intelligence.
 
 OPTIONS:
-  --ui             Enable interactive user interface
   --swarm          Enable swarm intelligence features
   --daemon         Run as background daemon
   --port <port>    MCP server port (default: 3000)
@@ -352,7 +514,7 @@ OPTIONS:
 
 EXAMPLES:
   claude-flow start                      # Basic start
-  claude-flow start --ui --swarm         # Full UI with swarm features
+  claude-flow start --swarm              # Start with swarm features
   claude-flow start --daemon             # Background daemon
   claude-flow start --port 8080          # Custom MCP port
   claude-flow start --config prod.json   # Production config
@@ -456,7 +618,8 @@ SWARM-INIT OPTIONS:
 
 AGENT-SPAWN OPTIONS:
   --type <type>        Agent type (default: general)
-                       Options: coordinator, developer, researcher, analyzer, tester, general
+                       Options: coordinator, coder, developer, researcher, analyst, analyzer, 
+                       tester, architect, reviewer, optimizer, general
   --name <name>        Custom agent name (auto-generated if not provided)
   --swarm-id <id>      Target swarm for agent coordination
   --capabilities <cap> Custom capabilities specification
@@ -628,13 +791,287 @@ EXAMPLES:
   • Coordination synchronization
   • Error prevention
   • Insight generation
-`
+`,
 };
 
 export function getCommandHelp(command) {
+  // Return legacy format for now - to be updated
   return COMMAND_HELP[command] || `Help not available for command: ${command}`;
 }
 
-export function getMainHelp() {
-  return MAIN_HELP;
+export function getStandardizedCommandHelp(command) {
+  const commandConfigs = {
+    agent: {
+      name: 'claude-flow agent',
+      description: 'Manage agents with agentic-flow integration (66+ agents, ultra-fast editing, ReasoningBank memory)',
+      usage: 'claude-flow agent <action> [options]',
+      commands: [
+        { name: 'run <agent> "<task>"', description: 'Execute agent with multi-provider (NEW)' },
+        { name: 'agents', description: 'List all 66+ agentic-flow agents (NEW)' },
+        { name: 'booster edit <file>', description: 'Ultra-fast editing - 352x faster (NEW)' },
+        { name: 'booster batch <pattern>', description: 'Batch edit multiple files (NEW)' },
+        { name: 'memory init', description: 'Initialize ReasoningBank learning memory - 46% faster execution (NEW)' },
+        { name: 'memory status', description: 'Show ReasoningBank status and statistics (NEW)' },
+        { name: 'memory list', description: 'List stored ReasoningBank memories (NEW)' },
+        { name: 'config wizard', description: 'Interactive setup wizard (NEW)' },
+        { name: 'mcp start', description: 'Start MCP server (NEW)' },
+        { name: 'spawn', description: 'Create internal agent' },
+        { name: 'list', description: 'List active internal agents' },
+        { name: 'info', description: 'Show agent details' },
+        { name: 'terminate', description: 'Stop an agent' },
+        { name: 'hierarchy', description: 'Manage agent hierarchies' },
+        { name: 'ecosystem', description: 'View agent ecosystem' },
+      ],
+      options: [
+        {
+          flags: '--type <type>',
+          description: 'Agent type',
+          validValues: [
+            'coordinator',
+            'researcher',
+            'coder',
+            'analyst',
+            'architect',
+            'tester',
+            'reviewer',
+            'optimizer',
+          ],
+        },
+        {
+          flags: '--name <name>',
+          description: 'Agent name',
+        },
+        {
+          flags: '--verbose',
+          description: 'Detailed output',
+        },
+        {
+          flags: '--json',
+          description: 'Output in JSON format',
+        },
+        {
+          flags: '--help',
+          description: 'Show this help message',
+        },
+      ],
+      examples: [
+        'claude-flow agent spawn researcher --name "Research Bot"',
+        'claude-flow agent list --json',
+        'claude-flow agent terminate agent-123',
+        'claude-flow agent info agent-456 --verbose',
+      ],
+    },
+    sparc: {
+      name: 'claude-flow sparc',
+      description: 'Execute SPARC development modes',
+      usage: 'claude-flow sparc <mode> [task] [options]',
+      commands: [
+        { name: 'spec', description: 'Specification mode - Requirements analysis' },
+        { name: 'architect', description: 'Architecture mode - System design' },
+        { name: 'tdd', description: 'Test-driven development mode' },
+        { name: 'integration', description: 'Integration mode - Component connection' },
+        { name: 'refactor', description: 'Refactoring mode - Code improvement' },
+        { name: 'modes', description: 'List all available SPARC modes' },
+      ],
+      options: [
+        {
+          flags: '--file <path>',
+          description: 'Input/output file path',
+        },
+        {
+          flags: '--format <type>',
+          description: 'Output format',
+          validValues: ['markdown', 'json', 'yaml'],
+        },
+        {
+          flags: '--verbose',
+          description: 'Detailed output',
+        },
+        {
+          flags: '--help',
+          description: 'Show this help message',
+        },
+      ],
+      examples: [
+        'claude-flow sparc spec "User authentication system"',
+        'claude-flow sparc tdd "Payment processing module"',
+        'claude-flow sparc architect "Microservices architecture"',
+        'claude-flow sparc modes',
+      ],
+    },
+    memory: {
+      name: 'claude-flow memory',
+      description: 'Manage persistent memory operations',
+      usage: 'claude-flow memory <action> [key] [value] [options]',
+      commands: [
+        { name: 'store', description: 'Store data in memory' },
+        { name: 'query', description: 'Search memory by pattern' },
+        { name: 'list', description: 'List memory namespaces' },
+        { name: 'export', description: 'Export memory to file' },
+        { name: 'import', description: 'Import memory from file' },
+        { name: 'clear', description: 'Clear memory namespace' },
+      ],
+      options: [
+        {
+          flags: '--namespace <name>',
+          description: 'Memory namespace',
+          defaultValue: 'default',
+        },
+        {
+          flags: '--ttl <seconds>',
+          description: 'Time to live in seconds',
+        },
+        {
+          flags: '--format <type>',
+          description: 'Export format',
+          validValues: ['json', 'yaml'],
+        },
+        {
+          flags: '--help',
+          description: 'Show this help message',
+        },
+      ],
+      examples: [
+        'claude-flow memory store "api_design" "REST endpoints specification"',
+        'claude-flow memory query "authentication"',
+        'claude-flow memory export backup.json',
+        'claude-flow memory list --namespace project',
+      ],
+    },
+  };
+
+  const config = commandConfigs[command];
+  if (!config) {
+    return HelpFormatter.formatError(
+      `Unknown command: ${command}`,
+      'claude-flow',
+      'claude-flow <command> --help',
+    );
+  }
+
+  return HelpFormatter.formatHelp(config);
+}
+
+export function getMainHelp(plain = false) {
+  // Return the vibrant, emoji-rich version by default
+  if (!plain) {
+    return MAIN_HELP;
+  }
+
+  // Return plain standardized format when requested
+  const helpInfo = {
+    name: 'claude-flow',
+    description: 'Advanced AI agent orchestration system',
+    usage: `claude-flow <command> [<args>] [options]
+    claude-flow <command> --help
+    claude-flow --version`,
+    commands: [
+      {
+        name: 'hive-mind',
+        description: 'Manage hive mind swarm intelligence',
+        aliases: ['hm'],
+      },
+      {
+        name: 'init',
+        description: 'Initialize Claude Flow configuration',
+      },
+      {
+        name: 'start',
+        description: 'Start orchestration system',
+      },
+      {
+        name: 'swarm',
+        description: 'Execute multi-agent swarm coordination',
+      },
+      {
+        name: 'agent',
+        description: 'Manage individual agents',
+      },
+      {
+        name: 'sparc',
+        description: 'Execute SPARC development modes',
+      },
+      {
+        name: 'memory',
+        description: 'Manage persistent memory operations',
+      },
+      {
+        name: 'github',
+        description: 'Automate GitHub workflows',
+      },
+      {
+        name: 'status',
+        description: 'Show system status and health',
+      },
+      {
+        name: 'config',
+        description: 'Manage configuration settings',
+      },
+      {
+        name: 'session',
+        description: 'Manage sessions and state persistence',
+      },
+      {
+        name: 'terminal',
+        description: 'Terminal pool management',
+      },
+      {
+        name: 'workflow',
+        description: 'Manage automated workflows',
+      },
+      {
+        name: 'training',
+        description: 'Neural pattern training',
+      },
+      {
+        name: 'coordination',
+        description: 'Swarm coordination commands',
+      },
+      {
+        name: 'help',
+        description: 'Show help information',
+      },
+    ],
+    globalOptions: [
+      {
+        flags: '--config <path>',
+        description: 'Configuration file path',
+        defaultValue: '.claude/config.json',
+      },
+      {
+        flags: '--verbose',
+        description: 'Enable verbose output',
+      },
+      {
+        flags: '--quiet',
+        description: 'Suppress non-error output',
+      },
+      {
+        flags: '--json',
+        description: 'Output in JSON format',
+      },
+      {
+        flags: '--plain',
+        description: 'Show plain help without emojis',
+      },
+      {
+        flags: '--help',
+        description: 'Show help information',
+      },
+      {
+        flags: '--version',
+        description: 'Show version information',
+      },
+    ],
+    examples: [
+      'npx claude-flow init',
+      'claude-flow hive-mind wizard',
+      'claude-flow swarm "Build REST API"',
+      'claude-flow agent spawn researcher --name "Research Bot"',
+      'claude-flow status --json',
+      'claude-flow memory query "API design"',
+    ],
+  };
+
+  return HelpFormatter.formatHelp(helpInfo);
 }

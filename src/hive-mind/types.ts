@@ -1,12 +1,12 @@
 /**
  * Hive Mind Type Definitions
- * 
+ *
  * Core types and interfaces for the Hive Mind system
  */
 
 // Swarm types
-export type SwarmTopology = 'mesh' | 'hierarchical' | 'ring' | 'star';
-export type QueenMode = 'centralized' | 'distributed';
+export type SwarmTopology = 'mesh' | 'hierarchical' | 'ring' | 'star' | 'specs-driven';
+export type QueenMode = 'centralized' | 'distributed' | 'strategic';
 
 export interface HiveMindConfig {
   name: string;
@@ -16,12 +16,15 @@ export interface HiveMindConfig {
   memoryTTL: number;
   consensusThreshold: number;
   autoSpawn: boolean;
+  enableConsensus?: boolean;
+  enableMemory?: boolean;
+  enableCommunication?: boolean;
   enabledFeatures?: string[];
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 // Agent types
-export type AgentType = 
+export type AgentType =
   | 'coordinator'
   | 'researcher'
   | 'coder'
@@ -32,11 +35,18 @@ export type AgentType =
   | 'optimizer'
   | 'documenter'
   | 'monitor'
-  | 'specialist';
+  | 'specialist'
+  // Maestro specs-driven agent types
+  | 'requirements_analyst'
+  | 'design_architect'
+  | 'task_planner'
+  | 'implementation_coder'
+  | 'quality_reviewer'
+  | 'steering_documenter';
 
 export type AgentStatus = 'idle' | 'busy' | 'active' | 'error' | 'offline';
 
-export type AgentCapability = 
+export type AgentCapability =
   | 'task_management'
   | 'resource_allocation'
   | 'consensus_building'
@@ -50,8 +60,10 @@ export type AgentCapability =
   | 'performance_metrics'
   | 'bottleneck_detection'
   | 'system_design'
+  | 'architecture'
   | 'architecture_patterns'
   | 'integration_planning'
+  | 'technical_writing'
   | 'test_generation'
   | 'quality_assurance'
   | 'edge_case_detection'
@@ -69,7 +81,14 @@ export type AgentCapability =
   | 'alerting'
   | 'domain_expertise'
   | 'custom_capabilities'
-  | 'problem_solving';
+  | 'problem_solving'
+  // Maestro specs-driven capabilities
+  | 'requirements_analysis'
+  | 'user_story_creation'
+  | 'acceptance_criteria'
+  | 'specs_driven_design'
+  | 'workflow_orchestration'
+  | 'governance';
 
 export interface AgentConfig {
   id?: string;
@@ -84,12 +103,30 @@ export interface AgentSpawnOptions {
   name?: string;
   capabilities?: AgentCapability[];
   autoAssign?: boolean;
+  config?: Partial<AgentConfig>;
+  environment?: Partial<AgentEnvironment>;
+}
+
+export interface AgentEnvironment {
+  workingDirectory?: string;
+  environmentVariables?: Record<string, string>;
+  resourceLimits?: {
+    maxMemory?: number;
+    maxCpu?: number;
+    timeout?: number;
+  };
 }
 
 // Task types
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
 export type TaskStrategy = 'parallel' | 'sequential' | 'adaptive' | 'consensus';
-export type TaskStatus = 'pending' | 'assigned' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
+export type TaskStatus =
+  | 'pending'
+  | 'assigned'
+  | 'in_progress'
+  | 'completed'
+  | 'failed'
+  | 'cancelled';
 
 export interface Task {
   id: string;
@@ -136,7 +173,7 @@ export interface TaskAssignment {
 }
 
 // Communication types
-export type MessageType = 
+export type MessageType =
   | 'direct'
   | 'broadcast'
   | 'consensus'
@@ -203,11 +240,14 @@ export interface MemoryNamespace {
 export interface MemoryStats {
   totalEntries: number;
   totalSize: number;
-  byNamespace: Record<string, {
-    entries: number;
-    size: number;
-    avgTTL: number;
-  }>;
+  byNamespace: Record<
+    string,
+    {
+      entries: number;
+      size: number;
+      avgTTL: number;
+    }
+  >;
   cacheHitRate: number;
   avgAccessTime: number;
   hotKeys: string[];
@@ -237,6 +277,8 @@ export interface ConsensusProposal {
   proposal: any;
   requiredThreshold: number;
   deadline?: Date;
+  creator?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface ConsensusVote {
@@ -261,7 +303,10 @@ export interface VotingStrategy {
   name: string;
   description: string;
   threshold: number;
-  recommend: (proposal: ConsensusProposal, analysis: any) => {
+  recommend: (
+    proposal: ConsensusProposal,
+    analysis: any,
+  ) => {
     vote: boolean;
     confidence: number;
     reasoning: string;

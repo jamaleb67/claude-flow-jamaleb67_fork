@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Real-time monitoring system for swarm operations
  */
@@ -6,15 +5,15 @@ import { getErrorMessage } from '../utils/error-handler.js';
 import { EventEmitter } from 'node:events';
 import type { ILogger } from '../core/logger.js';
 import type { IEventBus } from '../core/event-bus.js';
-import type { 
-  SystemMetrics, 
-  Alert, 
-  AlertLevel, 
-  AlertType, 
+import type {
+  SystemMetrics,
+  Alert,
+  AlertLevel,
+  AlertType,
   MonitoringConfig,
   AgentMetrics,
   SwarmMetrics,
-  AgentId
+  AgentId,
 } from '../swarm/types.js';
 import type { DistributedMemorySystem } from '../memory/distributed-memory.js';
 
@@ -157,7 +156,7 @@ export class RealTimeMonitor extends EventEmitter {
     config: Partial<MonitorConfig>,
     logger: ILogger,
     eventBus: IEventBus,
-    memory: DistributedMemorySystem
+    memory: DistributedMemorySystem,
   ) {
     super();
     this.logger = logger;
@@ -176,7 +175,7 @@ export class RealTimeMonitor extends EventEmitter {
         responseTime: { warning: 5000, critical: 10000 },
         queueDepth: { warning: 10, critical: 20 },
         agentHealth: { warning: 0.7, critical: 0.5 },
-        swarmUtilization: { warning: 0.8, critical: 0.95 }
+        swarmUtilization: { warning: 0.8, critical: 0.95 },
       },
       metricsEnabled: true,
       tracingEnabled: true,
@@ -184,7 +183,7 @@ export class RealTimeMonitor extends EventEmitter {
       exportEnabled: false,
       exportFormat: 'json',
       debugMode: false,
-      ...config
+      ...config,
     };
 
     this.systemMetrics = this.initializeSystemMetrics();
@@ -202,10 +201,10 @@ export class RealTimeMonitor extends EventEmitter {
     });
 
     this.eventBus.on('agent:status-changed', (data) => {
-      this.recordMetric('agent.status.change', 1, { 
-        agentId: data.agentId, 
-        from: data.from, 
-        to: data.to 
+      this.recordMetric('agent.status.change', 1, {
+        agentId: data.agentId,
+        from: data.from,
+        to: data.to,
       });
     });
 
@@ -242,13 +241,13 @@ export class RealTimeMonitor extends EventEmitter {
     this.logger.info('Initializing real-time monitor', {
       updateInterval: this.config.updateInterval,
       alerting: this.config.alertingEnabled,
-      dashboard: this.config.dashboardEnabled
+      dashboard: this.config.dashboardEnabled,
     });
 
     // Start monitoring loops
     this.startMetricsCollection();
     this.startHealthChecks();
-    
+
     if (this.config.alertingEnabled) {
       this.startAlertProcessing();
     }
@@ -282,8 +281,8 @@ export class RealTimeMonitor extends EventEmitter {
       this.cleanupOldMetrics();
     }, this.config.updateInterval);
 
-    this.logger.info('Started metrics collection', { 
-      interval: this.config.updateInterval 
+    this.logger.info('Started metrics collection', {
+      interval: this.config.updateInterval,
     });
   }
 
@@ -296,7 +295,7 @@ export class RealTimeMonitor extends EventEmitter {
         cpuUsage: await this.getCpuUsage(),
         memoryUsage: await this.getMemoryUsage(),
         diskUsage: await this.getDiskUsage(),
-        networkUsage: await this.getNetworkUsage()
+        networkUsage: await this.getNetworkUsage(),
       };
 
       // Record as time series
@@ -307,7 +306,6 @@ export class RealTimeMonitor extends EventEmitter {
 
       // Update swarm-level metrics
       await this.updateSwarmLevelMetrics();
-
     } catch (error) {
       this.logger.error('Failed to collect system metrics', error);
     }
@@ -315,7 +313,7 @@ export class RealTimeMonitor extends EventEmitter {
 
   private async updateSwarmLevelMetrics(): Promise<void> {
     const agents = Array.from(this.agentMetrics.values());
-    
+
     this.swarmMetrics = {
       ...this.swarmMetrics,
       agentUtilization: this.calculateAgentUtilization(agents),
@@ -323,7 +321,7 @@ export class RealTimeMonitor extends EventEmitter {
       latency: this.calculateAverageLatency(agents),
       efficiency: this.calculateSwarmEfficiency(agents),
       reliability: this.calculateSwarmReliability(agents),
-      averageQuality: this.calculateAverageQuality(agents)
+      averageQuality: this.calculateAverageQuality(agents),
     };
 
     // Record swarm metrics
@@ -338,7 +336,7 @@ export class RealTimeMonitor extends EventEmitter {
     const point: MetricPoint = {
       timestamp: new Date(),
       value,
-      tags
+      tags,
     };
 
     // Add to buffer for batch processing
@@ -375,13 +373,19 @@ export class RealTimeMonitor extends EventEmitter {
 
   private processMetricPoint(metricName: string, point: MetricPoint): void {
     let series = this.timeSeries.get(metricName);
-    
+
     if (!series) {
       series = {
         name: metricName,
         points: [],
-        aggregations: { min: point.value, max: point.value, avg: point.value, sum: point.value, count: 1 },
-        lastUpdated: point.timestamp
+        aggregations: {
+          min: point.value,
+          max: point.value,
+          avg: point.value,
+          sum: point.value,
+          count: 1,
+        },
+        lastUpdated: point.timestamp,
       };
       this.timeSeries.set(metricName, series);
     }
@@ -440,11 +444,12 @@ export class RealTimeMonitor extends EventEmitter {
 
   private evaluateAlertRule(rule: AlertRule, point: MetricPoint): void {
     const conditionMet = this.evaluateCondition(rule.condition, point.value, rule.threshold);
-    
+
     if (conditionMet) {
       // Check if we already have an active alert for this rule
-      const existingAlert = Array.from(this.activeAlerts.values())
-        .find(alert => alert.context.ruleId === rule.id && !alert.resolved);
+      const existingAlert = Array.from(this.activeAlerts.values()).find(
+        (alert) => alert.context.ruleId === rule.id && !alert.resolved,
+      );
 
       if (!existingAlert) {
         this.createAlert(rule, point);
@@ -454,7 +459,7 @@ export class RealTimeMonitor extends EventEmitter {
 
   private createAlert(rule: AlertRule, triggeringPoint: MetricPoint): void {
     const alertId = `alert-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    
+
     const alert: Alert = {
       id: alertId,
       timestamp: new Date(),
@@ -467,11 +472,11 @@ export class RealTimeMonitor extends EventEmitter {
         metric: rule.metric,
         value: triggeringPoint.value,
         threshold: rule.threshold,
-        tags: { ...rule.tags, ...triggeringPoint.tags }
+        tags: { ...rule.tags, ...triggeringPoint.tags },
       },
       acknowledged: false,
       resolved: false,
-      escalationLevel: 0
+      escalationLevel: 0,
     };
 
     this.activeAlerts.set(alertId, alert);
@@ -482,7 +487,7 @@ export class RealTimeMonitor extends EventEmitter {
       rule: rule.name,
       metric: rule.metric,
       value: triggeringPoint.value,
-      threshold: rule.threshold
+      threshold: rule.threshold,
     });
 
     this.emit('alert:created', { alert });
@@ -521,10 +526,10 @@ export class RealTimeMonitor extends EventEmitter {
             this.logger.warn('Unknown alert action type', { type: action.type });
         }
       } catch (error) {
-        this.logger.error('Failed to execute alert action', { 
-          alertId: alert.id, 
-          actionType: action.type, 
-          error 
+        this.logger.error('Failed to execute alert action', {
+          alertId: alert.id,
+          actionType: action.type,
+          error,
         });
       }
     }
@@ -554,8 +559,8 @@ export class RealTimeMonitor extends EventEmitter {
 
   private async performHealthChecks(): Promise<void> {
     const checks = Array.from(this.healthChecks.values());
-    const promises = checks.map(check => this.executeHealthCheck(check));
-    
+    const promises = checks.map((check) => this.executeHealthCheck(check));
+
     await Promise.allSettled(promises);
   }
 
@@ -579,15 +584,14 @@ export class RealTimeMonitor extends EventEmitter {
 
       this.recordMetric(`healthcheck.${check.name}`, isHealthy ? 1 : 0, {
         type: check.type,
-        target: check.target
+        target: check.target,
       });
-
     } catch (error) {
       this.logger.error('Health check failed', { check: check.name, error });
       this.recordMetric(`healthcheck.${check.name}`, 0, {
         type: check.type,
         target: check.target,
-        error: (error instanceof Error ? error.message : String(error))
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -596,21 +600,21 @@ export class RealTimeMonitor extends EventEmitter {
 
   createDashboard(title: string, panels: DashboardPanel[]): string {
     const dashboardId = `dashboard-${Date.now()}`;
-    
+
     const dashboard: MonitoringDashboard = {
       title,
       panels,
       refreshInterval: 30000,
       timeRange: {
         start: new Date(Date.now() - 3600000), // Last hour
-        end: new Date()
+        end: new Date(),
       },
-      filters: {}
+      filters: {},
     };
 
     this.dashboards.set(dashboardId, dashboard);
     this.emit('dashboard:created', { dashboardId, dashboard });
-    
+
     return dashboardId;
   }
 
@@ -620,7 +624,7 @@ export class RealTimeMonitor extends EventEmitter {
 
     const data: any = {
       dashboard,
-      panels: []
+      panels: [],
     };
 
     for (const panel of dashboard.panels) {
@@ -628,7 +632,7 @@ export class RealTimeMonitor extends EventEmitter {
         id: panel.id,
         title: panel.title,
         type: panel.type,
-        data: this.getPanelData(panel, dashboard.timeRange)
+        data: this.getPanelData(panel, dashboard.timeRange),
       };
       data.panels.push(panelData);
     }
@@ -643,13 +647,13 @@ export class RealTimeMonitor extends EventEmitter {
       const series = this.timeSeries.get(metricName);
       if (series) {
         // Filter points by time range
-        const filteredPoints = series.points.filter(point =>
-          point.timestamp >= timeRange.start && point.timestamp <= timeRange.end
+        const filteredPoints = series.points.filter(
+          (point) => point.timestamp >= timeRange.start && point.timestamp <= timeRange.end,
         );
 
         data[metricName] = {
           points: filteredPoints,
-          aggregations: this.calculateAggregations(filteredPoints)
+          aggregations: this.calculateAggregations(filteredPoints),
         };
       }
     }
@@ -701,7 +705,7 @@ export class RealTimeMonitor extends EventEmitter {
   private handleError(data: any): void {
     this.recordMetric('error.count', 1, {
       type: data.type || 'unknown',
-      source: data.source || 'unknown'
+      source: data.source || 'unknown',
     });
 
     // Create critical alert for errors
@@ -717,7 +721,7 @@ export class RealTimeMonitor extends EventEmitter {
         context: data,
         acknowledged: false,
         resolved: false,
-        escalationLevel: 0
+        escalationLevel: 0,
       };
 
       this.activeAlerts.set(alertId, alert);
@@ -727,20 +731,30 @@ export class RealTimeMonitor extends EventEmitter {
 
   private isCriticalMetric(name: string): boolean {
     const criticalMetrics = [
-      'system.cpu', 'system.memory', 'system.disk',
-      'agent.health', 'task.failed', 'error.count'
+      'system.cpu',
+      'system.memory',
+      'system.disk',
+      'agent.health',
+      'task.failed',
+      'error.count',
     ];
     return criticalMetrics.includes(name);
   }
 
   private evaluateCondition(condition: string, value: number, threshold: number): boolean {
     switch (condition) {
-      case 'gt': return value > threshold;
-      case 'gte': return value >= threshold;
-      case 'lt': return value < threshold;
-      case 'lte': return value <= threshold;
-      case 'eq': return value === threshold;
-      default: return false;
+      case 'gt':
+        return value > threshold;
+      case 'gte':
+        return value >= threshold;
+      case 'lt':
+        return value < threshold;
+      case 'lte':
+        return value <= threshold;
+      case 'eq':
+        return value === threshold;
+      default:
+        return false;
     }
   }
 
@@ -751,8 +765,8 @@ export class RealTimeMonitor extends EventEmitter {
 
     // Check if condition is no longer met
     const recentPoints = series.points.slice(-5); // Last 5 points
-    const allResolved = recentPoints.every(point =>
-      !this.evaluateCondition(rule.condition, point.value, rule.threshold)
+    const allResolved = recentPoints.every(
+      (point) => !this.evaluateCondition(rule.condition, point.value, rule.threshold),
     );
 
     return allResolved;
@@ -786,8 +800,10 @@ export class RealTimeMonitor extends EventEmitter {
 
   private calculateSwarmEfficiency(agents: AgentMetrics[]): number {
     if (agents.length === 0) return 0;
-    const totalTasks = agents.reduce((sum, agent) => 
-      sum + (agent.tasksCompleted || 0) + (agent.tasksFailed || 0), 0);
+    const totalTasks = agents.reduce(
+      (sum, agent) => sum + (agent.tasksCompleted || 0) + (agent.tasksFailed || 0),
+      0,
+    );
     const completedTasks = agents.reduce((sum, agent) => sum + (agent.tasksCompleted || 0), 0);
     return totalTasks > 0 ? completedTasks / totalTasks : 1;
   }
@@ -809,22 +825,22 @@ export class RealTimeMonitor extends EventEmitter {
       return { min: 0, max: 0, avg: 0, sum: 0, count: 0 };
     }
 
-    const values = points.map(p => p.value);
+    const values = points.map((p) => p.value);
     return {
       min: Math.min(...values),
       max: Math.max(...values),
       avg: values.reduce((sum, val) => sum + val, 0) / values.length,
       sum: values.reduce((sum, val) => sum + val, 0),
-      count: values.length
+      count: values.length,
     };
   }
 
   private cleanupOldMetrics(): void {
     const cutoff = new Date(Date.now() - this.config.retentionPeriod);
-    
+
     for (const [name, series] of this.timeSeries) {
-      series.points = series.points.filter(point => point.timestamp > cutoff);
-      
+      series.points = series.points.filter((point) => point.timestamp > cutoff);
+
       if (series.points.length === 0) {
         this.timeSeries.delete(name);
       }
@@ -833,7 +849,7 @@ export class RealTimeMonitor extends EventEmitter {
 
   private cleanupResolvedAlerts(): void {
     const cutoff = new Date(Date.now() - 86400000); // 24 hours
-    
+
     // Remove old resolved alerts from active alerts
     for (const [alertId, alert] of this.activeAlerts) {
       if (alert.resolved && alert.timestamp < cutoff) {
@@ -842,9 +858,7 @@ export class RealTimeMonitor extends EventEmitter {
     }
 
     // Trim alert history
-    this.alertHistory = this.alertHistory
-      .filter(alert => alert.timestamp > cutoff)
-      .slice(-1000); // Keep last 1000 alerts max
+    this.alertHistory = this.alertHistory.filter((alert) => alert.timestamp > cutoff).slice(-1000); // Keep last 1000 alerts max
   }
 
   private async flushMetrics(): Promise<void> {
@@ -865,14 +879,13 @@ export class RealTimeMonitor extends EventEmitter {
         timeSeries: Array.from(this.timeSeries.entries()),
         systemMetrics: this.systemMetrics,
         swarmMetrics: this.swarmMetrics,
-        activeAlerts: Array.from(this.activeAlerts.values())
+        activeAlerts: Array.from(this.activeAlerts.values()),
       };
 
       await this.memory.store('monitoring:export', exportData, {
         type: 'monitoring-export',
-        partition: 'metrics'
+        partition: 'metrics',
       });
-
     } catch (error) {
       this.logger.error('Failed to export metrics', error);
     }
@@ -891,7 +904,7 @@ export class RealTimeMonitor extends EventEmitter {
         severity: 'warning',
         tags: { category: 'system' },
         actions: [{ type: 'log', config: {}, enabled: true }],
-        suppressions: []
+        suppressions: [],
       },
       {
         id: 'memory-critical',
@@ -905,13 +918,13 @@ export class RealTimeMonitor extends EventEmitter {
         tags: { category: 'system' },
         actions: [
           { type: 'log', config: {}, enabled: true },
-          { type: 'auto-scale', config: { action: 'scale-down' }, enabled: true }
+          { type: 'auto-scale', config: { action: 'scale-down' }, enabled: true },
         ],
-        suppressions: []
-      }
+        suppressions: [],
+      },
     ];
 
-    rules.forEach(rule => this.alertRules.set(rule.id, rule));
+    rules.forEach((rule) => this.alertRules.set(rule.id, rule));
   }
 
   private initializeDefaultDashboards(): void {
@@ -925,8 +938,8 @@ export class RealTimeMonitor extends EventEmitter {
           width: 6,
           height: 4,
           position: { x: 0, y: 0 },
-          visualization: { yAxis: { max: 100 } }
-        }
+          visualization: { yAxis: { max: 100 } },
+        },
       },
       {
         id: 'memory-panel',
@@ -937,9 +950,9 @@ export class RealTimeMonitor extends EventEmitter {
           width: 6,
           height: 4,
           position: { x: 6, y: 0 },
-          visualization: { max: 100, threshold: [70, 90] }
-        }
-      }
+          visualization: { max: 100, threshold: [70, 90] },
+        },
+      },
     ]);
 
     this.logger.info('Created default dashboard', { dashboardId: systemDashboard });
@@ -957,7 +970,7 @@ export class RealTimeMonitor extends EventEmitter {
       customCheck: async () => {
         // Basic system health check
         return this.systemMetrics.cpuUsage < 95 && this.systemMetrics.memoryUsage < 95;
-      }
+      },
     });
   }
 
@@ -1010,7 +1023,7 @@ export class RealTimeMonitor extends EventEmitter {
       errorRate: 0,
       successRate: 100,
       resourceUtilization: {},
-      queueLengths: {}
+      queueLengths: {},
     };
   }
 
@@ -1029,7 +1042,7 @@ export class RealTimeMonitor extends EventEmitter {
       agentSatisfaction: 0.8,
       collaborationEffectiveness: 0.8,
       scheduleVariance: 0,
-      deadlineAdherence: 1.0
+      deadlineAdherence: 1.0,
     };
   }
 
@@ -1103,7 +1116,7 @@ export class RealTimeMonitor extends EventEmitter {
       alertRules: this.alertRules.size,
       healthChecks: this.healthChecks.size,
       dashboards: this.dashboards.size,
-      uptime: Date.now() - this.lastMetricsUpdate.getTime()
+      uptime: Date.now() - this.lastMetricsUpdate.getTime(),
     };
   }
 }

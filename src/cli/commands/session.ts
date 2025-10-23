@@ -1,9 +1,8 @@
-import { getErrorMessage } from '../../utils/error-handler.js';
 /**
  * Session management commands for Claude-Flow
  */
 
-import { Command } from 'commander';
+import { Command } from '../commander-fix.js';
 import { promises as fs, existsSync } from 'node:fs';
 import * as path from 'node:path';
 import Table from 'cli-table3';
@@ -140,11 +139,11 @@ async function listSessions(options: any): Promise<void> {
   try {
     await ensureSessionDir();
     const sessions = await loadAllSessions();
-    
+
     let filteredSessions = sessions;
     if (options.active) {
       // In production, this would check if the session is currently active
-      filteredSessions = sessions.filter(s => (s.metadata as any).active);
+      filteredSessions = sessions.filter((s) => (s.metadata as any).active);
     }
 
     if (options.format === 'json') {
@@ -165,15 +164,17 @@ async function listSessions(options: any): Promise<void> {
       rows.push([
         chalk.gray(session.id.substring(0, 8) + '...'),
         chalk.white(session.name),
-        session.description ? session.description.substring(0, 30) + (session.description.length > 30 ? '...' : '') : '-',
+        session.description
+          ? session.description.substring(0, 30) + (session.description.length > 30 ? '...' : '')
+          : '-',
         session.state.agents.length.toString(),
         session.state.tasks.length.toString(),
-        session.createdAt.toLocaleDateString()
+        session.createdAt.toLocaleDateString(),
       ]);
     }
 
     const table = new Table({
-      head: ['ID', 'Name', 'Description', 'Agents', 'Tasks', 'Created']
+      head: ['ID', 'Name', 'Description', 'Agents', 'Tasks', 'Created'],
     });
     for (const row of rows) {
       table.push(row);
@@ -188,7 +189,7 @@ async function saveSession(name: string | undefined, options: any): Promise<void
   try {
     // Get current session state (mock for now)
     const currentState = await getCurrentSessionState();
-    
+
     if (!name) {
       if (options.auto) {
         name = `session-${new Date().toISOString().split('T')[0]}-${Date.now().toString().slice(-4)}`;
@@ -214,8 +215,8 @@ async function saveSession(name: string | undefined, options: any): Promise<void
       metadata: {
         version: '1.0.0',
         platform: process.platform,
-        checksum: await calculateChecksum(currentState)
-      }
+        checksum: await calculateChecksum(currentState),
+      },
     };
 
     await ensureSessionDir();
@@ -226,11 +227,11 @@ async function saveSession(name: string | undefined, options: any): Promise<void
     console.log(`${chalk.white('ID:')} ${session.id}`);
     console.log(`${chalk.white('Name:')} ${session.name}`);
     console.log(`${chalk.white('File:')} ${filePath}`);
-    
+
     if (session.description) {
       console.log(`${chalk.white('Description:')} ${session.description}`);
     }
-    
+
     console.log(`${chalk.white('Agents:')} ${session.state.agents.length}`);
     console.log(`${chalk.white('Tasks:')} ${session.state.tasks.length}`);
   } catch (error) {
@@ -241,7 +242,7 @@ async function saveSession(name: string | undefined, options: any): Promise<void
 async function restoreSession(sessionId: string, options: any): Promise<void> {
   try {
     const session = await loadSession(sessionId);
-    
+
     if (!session) {
       console.error(chalk.red(`Session '${sessionId}' not found`));
       return;
@@ -276,7 +277,7 @@ async function restoreSession(sessionId: string, options: any): Promise<void> {
     const expectedChecksum = await calculateChecksum(session.state);
     if (session.metadata.checksum !== expectedChecksum) {
       console.log(chalk.yellow('⚠ Warning: Session checksum mismatch. Data may be corrupted.'));
-      
+
       if (!options.force) {
         const response = await inquirer.prompt({
           type: 'confirm',
@@ -285,7 +286,7 @@ async function restoreSession(sessionId: string, options: any): Promise<void> {
           default: false,
         });
         const proceed = response.proceed;
-        
+
         if (!proceed) {
           console.log(chalk.gray('Restore cancelled'));
           return;
@@ -295,7 +296,7 @@ async function restoreSession(sessionId: string, options: any): Promise<void> {
 
     // Restore session (mock for now)
     console.log(chalk.yellow('Restoring session...'));
-    
+
     if (options.merge) {
       console.log(chalk.blue('• Merging agents...'));
       console.log(chalk.blue('• Merging tasks...'));
@@ -314,7 +315,11 @@ async function restoreSession(sessionId: string, options: any): Promise<void> {
     await fs.writeFile(filePath, JSON.stringify(session, null, 2));
 
     console.log(chalk.green('✓ Session restored successfully'));
-    console.log(chalk.yellow('Note: This is a mock implementation. In production, this would connect to the orchestrator.'));
+    console.log(
+      chalk.yellow(
+        'Note: This is a mock implementation. In production, this would connect to the orchestrator.',
+      ),
+    );
   } catch (error) {
     console.error(chalk.red('Failed to restore session:'), (error as Error).message);
   }
@@ -323,7 +328,7 @@ async function restoreSession(sessionId: string, options: any): Promise<void> {
 async function deleteSession(sessionId: string, options: any): Promise<void> {
   try {
     const session = await loadSession(sessionId);
-    
+
     if (!session) {
       console.error(chalk.red(`Session '${sessionId}' not found`));
       return;
@@ -333,7 +338,7 @@ async function deleteSession(sessionId: string, options: any): Promise<void> {
     if (!options.force) {
       console.log(`${chalk.white('Session:')} ${session.name}`);
       console.log(`${chalk.white('Created:')} ${session.createdAt.toLocaleString()}`);
-      
+
       const response = await inquirer.prompt({
         type: 'confirm',
         name: 'confirmed',
@@ -360,21 +365,21 @@ async function deleteSession(sessionId: string, options: any): Promise<void> {
 async function exportSession(sessionId: string, outputFile: string, options: any): Promise<void> {
   try {
     const session = await loadSession(sessionId);
-    
+
     if (!session) {
       console.error(chalk.red(`Session '${sessionId}' not found`));
       return;
     }
 
     let exportData = session;
-    
+
     if (!options.includeMemory) {
       exportData = {
         ...session,
         state: {
           ...session.state,
-          memory: [] // Exclude memory data
-        }
+          memory: [], // Exclude memory data
+        },
       };
     }
 
@@ -450,7 +455,7 @@ async function importSession(inputFile: string, options: any): Promise<void> {
 async function showSessionInfo(sessionId: string): Promise<void> {
   try {
     const session = await loadSession(sessionId);
-    
+
     if (!session) {
       console.error(chalk.red(`Session '${sessionId}' not found`));
       return;
@@ -478,12 +483,14 @@ async function showSessionInfo(sessionId: string): Promise<void> {
     console.log(`${chalk.white('Version:')} ${session.metadata.version}`);
     console.log(`${chalk.white('Platform:')} ${session.metadata.platform}`);
     console.log(`${chalk.white('Checksum:')} ${session.metadata.checksum}`);
-    
+
     // Verify integrity
     const currentChecksum = await calculateChecksum(session.state);
     const integrity = currentChecksum === session.metadata.checksum;
     const integrityIcon = formatStatusIndicator(integrity ? 'success' : 'error');
-    console.log(`${chalk.white('Integrity:')} ${integrityIcon} ${integrity ? 'Valid' : 'Corrupted'}`);
+    console.log(
+      `${chalk.white('Integrity:')} ${integrityIcon} ${integrity ? 'Valid' : 'Corrupted'}`,
+    );
 
     // File info
     const filePath = `${SESSION_DIR}/${session.id}.json`;
@@ -507,15 +514,15 @@ async function cleanSessions(options: any): Promise<void> {
   try {
     await ensureSessionDir();
     const sessions = await loadAllSessions();
-    
+
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - parseInt(options.olderThan));
-    
-    let toDelete = sessions.filter(session => session.createdAt < cutoffDate);
-    
+
+    let toDelete = sessions.filter((session) => session.createdAt < cutoffDate);
+
     if (options.orphaned) {
       // In production, check if sessions have valid references
-      toDelete = toDelete.filter(session => (session.metadata as any).orphaned);
+      toDelete = toDelete.filter((session) => (session.metadata as any).orphaned);
     }
 
     if (toDelete.length === 0) {
@@ -525,10 +532,12 @@ async function cleanSessions(options: any): Promise<void> {
 
     console.log(chalk.cyan.bold(`Sessions to clean (${toDelete.length})`));
     console.log('─'.repeat(50));
-    
+
     for (const session of toDelete) {
       const age = Math.floor((Date.now() - session.createdAt.getTime()) / (1000 * 60 * 60 * 24));
-      console.log(`• ${session.name} (${chalk.gray(session.id.substring(0, 8) + '...')}) - ${age} days old`);
+      console.log(
+        `• ${session.name} (${chalk.gray(session.id.substring(0, 8) + '...')}) - ${age} days old`,
+      );
     }
 
     if (options.dryRun) {
@@ -569,7 +578,7 @@ async function cleanSessions(options: any): Promise<void> {
 
 async function loadAllSessions(): Promise<SessionData[]> {
   const sessions: SessionData[] = [];
-  
+
   try {
     const entries = await fs.readdir(SESSION_DIR, { withFileTypes: true });
     for (const entry of entries) {
@@ -577,14 +586,17 @@ async function loadAllSessions(): Promise<SessionData[]> {
         try {
           const content = await fs.readFile(`${SESSION_DIR}/${entry.name}`, 'utf-8');
           const session = JSON.parse(content) as SessionData;
-          
+
           // Convert date strings back to Date objects
           session.createdAt = new Date(session.createdAt);
           session.updatedAt = new Date(session.updatedAt);
-          
+
           sessions.push(session);
         } catch (error) {
-          console.warn(chalk.yellow(`Warning: Failed to load session file ${entry.name}:`), (error as Error).message);
+          console.warn(
+            chalk.yellow(`Warning: Failed to load session file ${entry.name}:`),
+            (error as Error).message,
+          );
         }
       }
     }
@@ -593,13 +605,13 @@ async function loadAllSessions(): Promise<SessionData[]> {
       throw error;
     }
   }
-  
+
   return sessions.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 }
 
 async function loadSession(sessionId: string): Promise<SessionData | null> {
   const sessions = await loadAllSessions();
-  return sessions.find(s => s.id === sessionId || s.id.startsWith(sessionId)) || null;
+  return sessions.find((s) => s.id === sessionId || s.id.startsWith(sessionId)) || null;
 }
 
 async function getCurrentSessionState(): Promise<any> {
@@ -607,20 +619,20 @@ async function getCurrentSessionState(): Promise<any> {
   return {
     agents: [
       { id: 'agent-001', type: 'coordinator', status: 'active' },
-      { id: 'agent-002', type: 'researcher', status: 'active' }
+      { id: 'agent-002', type: 'researcher', status: 'active' },
     ],
     tasks: [
       { id: 'task-001', type: 'research', status: 'running' },
-      { id: 'task-002', type: 'analysis', status: 'pending' }
+      { id: 'task-002', type: 'analysis', status: 'pending' },
     ],
     memory: [
       { id: 'memory-001', type: 'conversation', agentId: 'agent-001' },
-      { id: 'memory-002', type: 'result', agentId: 'agent-002' }
+      { id: 'memory-002', type: 'result', agentId: 'agent-002' },
     ],
     configuration: {
       orchestrator: { maxAgents: 10 },
-      memory: { backend: 'hybrid' }
-    }
+      memory: { backend: 'hybrid' },
+    },
   };
 }
 
@@ -630,5 +642,8 @@ async function calculateChecksum(data: any): Promise<string> {
   const dataBuffer = encoder.encode(content);
   const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
+  return hashArray
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+    .substring(0, 16);
 }

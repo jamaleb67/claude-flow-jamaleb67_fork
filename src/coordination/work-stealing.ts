@@ -1,4 +1,3 @@
-import { getErrorMessage } from '../utils/error-handler.js';
 /**
  * Work stealing algorithm for load balancing between agents
  */
@@ -45,19 +44,16 @@ export class WorkStealingCoordinator {
     }
 
     this.logger.info('Initializing work stealing coordinator');
-    
+
     // Start periodic steal checks
-    this.stealInterval = setInterval(
-      () => this.checkAndSteal(),
-      this.config.stealInterval,
-    );
+    this.stealInterval = setInterval(() => this.checkAndSteal(), this.config.stealInterval);
   }
 
   async shutdown(): Promise<void> {
     if (this.stealInterval) {
       clearInterval(this.stealInterval);
     }
-    
+
     this.workloads.clear();
     this.taskDurations.clear();
   }
@@ -113,10 +109,7 @@ export class WorkStealingCoordinator {
     }
 
     // Calculate how many tasks to steal
-    const tasksToSteal = Math.min(
-      Math.floor(difference / 2),
-      this.config.maxStealBatch,
-    );
+    const tasksToSteal = Math.min(Math.floor(difference / 2), this.config.maxStealBatch);
 
     this.logger.info('Initiating work stealing', {
       from: maxLoaded.agentId,
@@ -182,7 +175,7 @@ export class WorkStealingCoordinator {
 
     // Sort by score (descending) and return best
     candidates.sort((a, b) => b.score - a.score);
-    
+
     this.logger.debug('Agent selection scores', {
       taskId: task.id,
       candidates: candidates.slice(0, 5), // Top 5

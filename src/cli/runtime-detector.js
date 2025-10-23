@@ -58,7 +58,7 @@ export class UnifiedTerminalIO {
     if (typeof data === 'string') {
       data = this.encoder.encode(data);
     }
-    
+
     if (runtime === 'deno') {
       await stdout.write(data);
     } else {
@@ -87,7 +87,7 @@ export class UnifiedTerminalIO {
             resolve(bytesToCopy);
           }
         };
-        
+
         // Only set raw mode if available (terminal environments)
         if (stdin.setRawMode && typeof stdin.setRawMode === 'function') {
           try {
@@ -96,11 +96,11 @@ export class UnifiedTerminalIO {
             // Ignore errors if not in a TTY
           }
         }
-        
+
         if (stdin.resume && typeof stdin.resume === 'function') {
           stdin.resume();
         }
-        
+
         stdin.on('data', onData);
       });
     }
@@ -170,7 +170,7 @@ export const RuntimeDetector = {
   isNode: () => isNode,
   isDeno: () => isDeno,
   getRuntime: () => runtime,
-  
+
   /**
    * Get platform-specific information
    */
@@ -179,15 +179,20 @@ export const RuntimeDetector = {
       return {
         os: Deno.build.os,
         arch: Deno.build.arch,
-        target: Deno.build.target
+        target: Deno.build.target,
       };
     } else {
       return {
-        os: process.platform === 'win32' ? 'windows' : 
-            process.platform === 'darwin' ? 'darwin' :
-            process.platform === 'linux' ? 'linux' : process.platform,
+        os:
+          process.platform === 'win32'
+            ? 'windows'
+            : process.platform === 'darwin'
+              ? 'darwin'
+              : process.platform === 'linux'
+                ? 'linux'
+                : process.platform,
         arch: process.arch,
-        target: `${process.arch}-${process.platform}`
+        target: `${process.arch}-${process.platform}`,
       };
     }
   },
@@ -215,7 +220,7 @@ export const RuntimeDetector = {
    */
   getEnv: (key) => {
     if (runtime === 'deno') {
-      return Deno.env.get(key);
+      return process.env[key];
     } else {
       return process.env[key];
     }
@@ -226,11 +231,11 @@ export const RuntimeDetector = {
    */
   setEnv: (key, value) => {
     if (runtime === 'deno') {
-      Deno.env.set(key, value);
+      process.env[key] = value;
     } else {
       process.env[key] = value;
     }
-  }
+  },
 };
 
 /**
@@ -241,22 +246,22 @@ export const createCompatibilityLayer = () => {
     runtime,
     terminal: new UnifiedTerminalIO(),
     detector: RuntimeDetector,
-    
+
     // Unified APIs
     TextEncoder,
     TextDecoder,
-    
+
     // Platform info
     platform: RuntimeDetector.getPlatform(),
-    
+
     // Environment
     getEnv: RuntimeDetector.getEnv,
     setEnv: RuntimeDetector.setEnv,
-    
+
     // Process control
     exit,
     pid,
-    
+
     // Graceful degradation helpers
     safeCall: async (fn, fallback = null) => {
       try {
@@ -266,11 +271,11 @@ export const createCompatibilityLayer = () => {
         return fallback;
       }
     },
-    
+
     // Feature detection
     hasFeature: (feature) => {
       return RuntimeDetector.hasAPI(feature);
-    }
+    },
   };
 };
 
