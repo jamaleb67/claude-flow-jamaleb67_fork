@@ -2,7 +2,7 @@
  * Comprehensive unit tests for Memory Backends (SQLite and Markdown)
  */
 
-import { describe, it, beforeEach, afterEach  } from "../test.utils.ts";
+import { describe, it, beforeEach, afterEach, FakeTime  } from "../test.utils.js";
 import { expect } from "@jest/globals";
 // FakeTime equivalent available in test.utils.ts
 
@@ -15,9 +15,9 @@ import {
   TestAssertions,
   FileSystemTestUtils,
   TestDataGenerator 
-} from '../../utils/test-utils.ts';
-import { generateMemoryEntries, generateEdgeCaseData } from '../../fixtures/generators.ts';
-import { setupTestEnv, cleanupTestEnv, TEST_CONFIG } from '../../test.config.ts';
+} from '../../utils/test-utils.js';
+import { generateMemoryEntries, generateEdgeCaseData } from '../../fixtures/generators.js';
+import { setupTestEnv, cleanupTestEnv, TEST_CONFIG } from '../../test.config.js';
 
 describe('Memory Backends - Comprehensive Tests', () => {
   let tempDir: string;
@@ -110,7 +110,7 @@ describe('Memory Backends - Comprehensive Tests', () => {
         await backend.store(namespace, key, { version: 2 });
         const updated = await backend.retrieve(namespace, key);
         
-        expect(updated.value).toBe({ version: 2 });
+        expect(updated.value).toEqual({ version: 2 });
         expect(updated.createdAt).toBe(initial.createdAt); // Should not change
         expect(updated.updatedAt > initial.updatedAt).toBe(true); // Should be newer
       });

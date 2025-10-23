@@ -13,7 +13,7 @@ import {
   assertThrows,
   spy,
   FakeTime,
-} from '../../test.utils.ts';
+} from '../../test.utils.js.js';
 import {
   generateId,
   delay,
@@ -33,7 +33,7 @@ import {
   circuitBreaker,
   greeting,
 } from '../../../src/utils/helpers.ts';
-import { cleanupTestEnv, setupTestEnv } from '../../test.config.ts';
+import { cleanupTestEnv, setupTestEnv } from '../../test.config.js';
 
 describe('Helpers', () => {
   beforeEach(() => {
@@ -329,7 +329,7 @@ describe('Helpers', () => {
       const target = { a: 1 };
       const result = deepMerge(target);
       
-      expect(result).toBe({ a: 1 });
+      expect(result).toEqual({ a: 1 });
     });
 
     it('should not mutate target object', () => {
@@ -362,7 +362,7 @@ describe('Helpers', () => {
       emitter.emit('test', { message: 'hello' });
       
       expect(handler.calls.length).toBe(1);
-      expect(handler.calls[0].args[0]).toBe({ message: 'hello' });
+      expect(handler.calls[0].args[0]).toEqual({ message: 'hello' });
     });
 
     it('should handle multiple listeners', () => {
@@ -425,8 +425,8 @@ describe('Helpers', () => {
 
     it('should format with decimals', () => {
       expect(formatBytes(1500)).toBe('1.46 KB');
-      expect(formatBytes(1500).toBe(1), '1.5 KB');
-      expect(formatBytes(1500).toBe(0), '1 KB');
+      expect(formatBytes(1500, 1)).toBe('1.5 KB');
+      expect(formatBytes(1500, 0)).toBe('1 KB');
     });
 
     it('should handle negative values', () => {
@@ -466,15 +466,15 @@ describe('Helpers', () => {
 
   describe('ensureArray', () => {
     it('should convert single values to arrays', () => {
-      expect(ensureArray('test')).toBe(['test']);
-      expect(ensureArray(5)).toBe([5]);
-      expect(ensureArray(null)).toBe([null]);
+      expect(ensureArray('test')).toEqual(['test']);
+      expect(ensureArray(5)).toEqual([5]);
+      expect(ensureArray(null)).toEqual([null]);
     });
 
     it('should keep arrays as arrays', () => {
-      expect(ensureArray(['test'])).toBe(['test']);
-      expect(ensureArray([1).toBe(2, 3]), [1, 2, 3]);
-      expect(ensureArray([])).toBe([]);
+      expect(ensureArray(['test'])).toEqual(['test']);
+      expect(ensureArray([1, 2, 3])).toEqual([1, 2, 3]);
+      expect(ensureArray([])).toEqual([]);
     });
   });
 
@@ -498,7 +498,7 @@ describe('Helpers', () => {
 
     it('should handle empty arrays', () => {
       const grouped = groupBy([], (item: any) => item.type);
-      expect(grouped).toBe({});
+      expect(grouped).toEqual({});
     });
 
     it('should handle number keys', () => {
@@ -543,7 +543,7 @@ describe('Helpers', () => {
   describe('safeParseJSON', () => {
     it('should parse valid JSON', () => {
       const result = safeParseJSON('{"key": "value"}');
-      expect(result).toBe({ key: 'value' });
+      expect(result).toEqual({ key: 'value' });
     });
 
     it('should return undefined for invalid JSON', () => {
@@ -553,7 +553,7 @@ describe('Helpers', () => {
 
     it('should return fallback for invalid JSON', () => {
       const result = safeParseJSON('invalid json', { default: true });
-      expect(result).toBe({ default: true });
+      expect(result).toEqual({ default: true });
     });
 
     it('should handle complex objects', () => {
