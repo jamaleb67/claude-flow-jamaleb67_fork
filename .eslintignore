@@ -1,5 +1,23 @@
+# Build outputs
 dist/
+dist-cjs/
 bin/
-node_modules/
 coverage/
-src/cli/commands/swarm-new.ts
+node_modules/
+
+# Test files with TS config issues
+src/verification/tests/
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+
+# Generated files
+*.log
+.env
+.DS_Store
+
+# Temporary files
+.benchmark-data/
+.test-data/
+.swarm/
