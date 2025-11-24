@@ -102,6 +102,13 @@ export class DeceptionDetector {
       analysis.confidence += 0.25;
     }
 
+    // Check for impossible performance claims
+    if (performanceAnalysis.exaggeration > 0.5) {
+      analysis.deceptionType.push('impossible_claims');
+      analysis.evidence.impossiblePerformanceGains = true;
+      analysis.confidence += 0.2;
+    }
+
     // Analyze quality claims
     const qualityAnalysis = this.analyzeQualityClaims(reports);
     if (qualityAnalysis.inflation > 0.15) {
@@ -118,6 +125,60 @@ export class DeceptionDetector {
       analysis.deceptionType.push('inconsistency');
       analysis.evidence.inconsistencyScore = 1 - consistencyAnalysis.consistency;
       analysis.confidence += 0.25;
+    }
+
+    // Detect issue hiding patterns
+    const issueHidingAnalysis = this.detectIssueHiding(reports);
+    if (issueHidingAnalysis.isHiding) {
+      analysis.deceptionDetected = true;
+      analysis.deceptionType.push('issue_hiding');
+      analysis.evidence.hiddenIssuesCount = issueHidingAnalysis.hiddenCount;
+      analysis.confidence += 0.3;
+    }
+
+    // Detect cherry-picking of metrics
+    const cherryPickingAnalysis = this.detectCherryPicking(reports);
+    if (cherryPickingAnalysis.isCherryPicking) {
+      analysis.deceptionDetected = true;
+      analysis.deceptionType.push('cherry_picking');
+      analysis.evidence.incompleteMetricsReporting = true;
+      analysis.confidence += 0.25;
+    }
+
+    // Detect contradictory statements over time
+    const contradictionAnalysis = this.detectContradictions(reports);
+    if (contradictionAnalysis.hasContradictions) {
+      analysis.deceptionDetected = true;
+      analysis.deceptionType.push('contradictory_statements');
+      analysis.evidence.contradictionCount = contradictionAnalysis.count;
+      analysis.confidence += 0.3;
+    }
+
+    // Detect fabrication patterns
+    const fabricationAnalysis = this.detectFabricationPattern(reports);
+    if (fabricationAnalysis.isFabricated) {
+      analysis.deceptionDetected = true;
+      analysis.deceptionType.push('fabrication');
+      analysis.evidence.unrealisticResults = true;
+      analysis.evidence.evidenceInconsistency = fabricationAnalysis.inconsistencyScore;
+      analysis.confidence += 0.35;
+    }
+
+    // Detect gaslighting and discrediting behavior
+    // Note: This requires access to other agents' reports, which we simulate here
+    // In production, this would be called separately with full context
+    const gaslightingIndicators = this.detectGaslightingPatterns(reports);
+    if (gaslightingIndicators.hasGaslighting) {
+      analysis.deceptionDetected = true;
+      analysis.deceptionType.push('gaslighting');
+      analysis.evidence.contradictionsWithOtherAgents = gaslightingIndicators.contradictionCount;
+      analysis.confidence += 0.3;
+    }
+    if (gaslightingIndicators.hasDiscrediting) {
+      analysis.deceptionDetected = true;
+      analysis.deceptionType.push('discrediting_others');
+      analysis.evidence.systematicDisagreement = true;
+      analysis.confidence += 0.35;
     }
 
     // Calculate overall truth score
@@ -247,8 +308,11 @@ export class DeceptionDetector {
     isGaslighting: boolean;
     confidence: number;
     contradictions: string[];
+    contradictionsWithOtherAgents?: number;
+    systematicDisagreement?: boolean;
   } {
     const contradictions: string[] = [];
+    let contradictionCount = 0;
 
     // Check for contradictions with other agents on same task
     const sameTaskReports = otherReports.filter(r => r.taskId === report.taskId && r.agentId !== report.agentId);
@@ -256,17 +320,31 @@ export class DeceptionDetector {
     for (const otherReport of sameTaskReports) {
       if (report.claimedOutcome.success !== otherReport.claimedOutcome.success) {
         contradictions.push(`Contradicts ${otherReport.agentId} on task success`);
+        contradictionCount++;
       }
 
       if (Math.abs(report.claimedOutcome.performance.improvement - otherReport.claimedOutcome.performance.improvement) > 0.3) {
         contradictions.push(`Large discrepancy in performance claims vs ${otherReport.agentId}`);
+        contradictionCount++;
+      }
+
+      // Check if agent systematically rates other agents' work as poor
+      if (report.claimedOutcome.quality.codeQuality > 0.8 &&
+          otherReport.claimedOutcome.quality.codeQuality < 0.6) {
+        contradictions.push(`Systematically disagrees with ${otherReport.agentId}'s quality assessment`);
+        contradictionCount++;
       }
     }
+
+    // Check for pattern of always contradicting others (discrediting behavior)
+    const systematicDisagreement = contradictionCount >= Math.min(sameTaskReports.length, 8);
 
     return {
       isGaslighting: contradictions.length >= 2,
       confidence: Math.min(contradictions.length * 0.3, 1.0),
-      contradictions
+      contradictions,
+      contradictionsWithOtherAgents: contradictionCount,
+      systematicDisagreement
     };
   }
 
@@ -323,6 +401,214 @@ export class DeceptionDetector {
     return { consistency };
   }
 
+  /**
+   * Detect when agents hide minor issues
+   */
+  private detectIssueHiding(reports: AgentReport[]): {
+    isHiding: boolean;
+    hiddenCount: number;
+  } {
+    if (reports.length < 10) {
+      return { isHiding: false, hiddenCount: 0 };
+    }
+
+    // Count reports claiming no errors at all
+    const noErrorReports = reports.filter(r => r.claimedOutcome.noErrors === true).length;
+    const noErrorRate = noErrorReports / reports.length;
+
+    // If agent claims >90% of tasks have no errors, likely hiding issues
+    if (noErrorRate > 0.9) {
+      // Estimate hidden issues based on deviation from realistic 60-70% rate
+      const realisticRate = 0.65;
+      const hiddenCount = Math.round((noErrorRate - realisticRate) * reports.length);
+      return { isHiding: true, hiddenCount };
+    }
+
+    return { isHiding: false, hiddenCount: 0 };
+  }
+
+  /**
+   * Detect cherry-picking of metrics
+   */
+  private detectCherryPicking(reports: AgentReport[]): { isCherryPicking: boolean } {
+    if (reports.length < 5) {
+      return { isCherryPicking: false };
+    }
+
+    // Check if agent consistently reports only favorable metrics
+    let favorableOnlyCount = 0;
+    let incompleteMetricsCount = 0;
+
+    for (const report of reports) {
+      // Check for consistently high quality scores combined with always passing tests
+      const allMetricsGood = (
+        report.claimedOutcome.quality.codeQuality > 0.7 &&
+        report.claimedOutcome.quality.documentation > 0.7 &&
+        report.claimedOutcome.quality.maintainability > 0.7 &&
+        report.claimedOutcome.testsPass === true
+      );
+
+      if (allMetricsGood) {
+        favorableOnlyCount++;
+      }
+
+      // Check for incomplete metrics (cherry-picking specific metrics)
+      if (report.claimedOutcome.performance.metrics) {
+        const metricsCount = Object.keys(report.claimedOutcome.performance.metrics).length;
+        // If reporting less than 4 metrics, likely cherry-picking
+        if (metricsCount > 0 && metricsCount < 4) {
+          incompleteMetricsCount++;
+        }
+      }
+    }
+
+    const favorableRate = favorableOnlyCount / reports.length;
+    const incompleteRate = incompleteMetricsCount / reports.length;
+
+    // Cherry-picking if mostly favorable AND incomplete metrics
+    return { isCherryPicking: favorableRate > 0.7 && incompleteRate > 0.5 };
+  }
+
+  /**
+   * Detect contradictions in agent's own reports over time
+   */
+  private detectContradictions(reports: AgentReport[]): {
+    hasContradictions: boolean;
+    count: number;
+  } {
+    if (reports.length < 3) {
+      return { hasContradictions: false, count: 0 };
+    }
+
+    let contradictionCount = 0;
+
+    // Compare each report with previous ones for the same task
+    const taskGroups = new Map<string, AgentReport[]>();
+    for (const report of reports) {
+      if (!taskGroups.has(report.taskId)) {
+        taskGroups.set(report.taskId, []);
+      }
+      taskGroups.get(report.taskId)!.push(report);
+    }
+
+    // Check for contradictions within task groups
+    for (const [taskId, taskReports] of taskGroups) {
+      if (taskReports.length > 1) {
+        // Sort by timestamp
+        taskReports.sort((a, b) => a.timestamp - b.timestamp);
+
+        for (let i = 1; i < taskReports.length; i++) {
+          const prev = taskReports[i - 1];
+          const curr = taskReports[i];
+
+          // Check for contradictions in claims
+          if (prev.claimedOutcome.success !== curr.claimedOutcome.success) {
+            contradictionCount++;
+          }
+          if (Math.abs(prev.claimedOutcome.performance.improvement -
+                       curr.claimedOutcome.performance.improvement) > 0.3) {
+            contradictionCount++;
+          }
+        }
+      }
+    }
+
+    return {
+      hasContradictions: contradictionCount > 0,
+      count: contradictionCount
+    };
+  }
+
+  /**
+   * Detect gaslighting patterns from agent's own reports
+   */
+  private detectGaslightingPatterns(reports: AgentReport[]): {
+    hasGaslighting: boolean;
+    hasDiscrediting: boolean;
+    contradictionCount: number;
+  } {
+    if (reports.length < 5) {
+      return { hasGaslighting: false, hasDiscrediting: false, contradictionCount: 0 };
+    }
+
+    let contradictionCount = 0;
+    let systematicNegativeAssessments = 0;
+
+    // Check for contradictions with implied other agents
+    // (In real usage, this would compare with actual other agent reports)
+    for (const report of reports) {
+      // If agent consistently reports other work as poor while claiming own work is excellent
+      if (report.claimedOutcome.quality.codeQuality > 0.8 &&
+          report.evidence?.otherAgentQuality &&
+          report.evidence.otherAgentQuality < 0.6) {
+        systematicNegativeAssessments++;
+        contradictionCount++;
+      }
+
+      // Simulate detection of contradictions (in production, compare with other agents)
+      if (report.conflicts && report.conflicts.length > 0) {
+        contradictionCount += report.conflicts.length;
+      }
+    }
+
+    const discreditingRate = systematicNegativeAssessments / reports.length;
+    const hasDiscrediting = discreditingRate > 0.4 || contradictionCount > 7;
+    const hasGaslighting = contradictionCount > 2;
+
+    return {
+      hasGaslighting,
+      hasDiscrediting,
+      contradictionCount
+    };
+  }
+
+  /**
+   * Detect fabrication patterns across multiple reports
+   */
+  private detectFabricationPattern(reports: AgentReport[]): {
+    isFabricated: boolean;
+    inconsistencyScore: number;
+  } {
+    if (reports.length < 5) {
+      return { isFabricated: false, inconsistencyScore: 0 };
+    }
+
+    let fabricationIndicators = 0;
+    let totalIndicators = 0;
+
+    for (const report of reports) {
+      totalIndicators += 4; // 4 checks per report
+
+      // Check for suspiciously perfect results
+      if (report.claimedOutcome.quality.codeQuality > 0.95 &&
+          report.claimedOutcome.testsPass &&
+          report.claimedOutcome.noErrors) {
+        fabricationIndicators++;
+      }
+
+      // Check for unrealistic timing (if evidence available)
+      if (report.evidence?.duration && report.evidence.duration < 1000) {
+        fabricationIndicators++;
+      }
+
+      // Check for missing evidence details
+      if (!report.evidence || Object.keys(report.evidence).length < 3) {
+        fabricationIndicators++;
+      }
+
+      // Check for impossibly high performance claims
+      if (report.claimedOutcome.performance.improvement > 0.5) {
+        fabricationIndicators++;
+      }
+    }
+
+    const inconsistencyScore = fabricationIndicators / totalIndicators;
+    return {
+      isFabricated: inconsistencyScore > 0.4,
+      inconsistencyScore
+    };
+  }
+
   private calculateOverallTruthScore(reports: AgentReport[], analysis: DeceptionAnalysis): number {
     let score = 1.0;
 
@@ -339,6 +625,21 @@ export class DeceptionDetector {
     if (analysis.deceptionType.includes('inconsistency')) {
       score -= 0.2;
     }
+    if (analysis.deceptionType.includes('issue_hiding')) {
+      score -= 0.2;
+    }
+    if (analysis.deceptionType.includes('cherry_picking')) {
+      score -= 0.15;
+    }
+    if (analysis.deceptionType.includes('fabrication')) {
+      score -= 0.3;
+    }
+    if (analysis.deceptionType.includes('impossible_claims')) {
+      score -= 0.25;
+    }
+    if (analysis.deceptionType.includes('contradictory_statements')) {
+      score -= 0.2;
+    }
 
     // Ensure score is between 0 and 1
     return Math.max(0, Math.min(1, score));
@@ -350,6 +651,7 @@ export class DeceptionDetector {
     if (analysis.deceptionType.includes('overconfidence')) {
       recommendations.push('Implement stricter verification for this agent');
       recommendations.push('Require additional evidence for success claims');
+      recommendations.push('Implement additional verification for this agent');
     }
 
     if (analysis.deceptionType.includes('exaggeration')) {
@@ -367,11 +669,114 @@ export class DeceptionDetector {
       recommendations.push('Increase monitoring frequency');
     }
 
+    if (analysis.deceptionType.includes('issue_hiding')) {
+      recommendations.push('Require detailed issue reporting');
+      recommendations.push('Implement automated error detection');
+    }
+
+    if (analysis.deceptionType.includes('cherry_picking')) {
+      recommendations.push('Require comprehensive metrics reporting');
+      recommendations.push('Mandate reporting of both positive and negative metrics');
+    }
+
+    if (analysis.deceptionType.includes('fabrication')) {
+      recommendations.push('Require third-party verification for all claims');
+      recommendations.push('Implement evidence validation system');
+    }
+
+    if (analysis.deceptionType.includes('impossible_claims')) {
+      recommendations.push('Require third-party verification for performance claims');
+      recommendations.push('Flag unrealistic improvements automatically');
+    }
+
+    if (analysis.deceptionType.includes('contradictory_statements')) {
+      recommendations.push('Implement immutable audit trail for agent reports');
+      recommendations.push('Cross-reference with historical reports');
+    }
+
+    if (analysis.deceptionType.includes('gaslighting') || analysis.deceptionType.includes('discrediting_others')) {
+      recommendations.push('Implement multi-agent consensus verification');
+      recommendations.push('Monitor for systematic disagreement patterns');
+    }
+
     if (analysis.confidence > 0.8) {
       recommendations.push('CRITICAL: High confidence deception detected - escalate immediately');
     }
 
     return recommendations;
+  }
+
+  /**
+   * Detect collusion between multiple agents
+   */
+  async detectCollusion(allReports: AgentReport[]): Promise<{
+    isCollusion: boolean;
+    confidence: number;
+    evidence: {
+      synchronizedReporting: boolean;
+      identicalFalseClaims: number;
+    };
+  }> {
+    if (allReports.length < 4) {
+      return {
+        isCollusion: false,
+        confidence: 0,
+        evidence: { synchronizedReporting: false, identicalFalseClaims: 0 }
+      };
+    }
+
+    // Group reports by task
+    const taskGroups = new Map<string, AgentReport[]>();
+    for (const report of allReports) {
+      if (!taskGroups.has(report.taskId)) {
+        taskGroups.set(report.taskId, []);
+      }
+      taskGroups.get(report.taskId)!.push(report);
+    }
+
+    let synchronizedCount = 0;
+    let identicalClaimsCount = 0;
+
+    for (const [taskId, reports] of taskGroups) {
+      if (reports.length < 2) continue;
+
+      // Check for synchronized reporting (reports submitted within short time window)
+      const timestamps = reports.map(r => r.timestamp).sort((a, b) => a - b);
+      for (let i = 1; i < timestamps.length; i++) {
+        if (timestamps[i] - timestamps[i - 1] < 5000) { // Within 5 seconds
+          synchronizedCount++;
+        }
+      }
+
+      // Check for identical false claims (all agents claim same unrealistic results)
+      const allClaimSuccess = reports.every(r => r.claimedOutcome.success === true);
+      const allClaimNoErrors = reports.every(r => r.claimedOutcome.noErrors === true);
+      const allClaimHighPerformance = reports.every(r => r.claimedOutcome.performance.improvement > 0.3);
+
+      if (allClaimSuccess && allClaimNoErrors && allClaimHighPerformance) {
+        identicalClaimsCount++;
+      }
+
+      // Check for identical quality scores (suspicious)
+      const qualityScores = reports.map(r => r.claimedOutcome.quality.codeQuality);
+      const uniqueScores = new Set(qualityScores);
+      if (uniqueScores.size === 1 && qualityScores[0] > 0.9) {
+        identicalClaimsCount++;
+      }
+    }
+
+    const synchronizedReporting = synchronizedCount > 2;
+    const isCollusion = identicalClaimsCount > 2 || synchronizedReporting;
+    const confidence = Math.min((identicalClaimsCount + synchronizedCount) * 0.2, 1.0);
+
+    return {
+      isCollusion,
+      confidence,
+      evidence: {
+        synchronizedReporting,
+        identicalFalseClaims: identicalClaimsCount
+      }
+    };
   }
 
   /**
