@@ -16,10 +16,8 @@ import * as path from 'path';
 import * as os from 'os';
 
 // Import verification components
-// Dynamic import for CommonJS module
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const TruthScoreCalc = require('../../../../.claude/helpers/truth-score.js');
+import TruthScoreCalculator from '../../../../.claude/helpers/truth-score.js';
+import { DeceptionDetector } from '../../deception-detector.js';
 
 interface MockAgent {
   id: string;
@@ -89,9 +87,9 @@ describe('False Reporting Detection Scenarios', () => {
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'false-reporting-test-'));
-
+    
     // Setup truth score calculator
-    truthCalculator = new TruthScoreCalc();
+    truthCalculator = new TruthScoreCalculator();
     truthCalculator.configPath = path.join(tempDir, 'verification.json');
     truthCalculator.memoryPath = path.join(tempDir, 'truth-scores');
     await truthCalculator.init();
