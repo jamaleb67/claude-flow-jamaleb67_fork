@@ -13,13 +13,13 @@ import fs from 'fs/promises';
 import path from 'path';
 
 // Mock AgentDBBackend to avoid requiring external database dependencies
-const mockStoreVector = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
-const mockGetVector = jest.fn<() => Promise<{ metadata: Record<string, unknown> } | null>>();
-const mockDeleteVector = jest.fn<() => Promise<boolean>>().mockResolvedValue(true);
-const mockSearch = jest.fn<() => Promise<Array<{ metadata: Record<string, unknown> }>>>().mockResolvedValue([]);
-const mockGetStats = jest.fn<() => Promise<{ vectorCount: number }>>().mockResolvedValue({ vectorCount: 0 });
-const mockInitialize = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
-const mockClose = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
+const mockStoreVector = jest.fn().mockResolvedValue(undefined);
+const mockGetVector = jest.fn();
+const mockDeleteVector = jest.fn().mockResolvedValue(true);
+const mockSearch = jest.fn().mockResolvedValue([]);
+const mockGetStats = jest.fn().mockResolvedValue({ vectorCount: 0 });
+const mockInitialize = jest.fn().mockResolvedValue(undefined);
+const mockClose = jest.fn().mockResolvedValue(undefined);
 
 jest.unstable_mockModule('../../src/memory/backends/agentdb.js', () => ({
   AgentDBBackend: jest.fn().mockImplementation(() => ({
