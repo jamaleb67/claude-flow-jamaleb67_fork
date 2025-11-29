@@ -25,6 +25,9 @@ import { sessionCommand } from './session.js';
 // Import verification from simple-commands (self-contained JS)
 import { verificationCommand } from '../simple-commands/verification.js';
 
+// Import verification command
+import { verificationCommand } from './verification.js';
+
 let orchestrator: Orchestrator | null = null;
 let configManager: ConfigManager | null = null;
 let persistence: JsonPersistenceManager | null = null;
@@ -2530,6 +2533,65 @@ Now, please proceed with the task: ${task}`;
       } catch (err) {
         error(`Hook command error: ${getErrorMessage(err)}`);
       }
+    },
+  });
+
+  // Add verification command
+  cli.command({
+    name: 'verification',
+    description: 'Verification system management (truth score, validation, hooks)',
+    subcommands: [
+      {
+        name: 'status',
+        description: 'Show verification system status',
+        action: async (ctx: CommandContext) => {
+          await verificationCommand({ subcommand: 'status' });
+        },
+      },
+      {
+        name: 'check',
+        description: 'Check verification status for a task',
+        options: [
+          { name: 'taskId', short: 't', description: 'Task ID to check', type: 'string' },
+        ],
+        action: async (ctx: CommandContext) => {
+          await verificationCommand({ subcommand: 'check', taskId: ctx.options.taskId });
+        },
+      },
+      {
+        name: 'config',
+        description: 'Show/update verification configuration',
+        options: [
+          { name: 'set', short: 's', description: 'Set config (key=value)', type: 'string' },
+        ],
+        action: async (ctx: CommandContext) => {
+          await verificationCommand({ subcommand: 'config', set: ctx.options.set });
+        },
+      },
+      {
+        name: 'validate',
+        description: 'Run validation on a task',
+        options: [
+          { name: 'taskId', short: 't', description: 'Task ID to validate', type: 'string' },
+        ],
+        action: async (ctx: CommandContext) => {
+          await verificationCommand({ subcommand: 'validate', taskId: ctx.options.taskId });
+        },
+      },
+      {
+        name: 'cleanup',
+        description: 'Clean up old verification data',
+        options: [
+          { name: 'days', short: 'd', description: 'Days to keep (default: 7)', type: 'string' },
+        ],
+        action: async (ctx: CommandContext) => {
+          await verificationCommand({ subcommand: 'cleanup', days: ctx.options.days });
+        },
+      },
+    ],
+    action: async (ctx: CommandContext) => {
+      // Default to status if no subcommand
+      await verificationCommand({ subcommand: 'status' });
     },
   });
 
