@@ -1,8 +1,10 @@
-export { SecurityEnforcementSystem as default, SecurityEnforcementSystem } from './security';
-export { AgentAuthenticationSystem, AdvancedRateLimiter, AuditTrailSystem, ByzantineFaultToleranceSystem, ThresholdSignatureSystem, ZeroKnowledgeProofSystem, CryptographicCore } from './security';
-export * from './types';
-export { SECURITY_CONSTANTS } from './types';
-export { SecurityError, AuthenticationError, ByzantineError, CryptographicError, RateLimitError } from './types';
+export { SecurityEnforcementSystem as default, SecurityEnforcementSystem } from './security.js';
+export { AgentAuthenticationSystem, AdvancedRateLimiter, AuditTrailSystem, ByzantineFaultToleranceSystem, ThresholdSignatureSystem, ZeroKnowledgeProofSystem, CryptographicCore } from './security.js';
+export * from './types.js';
+export { SECURITY_CONSTANTS } from './types.js';
+export { SecurityError, AuthenticationError, ByzantineError, CryptographicError, RateLimitError } from './types.js';
+export { TruthDBAdapter, truthDBAdapter } from './truth-db-adapter.js';
+export { VerificationHookManager, verificationHookManager } from './hooks.js';
 export function createSecuritySystem(config) {
     const totalNodes = config?.totalNodes || 5;
     const threshold = config?.threshold || Math.floor(totalNodes * 2 / 3) + 1;
@@ -48,5 +50,6 @@ export function createHighSecuritySystem() {
         }
     });
 }
+export { VerificationCLICommands, createVerificationCommand, executeVerificationFromCLI } from './cli-integration.js';
 
 //# sourceMappingURL=index.js.map

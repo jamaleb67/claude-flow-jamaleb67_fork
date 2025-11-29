@@ -166,14 +166,4 @@ export class MetricsReader {
     }
 }
 
-//# sourceMappingURL=metrics-reader.js.map               processCount: 0,
-                orchestratorRunning: false,
-                port: null,
-                connections: 0
-            };
-        }
-    }
-};
-export { MetricsReader };
-
 //# sourceMappingURL=metrics-reader.js.map

@@ -1,7 +1,17 @@
 #!/usr/bin/env node
 import chalk from 'chalk';
 import fs from 'fs-extra';
-export const VERSION = '1.0.45';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const packageJsonPath = path.resolve(__dirname, '../../package.json');
+let VERSION_VALUE = '2.7.35-fork.1';
+try {
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+    VERSION_VALUE = packageJson.version || VERSION_VALUE;
+} catch  {}
+export const VERSION = VERSION_VALUE;
 let CLI = class CLI {
     name;
     description;

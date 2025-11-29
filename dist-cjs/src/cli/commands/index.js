@@ -14,6 +14,8 @@ import { sparcAction } from './sparc.js';
 import { createMigrateCommand } from './migrate.js';
 import { enterpriseCommands } from './enterprise.js';
 import { createFlowNexusClaudeMd } from '../simple-commands/init/templates/claude-md.js';
+import { verificationCommand } from '../simple-commands/verification.js';
+import { verificationCommand } from './verification.js';
 let orchestrator = null;
 let configManager = null;
 let persistence = null;
@@ -2304,9 +2306,144 @@ Now, please proceed with the task: ${task}`;
             }
         }
     });
+    cli.command({
+        name: 'verification',
+        description: 'Verification system management (truth score, validation, hooks)',
+        subcommands: [
+            {
+                name: 'status',
+                description: 'Show verification system status',
+                action: async (ctx)=>{
+                    await verificationCommand({
+                        subcommand: 'status'
+                    });
+                }
+            },
+            {
+                name: 'check',
+                description: 'Check verification status for a task',
+                options: [
+                    {
+                        name: 'taskId',
+                        short: 't',
+                        description: 'Task ID to check',
+                        type: 'string'
+                    }
+                ],
+                action: async (ctx)=>{
+                    await verificationCommand({
+                        subcommand: 'check',
+                        taskId: ctx.options.taskId
+                    });
+                }
+            },
+            {
+                name: 'config',
+                description: 'Show/update verification configuration',
+                options: [
+                    {
+                        name: 'set',
+                        short: 's',
+                        description: 'Set config (key=value)',
+                        type: 'string'
+                    }
+                ],
+                action: async (ctx)=>{
+                    await verificationCommand({
+                        subcommand: 'config',
+                        set: ctx.options.set
+                    });
+                }
+            },
+            {
+                name: 'validate',
+                description: 'Run validation on a task',
+                options: [
+                    {
+                        name: 'taskId',
+                        short: 't',
+                        description: 'Task ID to validate',
+                        type: 'string'
+                    }
+                ],
+                action: async (ctx)=>{
+                    await verificationCommand({
+                        subcommand: 'validate',
+                        taskId: ctx.options.taskId
+                    });
+                }
+            },
+            {
+                name: 'cleanup',
+                description: 'Clean up old verification data',
+                options: [
+                    {
+                        name: 'days',
+                        short: 'd',
+                        description: 'Days to keep (default: 7)',
+                        type: 'string'
+                    }
+                ],
+                action: async (ctx)=>{
+                    await verificationCommand({
+                        subcommand: 'cleanup',
+                        days: ctx.options.days
+                    });
+                }
+            }
+        ],
+        action: async (ctx)=>{
+            await verificationCommand({
+                subcommand: 'status'
+            });
+        }
+    });
     for (const command of enterpriseCommands){
         cli.command(command);
     }
+    cli.command({
+        name: 'verification',
+        description: 'Truth Score verification and validation system',
+        aliases: [
+            'verify',
+            'truth'
+        ],
+        subcommands: [
+            {
+                name: 'status',
+                description: 'Show verification system status'
+            },
+            {
+                name: 'check',
+                description: 'Run verification checks'
+            },
+            {
+                name: 'config',
+                description: 'Configure verification settings'
+            },
+            {
+                name: 'validate',
+                description: 'Validate agent outputs'
+            },
+            {
+                name: 'truth',
+                description: 'Run truth telemetry hooks'
+            },
+            {
+                name: 'rollback',
+                description: 'Rollback failed verifications'
+            },
+            {
+                name: 'help',
+                description: 'Show verification help'
+            }
+        ],
+        action: async (ctx)=>{
+            const subcommand = ctx.args[0] || 'status';
+            const subArgs = ctx.args.slice(1);
+            await verificationCommand(ctx.args || [], ctx.flags || {});
+        }
+    });
 }
 function getCapabilitiesForType(type) {
     const capabilities = {

@@ -1,5 +1,6 @@
 import { Logger } from '../core/logger.js';
 import { agenticHookManager } from '../services/agentic-flow-hooks/index.js';
+import { TruthDBAdapter } from './truth-db-adapter.js';
 const logger = new Logger({
     level: 'info',
     format: 'text',
@@ -38,13 +39,24 @@ export class VerificationHookManager {
     config;
     contexts = new Map();
     snapshots = new Map();
+    db;
     constructor(config = {}){
         this.config = {
             ...DEFAULT_VERIFICATION_CONFIG,
             ...config
         };
+        this.db = new TruthDBAdapter();
+        this.initializeDB();
         this.registerHooks();
         this.startTelemetryReporting();
+    }
+    async initializeDB() {
+        try {
+            await this.db.initialize();
+            logger.info('TruthDBAdapter initialized for persistent storage');
+        } catch (error) {
+            logger.warn('TruthDBAdapter initialization failed, using in-memory fallback:', error);
+        }
     }
     registerHooks() {
         this.registerPreTaskHook();
@@ -633,7 +645,24 @@ export class VerificationHookManager {
             }
         };
         this.contexts.set(verificationContext.taskId, verificationContext);
+        this.persistContext(verificationContext).catch((err)=>logger.warn(`Failed to persist context ${verificationContext.taskId}:`, err));
         return verificationContext;
+    }
+    async persistContext(context) {
+        const doc = {
+            taskId: context.taskId,
+            sessionId: context.sessionId,
+            timestamp: context.timestamp,
+            phase: context.state.phase,
+            accuracyScore: context.metrics.accuracyScore,
+            confidenceScore: context.metrics.confidenceScore,
+            passed: context.state.checksFailed.length === 0,
+            checksPassed: context.state.checksPassed,
+            checksFailed: context.state.checksFailed,
+            errorCount: context.state.errors.length,
+            metadata: context.metadata
+        };
+        await this.db.saveContext(context.taskId, doc);
     }
     getVerificationContext(taskId) {
         return this.contexts.get(taskId);
@@ -662,6 +691,15 @@ export class VerificationHookManager {
         }
         this.snapshots.get(context.taskId).push(snapshot);
         context.snapshots.push(snapshot);
+        const snapshotDoc = {
+            snapshotId: snapshot.id,
+            taskId: context.taskId,
+            timestamp: snapshot.timestamp,
+            phase: snapshot.phase,
+            state: snapshot.state,
+            metadata: snapshot.metadata
+        };
+        this.db.saveSnapshot(context.taskId, snapshotDoc).catch((err)=>logger.warn(`Failed to persist snapshot ${snapshot.id}:`, err));
         logger.debug(`Created snapshot '${snapshot.id}' for task '${context.taskId}' in phase '${phase}'`);
     }
     async restoreSnapshot(context, snapshot) {
@@ -730,6 +768,12 @@ export class VerificationHookManager {
     }
     getMetrics() {
         return this.aggregateMetrics();
+    }
+    async getStorageStats() {
+        return this.db.getStats();
+    }
+    isStorageReady() {
+        return this.db.isReady();
     }
     updateConfig(newConfig) {
         this.config = {
