@@ -8,7 +8,6 @@
 // Main security system
 export {
   SecurityEnforcementSystem as default,
-  feat/truth-db-adapter
   SecurityEnforcementSystem 
 } from './security.js';
 
@@ -34,7 +33,6 @@ export type {
   AuditEntry,
   SecurityMetrics
 } from './security.js';
- feat/truth-db-adapter
 
 // Utility functions and constants
 export { SECURITY_CONSTANTS } from './types.js';
@@ -141,23 +139,6 @@ export function createHighSecuritySystem(): SecurityEnforcementSystem {
     }
   });
 }
-
-// ===== Truth Score Persistence Layer =====
-export {
-  TruthDBAdapter,
-  truthDBAdapter,
-  type TruthScoreDocument,
-  type SnapshotDocument
-} from './truth-db-adapter.js';
-
-// ===== Verification Hook Manager =====
-export {
-  VerificationHookManager,
-  verificationHookManager,
-  type VerificationConfig,
-  type VerificationContext,
-  type StateSnapshot
-} from './hooks.js';
 
 // ===== CLI Integration =====
 export {

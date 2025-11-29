@@ -223,6 +223,17 @@ export class VerificationHookManager {
   private contexts: Map<string, VerificationContext> = new Map();  // In-memory cache
   private snapshots: Map<string, StateSnapshot[]> = new Map();     // In-memory cache
   private db: TruthDBAdapter;  // Persistent storage
+  
+  // Persistence failure tracking
+  private persistenceMetrics = {
+    totalAttempts: 0,
+    failures: 0,
+    consecutiveFailures: 0,
+    lastFailure: null as Date | null,
+    lastSuccess: null as Date | null,
+    degraded: false,
+  };
+  private static readonly MAX_CONSECUTIVE_FAILURES = 5;  // Threshold before degrading
 
   constructor(config: Partial<VerificationConfig> = {}) {
     this.config = { ...DEFAULT_VERIFICATION_CONFIG, ...config };
@@ -943,9 +954,25 @@ export class VerificationHookManager {
     this.contexts.set(verificationContext.taskId, verificationContext);
 
     // Persist to AgentDB (async, fire-and-forget to not block)
-    this.persistContext(verificationContext).catch(err =>
-      logger.warn(`Failed to persist context ${verificationContext.taskId}:`, err)
-    );
+    // Skip persistence if in degraded mode due to consecutive failures
+    if (!this.persistenceMetrics.degraded) {
+      this.persistContext(verificationContext).catch(err => {
+        this.persistenceMetrics.failures++;
+        this.persistenceMetrics.consecutiveFailures++;
+        this.persistenceMetrics.lastFailure = new Date();
+        
+        logger.warn(`Failed to persist context ${verificationContext.taskId}:`, err);
+        
+        // Degrade gracefully after MAX_CONSECUTIVE_FAILURES
+        if (this.persistenceMetrics.consecutiveFailures >= VerificationHookManager.MAX_CONSECUTIVE_FAILURES) {
+          this.persistenceMetrics.degraded = true;
+          logger.warn(
+            `Persistence degraded after ${this.persistenceMetrics.consecutiveFailures} consecutive failures. ` +
+            `Operating in memory-only mode.`
+          );
+        }
+      });
+    }
 
     return verificationContext;
   }
@@ -954,6 +981,8 @@ export class VerificationHookManager {
    * Persist verification context to AgentDB
    */
   private async persistContext(context: VerificationContext): Promise<void> {
+    this.persistenceMetrics.totalAttempts++;
+    
     const doc: TruthScoreDocument = {
       taskId: context.taskId,
       sessionId: context.sessionId,
@@ -968,6 +997,16 @@ export class VerificationHookManager {
       metadata: context.metadata
     };
     await this.db.saveContext(context.taskId, doc);
+    
+    // Track success and reset consecutive failures
+    this.persistenceMetrics.consecutiveFailures = 0;
+    this.persistenceMetrics.lastSuccess = new Date();
+    
+    // Attempt to recover from degraded mode if persistence starts working again
+    if (this.persistenceMetrics.degraded) {
+      this.persistenceMetrics.degraded = false;
+      logger.info('Persistence recovered from degraded mode');
+    }
   }
 
   private getVerificationContext(taskId: string): VerificationContext | undefined {
@@ -1010,18 +1049,36 @@ export class VerificationHookManager {
     this.snapshots.get(context.taskId)!.push(snapshot);
     context.snapshots.push(snapshot);
 
-    // Persist snapshot to AgentDB
-    const snapshotDoc: SnapshotDocument = {
-      snapshotId: snapshot.id,
-      taskId: context.taskId,
-      timestamp: snapshot.timestamp,
-      phase: snapshot.phase,
-      state: snapshot.state,
-      metadata: snapshot.metadata
-    };
-    this.db.saveSnapshot(context.taskId, snapshotDoc).catch(err =>
-      logger.warn(`Failed to persist snapshot ${snapshot.id}:`, err)
-    );
+    // Persist snapshot to AgentDB (skip if in degraded mode)
+    if (!this.persistenceMetrics.degraded) {
+      const snapshotDoc: SnapshotDocument = {
+        snapshotId: snapshot.id,
+        taskId: context.taskId,
+        timestamp: snapshot.timestamp,
+        phase: snapshot.phase,
+        state: snapshot.state,
+        metadata: snapshot.metadata
+      };
+      this.persistenceMetrics.totalAttempts++;
+      this.db.saveSnapshot(context.taskId, snapshotDoc).then(() => {
+        this.persistenceMetrics.consecutiveFailures = 0;
+        this.persistenceMetrics.lastSuccess = new Date();
+      }).catch(err => {
+        this.persistenceMetrics.failures++;
+        this.persistenceMetrics.consecutiveFailures++;
+        this.persistenceMetrics.lastFailure = new Date();
+        
+        logger.warn(`Failed to persist snapshot ${snapshot.id}:`, err);
+        
+        if (this.persistenceMetrics.consecutiveFailures >= VerificationHookManager.MAX_CONSECUTIVE_FAILURES) {
+          this.persistenceMetrics.degraded = true;
+          logger.warn(
+            `Persistence degraded after ${this.persistenceMetrics.consecutiveFailures} consecutive failures. ` +
+            `Operating in memory-only mode.`
+          );
+        }
+      });
+    }
 
     logger.debug(`Created snapshot '${snapshot.id}' for task '${context.taskId}' in phase '${phase}'`);
   }
@@ -1166,6 +1223,48 @@ export class VerificationHookManager {
    */
   public isStorageReady(): boolean {
     return this.db.isReady();
+  }
+
+  /**
+   * Get persistence health metrics
+   * @returns Object containing persistence failure statistics and status
+   */
+  public getPersistenceMetrics(): {
+    totalAttempts: number;
+    failures: number;
+    consecutiveFailures: number;
+    lastFailure: Date | null;
+    lastSuccess: Date | null;
+    degraded: boolean;
+    successRate: number;
+  } {
+    const successRate = this.persistenceMetrics.totalAttempts > 0
+      ? ((this.persistenceMetrics.totalAttempts - this.persistenceMetrics.failures) / 
+          this.persistenceMetrics.totalAttempts) * 100
+      : 100;
+      
+    return {
+      ...this.persistenceMetrics,
+      successRate: Math.round(successRate * 100) / 100
+    };
+  }
+
+  /**
+   * Check if persistence is working properly (not degraded and storage ready)
+   * @returns true if persistence is operational
+   */
+  public isPersistenceHealthy(): boolean {
+    return this.db.isReady() && !this.persistenceMetrics.degraded;
+  }
+
+  /**
+   * Attempt to recover from degraded mode
+   * Resets the degraded flag to allow retry of persistence operations
+   */
+  public resetPersistenceState(): void {
+    this.persistenceMetrics.consecutiveFailures = 0;
+    this.persistenceMetrics.degraded = false;
+    logger.info('Persistence state reset - will retry persistence operations');
   }
 
   /**

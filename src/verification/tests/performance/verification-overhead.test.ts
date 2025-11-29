@@ -50,7 +50,7 @@ interface BenchmarkThresholds {
 describe('Verification System Performance Benchmarks', () => {
   let tempDir: string;
   let calculator: any;
-  let performanceResults: BenchmarkResult[] = [];
+  const performanceResults: BenchmarkResult[] = [];
 
   beforeAll(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'verification-perf-'));
