@@ -7,7 +7,20 @@ import chalk from 'chalk';
 import fs from 'fs-extra';
 import path from 'path';
 
-export const VERSION = '1.0.45';
+import { fileURLToPath } from 'url';
+
+// Dynamic version from package.json (PR #706 pattern)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const packageJsonPath = path.resolve(__dirname, '../../package.json');
+let VERSION_VALUE = '2.7.35-fork.1';
+try {
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+  VERSION_VALUE = packageJson.version || VERSION_VALUE;
+} catch {
+  // Fallback to hardcoded version if package.json not found
+}
+export const VERSION = VERSION_VALUE;
 
 interface CommandContext {
   args: string[];

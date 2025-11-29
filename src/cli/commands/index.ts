@@ -22,6 +22,8 @@ import { startCommand } from './start.js';
 import { statusCommand } from './status.js';
 import { monitorCommand } from './monitor.js';
 import { sessionCommand } from './session.js';
+// Import verification from simple-commands (self-contained JS)
+import { verificationCommand } from '../simple-commands/verification.js';
 
 let orchestrator: Orchestrator | null = null;
 let configManager: ConfigManager | null = null;
@@ -2535,6 +2537,27 @@ Now, please proceed with the task: ${task}`;
   for (const command of enterpriseCommands) {
     cli.command(command);
   }
+
+  // Verification command (Truth Score system)
+  cli.command({
+    name: 'verification',
+    description: 'Truth Score verification and validation system',
+    aliases: ['verify', 'truth'],
+    subcommands: [
+      { name: 'status', description: 'Show verification system status' },
+      { name: 'check', description: 'Run verification checks' },
+      { name: 'config', description: 'Configure verification settings' },
+      { name: 'validate', description: 'Validate agent outputs' },
+      { name: 'truth', description: 'Run truth telemetry hooks' },
+      { name: 'rollback', description: 'Rollback failed verifications' },
+      { name: 'help', description: 'Show verification help' },
+    ],
+    action: async (ctx: CommandContext) => {
+      const subcommand = ctx.args[0] || 'status';
+      const subArgs = ctx.args.slice(1);
+      await verificationCommand(ctx.args || [], ctx.flags || {});
+    },
+  });
 }
 
 function getCapabilitiesForType(type: string): string[] {

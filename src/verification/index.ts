@@ -9,7 +9,7 @@
 export { 
   SecurityEnforcementSystem as default,
   SecurityEnforcementSystem 
-} from './security';
+} from './security.js';
 
 // Individual security components
 export {
@@ -20,10 +20,10 @@ export {
   ThresholdSignatureSystem,
   ZeroKnowledgeProofSystem,
   CryptographicCore
-} from './security';
+} from './security.js';
 
 // Types and interfaces
-export * from './types';
+export * from './types.js';
 
 // Re-export verification interfaces for backward compatibility
 export type {
@@ -32,10 +32,10 @@ export type {
   VerificationResult,
   AuditEntry,
   SecurityMetrics
-} from './security';
+} from './security.js';
 
 // Utility functions and constants
-export { SECURITY_CONSTANTS } from './types';
+export { SECURITY_CONSTANTS } from './types.js';
 
 // Error classes
 export {
@@ -44,7 +44,7 @@ export {
   ByzantineError,
   CryptographicError,
   RateLimitError
-} from './types';
+} from './types.js';
 
 /**
  * Factory function to create a configured security system
