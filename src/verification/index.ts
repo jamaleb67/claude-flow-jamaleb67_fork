@@ -8,7 +8,8 @@
 // Main security system
 export {
   SecurityEnforcementSystem as default,
-  SecurityEnforcementSystem
+  feat/truth-db-adapter
+  SecurityEnforcementSystem 
 } from './security.js';
 
 // Individual security components
@@ -33,6 +34,37 @@ export type {
   AuditEntry,
   SecurityMetrics
 } from './security.js';
+ feat/truth-db-adapter
+
+// Utility functions and constants
+export { SECURITY_CONSTANTS } from './types.js';
+
+// Error classes
+export {
+  SecurityError,
+  AuthenticationError,
+  ByzantineError,
+  CryptographicError,
+  RateLimitError
+} from './types.js';
+
+// Truth DB Adapter for persistent storage
+export {
+  TruthDBAdapter,
+  truthDBAdapter,
+  type TruthScoreDocument,
+  type SnapshotDocument
+} from './truth-db-adapter.js';
+
+// Verification Hooks (with persistence)
+export {
+  VerificationHookManager,
+  verificationHookManager,
+  type VerificationConfig,
+  type VerificationContext,
+  type StateSnapshot
+} from './hooks.js';
+
 
 /**
  * Factory function to create a configured security system
